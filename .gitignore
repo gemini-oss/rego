@@ -1,0 +1,32 @@
+# macOS system files
+.DS_Store
+
+# Go binaries and executables
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go test and benchmark results
+*.test
+*.prof
+
+# Go coverage profiles
+*.out
+
+# Go workspace file
+go.work
+
+# Binary files
+*.bin
+*.bak
+*.swp
+*.zip
+
+# Editor-specific files
+.vscode/
+.idea/
+
+# Build output
+/build/

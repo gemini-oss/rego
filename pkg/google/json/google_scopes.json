@@ -1,0 +1,1793 @@
+{
+  "ACME DNS API": {
+    "description": "Google Domains ACME DNS API that allows users to complete ACME DNS-01 challenges for a domain."
+  },
+  "AI Platform Training \u0026 Prediction API": {
+    "description": "An API to enable creating and using machine learning models.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform.read-only",
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "API Discovery Service": {
+    "description": "Provides information about other Google APIs, such as what APIs are available, the resource, and method details for each API."
+  },
+  "API Gateway API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "API Keys API": {
+    "description": "Manages the API keys associated with developer projects.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only"
+    ]
+  },
+  "Abusive Experience Report API": {
+    "description": "Views Abusive Experience Report data, and gets a list of sites that have a significant number of abusive experiences."
+  },
+  "Accelerated Mobile Pages (AMP) URL API": {
+    "description": "Retrieves the list of AMP URLs (and equivalent AMP Cache URLs) for a given list of public URL(s). "
+  },
+  "Access Approval API": {
+    "description": "An API for controlling access to data by Google personnel.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Access Context Manager API": {
+    "description": "An API for setting attribute based access control to requests to Google Cloud services.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Ad Exchange Buyer API II": {
+    "description": "Accesses the latest features for managing Authorized Buyers accounts, Real-Time Bidding configurations and auction metrics, and Marketplace programmatic deals.",
+    "scopes": [
+      "https://www.googleapis.com/auth/adexchange.buyer"
+    ]
+  },
+  "Ad Experience Report API": {
+    "description": "Views Ad Experience Report data, and gets a list of sites that have a significant number of annoying ads."
+  },
+  "AdMob API": {
+    "description": "The AdMob API allows publishers to programmatically get information about their AdMob account. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/admob.readonly",
+      "https://www.googleapis.com/auth/admob.report"
+    ]
+  },
+  "AdSense Host API": {
+    "description": "Generates performance reports, generates ad codes, and provides publisher management capabilities for AdSense Hosts.",
+    "scopes": [
+      "https://www.googleapis.com/auth/adsensehost"
+    ]
+  },
+  "AdSense Management API": {
+    "description": "The AdSense Management API allows publishers to access their inventory and run earnings and performance reports.",
+    "scopes": [
+      "https://www.googleapis.com/auth/adsense",
+      "https://www.googleapis.com/auth/adsense.readonly"
+    ]
+  },
+  "Admin SDK API": {
+    "description": "Admin SDK lets administrators of enterprise domains to view and manage resources like user, groups etc. It also provides audit and usage reports of domain.",
+    "scopes": [
+      "https://www.googleapis.com/auth/admin.datatransfer",
+      "https://www.googleapis.com/auth/admin.datatransfer.readonly",
+      "https://www.googleapis.com/auth/admin.directory.device.mobile.action",
+      "https://www.googleapis.com/auth/admin.directory.user",
+      "https://www.googleapis.com/auth/admin.directory.user.readonly",
+      "https://www.googleapis.com/auth/admin.directory.userschema.readonly",
+      "https://www.googleapis.com/auth/admin.directory.device.chromeos.readonly",
+      "https://www.googleapis.com/auth/admin.directory.rolemanagement.readonly",
+      "https://www.googleapis.com/auth/admin.directory.user.alias",
+      "https://www.googleapis.com/auth/admin.chrome.printers",
+      "https://www.googleapis.com/auth/admin.directory.customer.readonly",
+      "https://www.googleapis.com/auth/admin.directory.device.mobile",
+      "https://www.googleapis.com/auth/admin.directory.group.member.readonly",
+      "https://www.googleapis.com/auth/admin.directory.orgunit.readonly",
+      "https://www.googleapis.com/auth/admin.directory.resource.calendar.readonly",
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/admin.directory.domain.readonly",
+      "https://www.googleapis.com/auth/admin.directory.group.readonly",
+      "https://www.googleapis.com/auth/admin.directory.userschema",
+      "https://www.googleapis.com/auth/admin.chrome.printers.readonly",
+      "https://www.googleapis.com/auth/admin.directory.customer",
+      "https://www.googleapis.com/auth/admin.directory.device.chromeos",
+      "https://www.googleapis.com/auth/admin.directory.device.mobile.readonly",
+      "https://www.googleapis.com/auth/admin.directory.domain",
+      "https://www.googleapis.com/auth/admin.directory.group",
+      "https://www.googleapis.com/auth/admin.directory.group.member",
+      "https://www.googleapis.com/auth/admin.directory.orgunit",
+      "https://www.googleapis.com/auth/admin.directory.resource.calendar",
+      "https://www.googleapis.com/auth/admin.directory.rolemanagement",
+      "https://www.googleapis.com/auth/admin.directory.user.alias.readonly",
+      "https://www.googleapis.com/auth/admin.directory.user.security",
+      "https://www.googleapis.com/auth/admin.reports.usage.readonly",
+      "https://www.googleapis.com/auth/admin.reports.audit.readonly"
+    ]
+  },
+  "Advisory Notifications API": {
+    "description": "An API for accessing Advisory Notifications in Google Cloud",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Analytics Hub API": {
+    "description": "Exchange data and analytics assets securely and efficiently.",
+    "scopes": [
+      "https://www.googleapis.com/auth/bigquery",
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Analytics Reporting API": {
+    "description": "Accesses Analytics report data.",
+    "scopes": [
+      "https://www.googleapis.com/auth/analytics",
+      "https://www.googleapis.com/auth/analytics.readonly"
+    ]
+  },
+  "Android Device Provisioning Partner API": {
+    "description": "Automates Android zero-touch enrollment for device resellers, customers, and EMMs."
+  },
+  "Android Management API": {
+    "description": "The Android Management API provides remote enterprise management of Android devices and apps.",
+    "scopes": [
+      "https://www.googleapis.com/auth/androidmanagement"
+    ]
+  },
+  "Anthos On-Prem API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Apigee API": {
+    "description": "Use the Apigee API to programmatically develop and manage APIs with a set of RESTful operations. Develop and secure API proxies, deploy and undeploy API proxy revisions, monitor APIs, configure environments, manage users, and more. Note: This product is available as a free trial for a time period of 60 days.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Apigee Registry API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "App Engine Admin API": {
+    "description": "Provisions and manages developers' App Engine applications.",
+    "scopes": [
+      "https://www.googleapis.com/auth/appengine.admin",
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only"
+    ]
+  },
+  "Application Integration API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Apps Script API": {
+    "description": "Manages and executes Google Apps Script projects. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/script.projects",
+      "https://www.googleapis.com/auth/spreadsheets",
+      "https://www.googleapis.com/auth/documents",
+      "https://www.googleapis.com/auth/drive",
+      "https://www.googleapis.com/auth/script.metrics",
+      "https://www.googleapis.com/auth/script.deployments",
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://mail.google.com/",
+      "https://www.googleapis.com/auth/admin.directory.group",
+      "https://www.googleapis.com/auth/forms.currentonly",
+      "https://www.googleapis.com/auth/forms",
+      "https://www.googleapis.com/auth/script.deployments.readonly",
+      "https://www.googleapis.com/auth/script.processes",
+      "https://www.googleapis.com/auth/script.projects.readonly",
+      "https://www.google.com/calendar/feeds",
+      "https://www.google.com/m8/feeds",
+      "https://www.googleapis.com/auth/admin.directory.user",
+      "https://www.googleapis.com/auth/groups"
+    ]
+  },
+  "Area120 Tables API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/spreadsheets.readonly",
+      "https://www.googleapis.com/auth/tables",
+      "https://www.googleapis.com/auth/drive",
+      "https://www.googleapis.com/auth/drive.file",
+      "https://www.googleapis.com/auth/drive.readonly",
+      "https://www.googleapis.com/auth/spreadsheets"
+    ]
+  },
+  "Artifact Registry API": {
+    "description": "Store and manage build artifacts in a scalable and integrated service built on Google infrastructure.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only"
+    ]
+  },
+  "Assured Workloads API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Authorized Buyers Marketplace API": {
+    "description": "The Authorized Buyers Marketplace API lets buyers programmatically discover inventory; propose, retrieve and negotiate deals with publishers.",
+    "scopes": [
+      "https://www.googleapis.com/auth/authorized-buyers-marketplace"
+    ]
+  },
+  "Backup for GKE API": {
+    "description": "Backup for GKE is a managed Kubernetes workload backup and restore service for GKE clusters.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Bare Metal Solution API": {
+    "description": "Provides ways to manage Bare Metal Solution hardware installed in a regional extension located near a Google Cloud data center.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Batch API": {
+    "description": "An API to manage the running of batch jobs on Google Cloud Platform.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "BeyondCorp API": {
+    "description": "Beyondcorp Enterprise provides identity and context aware access controls for enterprise resources and enables zero-trust access. Using the Beyondcorp Enterprise APIs, enterprises can set up multi-cloud and on-prem connectivity solutions.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "BigQuery API": {
+    "description": "A data platform for customers to create, manage, share and query data.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only",
+      "https://www.googleapis.com/auth/devstorage.full_control",
+      "https://www.googleapis.com/auth/devstorage.read_only",
+      "https://www.googleapis.com/auth/devstorage.read_write",
+      "https://www.googleapis.com/auth/bigquery",
+      "https://www.googleapis.com/auth/bigquery.insertdata"
+    ]
+  },
+  "BigQuery Connection API": {
+    "description": "Allows users to manage BigQuery connections to external data sources.",
+    "scopes": [
+      "https://www.googleapis.com/auth/bigquery",
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "BigQuery Data Transfer API": {
+    "description": "Schedule queries or transfer external data from SaaS applications to Google BigQuery on a regular basis.",
+    "scopes": [
+      "https://www.googleapis.com/auth/bigquery",
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only"
+    ]
+  },
+  "BigQuery Reservation API": {
+    "description": "A service to modify your BigQuery flat-rate reservations.",
+    "scopes": [
+      "https://www.googleapis.com/auth/bigquery",
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Binary Authorization API": {
+    "description": "The management interface for Binary Authorization, a service that provides policy-based deployment validation and control for images deployed to Google Kubernetes Engine (GKE), Anthos Service Mesh, Anthos Clusters, and Cloud Run. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Blockchain Node Engine API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Blogger API": {
+    "description": "The Blogger API provides access to posts, comments and pages of a Blogger blog.",
+    "scopes": [
+      "https://www.googleapis.com/auth/blogger",
+      "https://www.googleapis.com/auth/blogger.readonly"
+    ]
+  },
+  "Books API": {
+    "description": "The Google Books API allows clients to access the Google Books repository.",
+    "scopes": [
+      "https://www.googleapis.com/auth/books"
+    ]
+  },
+  "Business Profile Performance API": {
+    "description": "The Business Profile Performance API allows merchants to fetch performance reports about their business profile on Google. Note - If you have a quota of 0 after enabling the API, please request for GBP API access."
+  },
+  "Calendar API": {
+    "description": "Manipulates events and other calendar data.",
+    "scopes": [
+      "https://www.googleapis.com/auth/calendar.events",
+      "https://www.googleapis.com/auth/calendar.events.readonly",
+      "https://www.googleapis.com/auth/calendar.readonly",
+      "https://www.googleapis.com/auth/calendar.settings.readonly",
+      "https://www.googleapis.com/auth/calendar"
+    ]
+  },
+  "Campaign Manager 360 API": {
+    "description": "Build applications to efficiently manage large or complex trafficking, reporting, and attribution workflows for Campaign Manager 360.",
+    "scopes": [
+      "https://www.googleapis.com/auth/dfatrafficking",
+      "https://www.googleapis.com/auth/ddmconversions",
+      "https://www.googleapis.com/auth/dfareporting"
+    ]
+  },
+  "Certificate Authority API": {
+    "description": "The Certificate Authority Service API is a highly-available, scalable service that enables you to simplify and automate the management of private certificate authorities (CAs) while staying in control of your private keys. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Certificate Manager API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Checks API": {
+    "description": "The Checks API contains powerful and easy-to-use privacy and compliance APIs that interact with the Checks product and its underlying technology.",
+    "scopes": [
+      "https://www.googleapis.com/auth/xapi.zoo"
+    ]
+  },
+  "Chrome Management API": {
+    "description": "The Chrome Management API is a suite of services that allows Chrome administrators to view, manage and gain insights on their Chrome OS and Chrome Browser devices.",
+    "scopes": [
+      "https://www.googleapis.com/auth/chrome.management.appdetails.readonly",
+      "https://www.googleapis.com/auth/chrome.management.reports.readonly",
+      "https://www.googleapis.com/auth/chrome.management.telemetry.readonly"
+    ]
+  },
+  "Chrome Policy API": {
+    "description": "The Chrome Policy API is a suite of services that allows Chrome administrators to control the policies applied to their managed Chrome OS devices and Chrome browsers.",
+    "scopes": [
+      "https://www.googleapis.com/auth/chrome.management.policy",
+      "https://www.googleapis.com/auth/chrome.management.policy.readonly"
+    ]
+  },
+  "Chrome UX Report API": {
+    "description": "The Chrome UX Report API lets you view real user experience data for millions of websites. "
+  },
+  "Chrome Verified Access API": {
+    "description": "API for Verified Access chrome extension to provide credential verification for chrome devices connecting to an enterprise network",
+    "scopes": [
+      "https://www.googleapis.com/auth/verifiedaccess"
+    ]
+  },
+  "Cloud Asset API": {
+    "description": "The Cloud Asset API manages the history and inventory of Google Cloud resources.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Bigtable Admin API": {
+    "description": "Administer your Cloud Bigtable tables and instances.",
+    "scopes": [
+      "https://www.googleapis.com/auth/bigtable.admin.cluster",
+      "https://www.googleapis.com/auth/cloud-bigtable.admin",
+      "https://www.googleapis.com/auth/bigtable.admin",
+      "https://www.googleapis.com/auth/bigtable.admin.table",
+      "https://www.googleapis.com/auth/cloud-bigtable.admin.cluster",
+      "https://www.googleapis.com/auth/cloud-bigtable.admin.table",
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only",
+      "https://www.googleapis.com/auth/bigtable.admin.instance"
+    ]
+  },
+  "Cloud Billing API": {
+    "description": "Allows developers to manage billing for their Google Cloud Platform projects programmatically.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-billing",
+      "https://www.googleapis.com/auth/cloud-billing.readonly",
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Billing Budget API": {
+    "description": "The Cloud Billing Budget API stores Cloud Billing budgets, which define a budget plan and the rules to execute as spend is tracked against that plan.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-billing",
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Build API": {
+    "description": "Creates and manages builds on Google Cloud Platform.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Channel API": {
+    "description": "The Cloud Channel API enables Google Cloud partners to have a single unified resale platform and APIs across all of Google Cloud including GCP, Workspace, Maps and Chrome.",
+    "scopes": [
+      "https://www.googleapis.com/auth/apps.order",
+      "https://www.googleapis.com/auth/apps.reports.usage.readonly"
+    ]
+  },
+  "Cloud Composer API": {
+    "description": "Manages Apache Airflow environments on Google Cloud Platform.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud DNS API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only",
+      "https://www.googleapis.com/auth/ndev.clouddns.readonly",
+      "https://www.googleapis.com/auth/ndev.clouddns.readwrite"
+    ]
+  },
+  "Cloud Data Fusion API": {
+    "description": "Cloud Data Fusion is a fully-managed, cloud native, enterprise data integration service for quickly building and managing data pipelines. It provides a graphical interface to increase time efficiency and reduce complexity, and allows business users, developers, and data scientists to easily and reliably build scalable data integration solutions to cleanse, prepare, blend, transfer and transform data without having to wrestle with infrastructure.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Data Loss Prevention (DLP)": {
+    "description": "Provides methods for detection, risk analysis, and de-identification of privacy-sensitive fragments in text, images, and Google Cloud Platform storage repositories.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Dataplex API": {
+    "description": "Dataplex API is used to manage the lifecycle of data lakes.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Dataproc API": {
+    "description": "Manages Hadoop-based clusters and jobs on Google Cloud Platform.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Datastore API": {
+    "description": "Accesses the schemaless NoSQL database to provide fully managed, robust, scalable storage for your application. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/datastore",
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Debugger API (Deprecated)": {
+    "description": "Examines the call stack and variables of a running application without stopping or slowing it down. (Deprecated) ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud_debugger"
+    ]
+  },
+  "Cloud Deployment Manager V2 API": {
+    "description": "The Google Cloud Deployment Manager v2 API provides services for configuring, deploying, and viewing Google Cloud services and APIs via templates which specify deployments of Cloud resources.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only",
+      "https://www.googleapis.com/auth/ndev.cloudman",
+      "https://www.googleapis.com/auth/ndev.cloudman.readonly"
+    ]
+  },
+  "Cloud Document AI API": {
+    "description": "Service to parse structured information from unstructured or semi-structured documents using state-of-the-art Google AI such as natural language, computer vision, translation, and AutoML.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Domains API": {
+    "description": "Enables management and configuration of domain names.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Filestore API": {
+    "description": "The Cloud Filestore API is used for creating and managing cloud file servers.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Firestore API": {
+    "description": "Accesses the NoSQL document database built for automatic scaling, high performance, and ease of application development. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/datastore"
+    ]
+  },
+  "Cloud Functions API": {
+    "description": "Manages lightweight user-provided functions executed in response to events.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Healthcare API": {
+    "description": "Manage, store, and access healthcare data in Google Cloud Platform.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud IDS API": {
+    "description": "Cloud IDS (Cloud Intrusion Detection System) detects malware, spyware, command-and-control attacks, and other network-based threats. Its security efficacy is industry leading, built with Palo Alto Networks technologies. When you use this product, your organization name and consumption levels will be shared with Palo Alto Networks.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Identity API": {
+    "description": "API for provisioning and managing identity resources.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-identity.devices",
+      "https://www.googleapis.com/auth/cloud-identity.devices.lookup",
+      "https://www.googleapis.com/auth/cloud-identity.devices.readonly",
+      "https://www.googleapis.com/auth/cloud-identity.groups",
+      "https://www.googleapis.com/auth/cloud-identity.groups.readonly"
+    ]
+  },
+  "Cloud Identity-Aware Proxy API": {
+    "description": "Controls access to cloud applications running on Google Cloud Platform.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Key Management Service (KMS) API": {
+    "description": "Manages keys and performs cryptographic operations in a central cloud service, for direct use by other cloud resources and applications. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloudkms"
+    ]
+  },
+  "Cloud Life Sciences API": {
+    "description": "Cloud Life Sciences is a suite of services and tools for managing, processing, and transforming life sciences data.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Logging API": {
+    "description": "Writes log entries and manages your Cloud Logging configuration.",
+    "scopes": [
+      "https://www.googleapis.com/auth/logging.read",
+      "https://www.googleapis.com/auth/logging.write",
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only",
+      "https://www.googleapis.com/auth/logging.admin"
+    ]
+  },
+  "Cloud Memorystore for Memcached API": {
+    "description": "Google Cloud Memorystore for Memcached API is used for creating and managing Memcached instances in GCP.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Monitoring API": {
+    "description": "Manages your Cloud Monitoring data and configurations.",
+    "scopes": [
+      "https://www.googleapis.com/auth/monitoring.read",
+      "https://www.googleapis.com/auth/monitoring.write",
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/monitoring"
+    ]
+  },
+  "Cloud Natural Language API": {
+    "description": "Provides natural language understanding technologies, such as sentiment analysis, entity recognition, entity sentiment analysis, and other text annotations, to developers.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-language",
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud OS Login API": {
+    "description": "You can use OS Login to manage access to your VM instances using IAM roles.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only",
+      "https://www.googleapis.com/auth/compute",
+      "https://www.googleapis.com/auth/compute.readonly"
+    ]
+  },
+  "Cloud Profiler API": {
+    "description": "Manages continuous profiling information.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/monitoring",
+      "https://www.googleapis.com/auth/monitoring.write"
+    ]
+  },
+  "Cloud Pub/Sub API": {
+    "description": "Provides reliable, many-to-many, asynchronous messaging between applications. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/pubsub"
+    ]
+  },
+  "Cloud Resource Manager API": {
+    "description": "Creates, reads, and updates metadata for Google Cloud Platform resource containers.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only"
+    ]
+  },
+  "Cloud Run Admin API": {
+    "description": "Deploy and manage user provided container images that scale automatically based on incoming requests. The Cloud Run Admin API v1 follows the Knative Serving API specification, while v2 is aligned with Google Cloud AIP-based API standards, as described in https://google.aip.dev/.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Runtime Configuration API": {
+    "description": "The Runtime Configurator allows you to dynamically configure and expose variables through Google Cloud Platform. In addition, you can also set Watchers and Waiters that will watch for changes to your data and return based on certain conditions.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloudruntimeconfig",
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud SQL Admin API": {
+    "description": "API for Cloud SQL database instance management",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/sqlservice.admin"
+    ]
+  },
+  "Cloud Scheduler API": {
+    "description": "Creates and manages jobs run on a regular recurring schedule.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Search API": {
+    "description": "Cloud Search provides cloud-based search capabilities over Google Workspace data. The Cloud Search API allows indexing of non-Google Workspace data into Cloud Search.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud_search",
+      "https://www.googleapis.com/auth/cloud_search.stats",
+      "https://www.googleapis.com/auth/cloud_search.stats.indexing",
+      "https://www.googleapis.com/auth/cloud_search.debug",
+      "https://www.googleapis.com/auth/cloud_search.indexing",
+      "https://www.googleapis.com/auth/cloud_search.query",
+      "https://www.googleapis.com/auth/cloud_search.settings",
+      "https://www.googleapis.com/auth/cloud_search.settings.indexing",
+      "https://www.googleapis.com/auth/cloud_search.settings.query"
+    ]
+  },
+  "Cloud Shell API": {
+    "description": "Allows users to start, configure, and connect to interactive shell sessions running in the cloud. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Source Repositories API": {
+    "description": "Accesses source code repositories hosted by Google.",
+    "scopes": [
+      "https://www.googleapis.com/auth/source.read_only",
+      "https://www.googleapis.com/auth/source.read_write",
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/source.full_control"
+    ]
+  },
+  "Cloud Spanner API": {
+    "description": "Cloud Spanner is a managed, mission-critical, globally consistent and scalable relational database service.",
+    "scopes": [
+      "https://www.googleapis.com/auth/spanner.data",
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/spanner.admin"
+    ]
+  },
+  "Cloud Speech-to-Text API": {
+    "description": "Converts audio to text by applying powerful neural network models.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Storage JSON API": {
+    "description": "Stores and retrieves potentially large, immutable data objects.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only",
+      "https://www.googleapis.com/auth/devstorage.full_control",
+      "https://www.googleapis.com/auth/devstorage.read_only",
+      "https://www.googleapis.com/auth/devstorage.read_write"
+    ]
+  },
+  "Cloud Storage for Firebase API": {
+    "description": "The Cloud Storage for Firebase API enables programmatic management of Cloud Storage buckets for use in Firebase projects",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/firebase"
+    ]
+  },
+  "Cloud TPU API": {
+    "description": "TPU API provides customers with access to Google TPU technology.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Talent Solution API": {
+    "description": "Cloud Talent Solution provides the capability to create, read, update, and delete job postings, as well as search jobs based on keywords and filters. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/jobs"
+    ]
+  },
+  "Cloud Tasks API": {
+    "description": "Manages the execution of large numbers of distributed requests.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Testing API": {
+    "description": "Allows developers to run automated tests for their mobile applications on Google infrastructure.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only"
+    ]
+  },
+  "Cloud Text-to-Speech API": {
+    "description": "Synthesizes natural-sounding speech by applying powerful neural network models.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Tool Results API": {
+    "description": "API to publish and access results from developer tools.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Trace API": {
+    "description": "Sends application trace data to Cloud Trace for viewing. Trace data is collected for all App Engine applications by default. Trace data from other applications can be provided using this API. This library is used to interact with the Cloud Trace API directly. If you are looking to instrument your application for Cloud Trace, we recommend using OpenTelemetry. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/trace.append",
+      "https://www.googleapis.com/auth/trace.readonly"
+    ]
+  },
+  "Cloud Translation API": {
+    "description": "Integrates text translation into your website or application.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-translation"
+    ]
+  },
+  "Cloud Video Intelligence API": {
+    "description": "Detects objects, explicit content, and scene changes in videos. It also specifies the region for annotation and transcribes speech to text. Supports both asynchronous API and streaming API.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Cloud Vision API": {
+    "description": "Integrates Google Vision features, including image labeling, face, logo, and landmark detection, optical character recognition (OCR), and detection of explicit content, into applications.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-vision"
+    ]
+  },
+  "Cloud Workstations API": {
+    "description": "Allows administrators to create managed developer environments in the cloud. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Compute Engine API": {
+    "description": "Creates and runs virtual machines on Google Cloud Platform. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/compute",
+      "https://www.googleapis.com/auth/compute.readonly",
+      "https://www.googleapis.com/auth/devstorage.full_control",
+      "https://www.googleapis.com/auth/devstorage.read_only",
+      "https://www.googleapis.com/auth/devstorage.read_write"
+    ]
+  },
+  "Connectors API": {
+    "description": "Enables users to create and manage connections to Google Cloud services and third-party business applications using the Connectors interface.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Contact Center AI Insights API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Contact Center AI Platform API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Container Analysis API": {
+    "description": "An implementation of the Grafeas API, which stores, and enables querying and retrieval of critical metadata about all of your software artifacts.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Content API for Shopping": {
+    "description": "Manage your product listings and accounts for Google Shopping",
+    "scopes": [
+      "https://www.googleapis.com/auth/content"
+    ]
+  },
+  "Custom Search API": {
+    "description": "Searches over a website or collection of websites"
+  },
+  "Data Labeling API": {
+    "description": "Public API for Google Cloud AI Data Labeling Service.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Data Lineage API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Data pipelines API": {
+    "description": "Data Pipelines provides an interface for creating, updating, and managing recurring Data Analytics jobs.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Database Migration API": {
+    "description": "Manage Cloud Database Migration Service resources on Google Cloud Platform.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Dataflow API": {
+    "description": "Manages Google Cloud Dataflow projects on Google Cloud Platform.",
+    "scopes": [
+      "https://www.googleapis.com/auth/compute.readonly",
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/compute"
+    ]
+  },
+  "Dataform API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Dataproc Metastore API": {
+    "description": "The Dataproc Metastore API is used to manage the lifecycle and configuration of metastore services.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Datastream API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Dialogflow API": {
+    "description": "Builds conversational interfaces (for example, chatbots, and voice-powered apps and devices).",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/dialogflow"
+    ]
+  },
+  "Digital Asset Links API": {
+    "description": "Discovers relationships between online assets such as websites or mobile apps."
+  },
+  "Discovery Engine API": {
+    "description": "Discovery Engine API.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Display \u0026 Video 360 API": {
+    "description": "Display \u0026 Video 360 API allows users to automate complex Display \u0026 Video 360 workflows, such as creating insertion orders and setting targeting options for individual line items.",
+    "scopes": [
+      "https://www.googleapis.com/auth/display-video-user-management",
+      "https://www.googleapis.com/auth/doubleclickbidmanager",
+      "https://www.googleapis.com/auth/display-video",
+      "https://www.googleapis.com/auth/display-video-mediaplanning"
+    ]
+  },
+  "Document AI Warehouse API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Domains RDAP API": {
+    "description": "Read-only public API that lets users search for information about domain names."
+  },
+  "DoubleClick Bid Manager API": {
+    "description": "DoubleClick Bid Manager API allows users to manage and create campaigns and reports.",
+    "scopes": [
+      "https://www.googleapis.com/auth/doubleclickbidmanager"
+    ]
+  },
+  "Drive Activity API": {
+    "description": "Provides a historical view of activity in Google Drive.",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive.activity",
+      "https://www.googleapis.com/auth/drive.activity.readonly"
+    ]
+  },
+  "Drive Labels API": {
+    "description": "An API for managing Drive Labels"
+  },
+  "Enterprise License Manager API": {
+    "description": "The Google Enterprise License Manager API lets you manage Google Workspace and related licenses for all users of a customer that you manage.",
+    "scopes": [
+      "https://www.googleapis.com/auth/apps.licensing"
+    ]
+  },
+  "Error Reporting API": {
+    "description": "Groups and counts similar errors from cloud services and applications, reports new errors, and provides access to error groups and their associated errors. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Essential Contacts API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Eventarc API": {
+    "description": "Build event-driven applications on Google Cloud Platform.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Fact Check Tools API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+    ]
+  },
+  "Firebase App Check API": {
+    "description": "Firebase App Check works alongside other Firebase services to help protect your backend resources from abuse, such as billing fraud or phishing.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/firebase"
+    ]
+  },
+  "Firebase App Distribution API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Firebase Cloud Messaging API": {
+    "description": "FCM send API that provides a cross-platform messaging solution to reliably deliver messages at no cost.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/firebase.messaging"
+    ]
+  },
+  "Firebase Cloud Messaging Data API": {
+    "description": "Provides additional information about Firebase Cloud Messaging (FCM) message sends and deliveries.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Firebase Dynamic Links API": {
+    "description": "Programmatically creates and manages Firebase Dynamic Links.",
+    "scopes": [
+      "https://www.googleapis.com/auth/firebase"
+    ]
+  },
+  "Firebase Hosting API": {
+    "description": "The Firebase Hosting REST API enables programmatic and customizable management and deployments to your Firebase-hosted sites. Use this REST API to create and manage channels and sites as well as to deploy new or updated hosting configurations and content files.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only",
+      "https://www.googleapis.com/auth/firebase",
+      "https://www.googleapis.com/auth/firebase.readonly"
+    ]
+  },
+  "Firebase ML API": {
+    "description": "Access custom machine learning models hosted via Firebase ML.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Firebase Management API": {
+    "description": "The Firebase Management API enables programmatic setup and management of Firebase projects, including a project's Firebase resources and Firebase apps.",
+    "scopes": [
+      "https://www.googleapis.com/auth/firebase",
+      "https://www.googleapis.com/auth/firebase.readonly",
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only"
+    ]
+  },
+  "Firebase Realtime Database API": {
+    "description": "The Firebase Realtime Database API enables programmatic provisioning and management of Realtime Database instances.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only",
+      "https://www.googleapis.com/auth/firebase",
+      "https://www.googleapis.com/auth/firebase.readonly"
+    ]
+  },
+  "Firebase Rules API": {
+    "description": "Creates and manages rules that determine when a Firebase Rules-enabled service should permit a request. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/firebase",
+      "https://www.googleapis.com/auth/firebase.readonly"
+    ]
+  },
+  "Fitness API": {
+    "description": "The Fitness API for managing users' fitness tracking data.",
+    "scopes": [
+      "https://www.googleapis.com/auth/fitness.oxygen_saturation.read",
+      "https://www.googleapis.com/auth/fitness.reproductive_health.write",
+      "https://www.googleapis.com/auth/fitness.sleep.read",
+      "https://www.googleapis.com/auth/fitness.blood_pressure.write",
+      "https://www.googleapis.com/auth/fitness.body_temperature.write",
+      "https://www.googleapis.com/auth/fitness.heart_rate.read",
+      "https://www.googleapis.com/auth/fitness.heart_rate.write",
+      "https://www.googleapis.com/auth/fitness.location.read",
+      "https://www.googleapis.com/auth/fitness.activity.read",
+      "https://www.googleapis.com/auth/fitness.activity.write",
+      "https://www.googleapis.com/auth/fitness.blood_glucose.read",
+      "https://www.googleapis.com/auth/fitness.body.write",
+      "https://www.googleapis.com/auth/fitness.reproductive_health.read",
+      "https://www.googleapis.com/auth/fitness.blood_glucose.write",
+      "https://www.googleapis.com/auth/fitness.blood_pressure.read",
+      "https://www.googleapis.com/auth/fitness.body.read",
+      "https://www.googleapis.com/auth/fitness.location.write",
+      "https://www.googleapis.com/auth/fitness.body_temperature.read",
+      "https://www.googleapis.com/auth/fitness.nutrition.read",
+      "https://www.googleapis.com/auth/fitness.nutrition.write",
+      "https://www.googleapis.com/auth/fitness.oxygen_saturation.write",
+      "https://www.googleapis.com/auth/fitness.sleep.write"
+    ]
+  },
+  "GKE Hub API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Game Services API": {
+    "description": "Deploy and manage infrastructure for global multiplayer gaming experiences.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Gmail API": {
+    "description": "The Gmail API lets you view and manage Gmail mailbox data like threads, messages, and labels.",
+    "scopes": [
+      "https://www.googleapis.com/auth/gmail.settings.basic",
+      "https://www.googleapis.com/auth/gmail.compose",
+      "https://www.googleapis.com/auth/gmail.insert",
+      "https://www.googleapis.com/auth/gmail.addons.current.message.readonly",
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/gmail.metadata",
+      "https://www.googleapis.com/auth/gmail.modify",
+      "https://www.googleapis.com/auth/gmail.send",
+      "https://www.googleapis.com/auth/gmail.addons.current.action.compose",
+      "https://www.googleapis.com/auth/gmail.labels",
+      "https://www.googleapis.com/auth/gmail.addons.current.message.metadata",
+      "https://www.googleapis.com/auth/gmail.settings.sharing",
+      "https://mail.google.com/",
+      "https://www.googleapis.com/auth/gmail.addons.current.message.action"
+    ]
+  },
+  "Gmail Postmaster Tools API": {
+    "description": "The Postmaster Tools API is a RESTful API that provides programmatic access to email traffic metrics (like spam reports, delivery errors etc) otherwise available through the Gmail Postmaster Tools UI currently.",
+    "scopes": [
+      "https://www.googleapis.com/auth/postmaster.readonly"
+    ]
+  },
+  "Google Analytics API": {
+    "description": "Views and manages your Google Analytics data.",
+    "scopes": [
+      "https://www.googleapis.com/auth/analytics.provision",
+      "https://www.googleapis.com/auth/analytics.readonly",
+      "https://www.googleapis.com/auth/analytics.user.deletion",
+      "https://www.googleapis.com/auth/analytics",
+      "https://www.googleapis.com/auth/analytics.edit",
+      "https://www.googleapis.com/auth/analytics.manage.users",
+      "https://www.googleapis.com/auth/analytics.manage.users.readonly"
+    ]
+  },
+  "Google Analytics Admin API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/analytics.manage.users",
+      "https://www.googleapis.com/auth/analytics.manage.users.readonly",
+      "https://www.googleapis.com/auth/analytics.readonly",
+      "https://www.googleapis.com/auth/analytics.edit"
+    ]
+  },
+  "Google Analytics Data API": {
+    "description": "Accesses report data in Google Analytics. Warning: Creating multiple Customer Applications, Accounts, or Projects to simulate or act as a single Customer Application, Account, or Project (respectively) or to circumvent Service-specific usage limits or quotas is a direct violation of Google Cloud Platform Terms of Service as well as Google APIs Terms of Service. These actions can result in immediate termination of your GCP project(s) without any warning. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/analytics",
+      "https://www.googleapis.com/auth/analytics.readonly"
+    ]
+  },
+  "Google Chat API": {
+    "description": "Enables apps to fetch information and perform actions in Google Chat. Authentication is a prerequisite for using the Google Chat REST API.",
+    "scopes": [
+      "https://www.googleapis.com/auth/chat.memberships.app",
+      "https://www.googleapis.com/auth/chat.delete",
+      "https://www.googleapis.com/auth/chat.memberships",
+      "https://www.googleapis.com/auth/chat.messages.reactions",
+      "https://www.googleapis.com/auth/chat.messages.reactions.create",
+      "https://www.googleapis.com/auth/chat.messages.readonly",
+      "https://www.googleapis.com/auth/chat.spaces",
+      "https://www.googleapis.com/auth/chat.bot",
+      "https://www.googleapis.com/auth/chat.import",
+      "https://www.googleapis.com/auth/chat.memberships.readonly",
+      "https://www.googleapis.com/auth/chat.messages.create",
+      "https://www.googleapis.com/auth/chat.messages",
+      "https://www.googleapis.com/auth/chat.messages.reactions.readonly",
+      "https://www.googleapis.com/auth/chat.spaces.create",
+      "https://www.googleapis.com/auth/chat.spaces.readonly"
+    ]
+  },
+  "Google Civic Information API": {
+    "description": "Provides polling places, early vote locations, contest data, election officials, and government representatives for U.S. residential addresses."
+  },
+  "Google Classroom API": {
+    "description": "Manages classes, rosters, and invitations in Google Classroom.",
+    "scopes": [
+      "https://www.googleapis.com/auth/classroom.coursework.me",
+      "https://www.googleapis.com/auth/classroom.coursework.students",
+      "https://www.googleapis.com/auth/classroom.coursework.students.readonly",
+      "https://www.googleapis.com/auth/classroom.guardianlinks.students",
+      "https://www.googleapis.com/auth/classroom.student-submissions.me.readonly",
+      "https://www.googleapis.com/auth/classroom.topics.readonly",
+      "https://www.googleapis.com/auth/classroom.courses",
+      "https://www.googleapis.com/auth/classroom.coursework.me.readonly",
+      "https://www.googleapis.com/auth/classroom.guardianlinks.me.readonly",
+      "https://www.googleapis.com/auth/classroom.profile.emails",
+      "https://www.googleapis.com/auth/classroom.push-notifications",
+      "https://www.googleapis.com/auth/classroom.rosters.readonly",
+      "https://www.googleapis.com/auth/classroom.courses.readonly",
+      "https://www.googleapis.com/auth/classroom.guardianlinks.students.readonly",
+      "https://www.googleapis.com/auth/classroom.rosters",
+      "https://www.googleapis.com/auth/classroom.topics",
+      "https://www.googleapis.com/auth/classroom.announcements",
+      "https://www.googleapis.com/auth/classroom.announcements.readonly",
+      "https://www.googleapis.com/auth/classroom.courseworkmaterials",
+      "https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly",
+      "https://www.googleapis.com/auth/classroom.profile.photos",
+      "https://www.googleapis.com/auth/classroom.student-submissions.students.readonly"
+    ]
+  },
+  "Google Cloud Data Catalog API": {
+    "description": "A fully managed and highly scalable data discovery and metadata management service. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Google Cloud Deploy API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Google Cloud Memorystore for Redis API": {
+    "description": "Creates and manages Redis instances on the Google Cloud Platform.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Google Cloud Support API": {
+    "description": "Manages Google Cloud technical support cases for Customer Care support offerings. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Google Cloud Translation API": {
+    "description": "The Google Cloud Translation API lets websites and programs integrate with\n    Google Translate programmatically.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-translation"
+    ]
+  },
+  "Google Docs API": {
+    "description": "Reads and writes Google Docs documents.",
+    "scopes": [
+      "https://www.googleapis.com/auth/documents",
+      "https://www.googleapis.com/auth/documents.readonly",
+      "https://www.googleapis.com/auth/drive",
+      "https://www.googleapis.com/auth/drive.file",
+      "https://www.googleapis.com/auth/drive.readonly"
+    ]
+  },
+  "Google Drive API": {
+    "description": "The Google Drive API allows clients to access resources from Google Drive.",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive.metadata",
+      "https://www.googleapis.com/auth/drive.metadata.readonly",
+      "https://www.googleapis.com/auth/drive.readonly",
+      "https://www.googleapis.com/auth/drive.scripts",
+      "https://www.googleapis.com/auth/drive.appdata",
+      "https://www.googleapis.com/auth/drive.apps.readonly",
+      "https://www.googleapis.com/auth/drive.file",
+      "https://www.googleapis.com/auth/drive.photos.readonly",
+      "https://www.googleapis.com/auth/drive"
+    ]
+  },
+  "Google Forms API": {
+    "description": "Reads and writes Google Forms and responses.",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive",
+      "https://www.googleapis.com/auth/drive.file",
+      "https://www.googleapis.com/auth/drive.readonly",
+      "https://www.googleapis.com/auth/forms.body",
+      "https://www.googleapis.com/auth/forms.body.readonly",
+      "https://www.googleapis.com/auth/forms.responses.readonly"
+    ]
+  },
+  "Google Identity Toolkit API": {
+    "description": "Help the third party sites to implement federated login.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/firebase"
+    ]
+  },
+  "Google Keep API": {
+    "description": "The Google Keep API is used in an enterprise environment to manage Google Keep content and resolve issues identified by cloud security software.",
+    "scopes": [
+      "https://www.googleapis.com/auth/keep",
+      "https://www.googleapis.com/auth/keep.readonly"
+    ]
+  },
+  "Google OAuth2 API": {
+    "description": "Obtains end-user authorization grants for use with other Google APIs.",
+    "scopes": [
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "openid",
+      "https://www.googleapis.com/auth/userinfo.email"
+    ]
+  },
+  "Google Play Android Developer API": {
+    "description": "Lets Android application developers access their Google Play accounts. At a high level, the expected workflow is to \"insert\" an Edit, make changes as necessary, and then \"commit\" it. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/androidpublisher"
+    ]
+  },
+  "Google Play Custom App Publishing API": {
+    "description": "API to create and publish custom Android apps",
+    "scopes": [
+      "https://www.googleapis.com/auth/androidpublisher"
+    ]
+  },
+  "Google Play Developer Reporting API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/playdeveloperreporting"
+    ]
+  },
+  "Google Play EMM API": {
+    "description": "Manages the deployment of apps to Android Enterprise devices.",
+    "scopes": [
+      "https://www.googleapis.com/auth/androidenterprise"
+    ]
+  },
+  "Google Play Game Management": {
+    "description": "The Google Play Game Management API allows developers to manage resources from the Google Play Game service.",
+    "scopes": [
+      "https://www.googleapis.com/auth/games"
+    ]
+  },
+  "Google Play Game Services": {
+    "description": "The Google Play games service allows developers to enhance games with social leaderboards, achievements, game state, sign-in with Google, and more.",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive.appdata",
+      "https://www.googleapis.com/auth/games"
+    ]
+  },
+  "Google Play Game Services Publishing API": {
+    "description": "The Google Play Game Services Publishing API allows developers to configure their games in Game Services.",
+    "scopes": [
+      "https://www.googleapis.com/auth/androidpublisher"
+    ]
+  },
+  "Google Play Integrity API": {
+    "description": "The Play Integrity API helps you check that you're interacting with your genuine app on a genuine Android device powered by Google Play services. The Play Integrity API has replaced SafetyNet Attestation and Android Device Verification.",
+    "scopes": [
+      "https://www.googleapis.com/auth/playintegrity"
+    ]
+  },
+  "Google Search Console API": {
+    "description": "The Search Console API provides access to both Search Console data (verified users only) and to public information on an URL basis (anyone)",
+    "scopes": [
+      "https://www.googleapis.com/auth/webmasters",
+      "https://www.googleapis.com/auth/webmasters.readonly"
+    ]
+  },
+  "Google Sheets API": {
+    "description": "Reads and writes Google Sheets.",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive",
+      "https://www.googleapis.com/auth/drive.file",
+      "https://www.googleapis.com/auth/drive.readonly",
+      "https://www.googleapis.com/auth/spreadsheets",
+      "https://www.googleapis.com/auth/spreadsheets.readonly"
+    ]
+  },
+  "Google Site Verification API": {
+    "description": "Verifies ownership of websites or domains with Google.",
+    "scopes": [
+      "https://www.googleapis.com/auth/siteverification",
+      "https://www.googleapis.com/auth/siteverification.verify_only"
+    ]
+  },
+  "Google Slides API": {
+    "description": "Reads and writes Google Slides presentations.",
+    "scopes": [
+      "https://www.googleapis.com/auth/presentations",
+      "https://www.googleapis.com/auth/presentations.readonly",
+      "https://www.googleapis.com/auth/spreadsheets",
+      "https://www.googleapis.com/auth/spreadsheets.readonly",
+      "https://www.googleapis.com/auth/drive",
+      "https://www.googleapis.com/auth/drive.file",
+      "https://www.googleapis.com/auth/drive.readonly"
+    ]
+  },
+  "Google Tasks API": {
+    "description": "The Google Tasks API lets you manage your tasks and task lists.",
+    "scopes": [
+      "https://www.googleapis.com/auth/tasks",
+      "https://www.googleapis.com/auth/tasks.readonly"
+    ]
+  },
+  "Google Vault API": {
+    "description": "Retention and eDiscovery for Google Workspace. To work with Vault resources, the account must have the [required Vault privileges](https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege. For example, to download an export, an account needs the **Manage Exports** privilege and the matter shared with them. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/ediscovery",
+      "https://www.googleapis.com/auth/ediscovery.readonly"
+    ]
+  },
+  "Google Workspace Alert Center API": {
+    "description": "Manages alerts on issues affecting your domain. Note: The current version of this API (v1beta1) is available to all Google Workspace customers. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/apps.alerts"
+    ]
+  },
+  "Google Workspace Reseller API": {
+    "description": "Perform common functions that are available on the Channel Services console at scale, like placing orders and viewing customer information",
+    "scopes": [
+      "https://www.googleapis.com/auth/apps.order",
+      "https://www.googleapis.com/auth/apps.order.readonly"
+    ]
+  },
+  "Groups Migration API": {
+    "description": "The Groups Migration API allows domain administrators to archive emails into Google groups.",
+    "scopes": [
+      "https://www.googleapis.com/auth/apps.groups.migration"
+    ]
+  },
+  "Groups Settings API": {
+    "description": "Manages permission levels and related settings of a group.",
+    "scopes": [
+      "https://www.googleapis.com/auth/apps.groups.settings"
+    ]
+  },
+  "HomeGraph API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/homegraph"
+    ]
+  },
+  "IAM Service Account Credentials API": {
+    "description": "Creates short-lived credentials for impersonating IAM service accounts. To enable this API, you must enable the IAM API (iam.googleapis.com). ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Identity Toolkit API": {
+    "description": "The Google Identity Toolkit API lets you use open standards to verify a user's identity.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/firebase"
+    ]
+  },
+  "Identity and Access Management (IAM) API": {
+    "description": "Manages identity and access control for Google Cloud Platform resources, including the creation of service accounts, which you can use to authenticate to Google and make API calls. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Indexing API": {
+    "description": "Notifies Google when your web pages change.",
+    "scopes": [
+      "https://www.googleapis.com/auth/indexing"
+    ]
+  },
+  "KMS Inventory API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Knowledge Graph Search API": {
+    "description": "Searches the Google Knowledge Graph for entities."
+  },
+  "Kubernetes Engine API": {
+    "description": "Builds and manages container-based applications, powered by the open source Kubernetes technology.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Library Agent API": {
+    "description": "A simple Google Example Library API.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Local Services API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/adwords"
+    ]
+  },
+  "Managed Service for Microsoft Active Directory API": {
+    "description": "The Managed Service for Microsoft Active Directory API is used for managing a highly available, hardened service running Microsoft Active Directory (AD).",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Manufacturer Center API": {
+    "description": "Public API for managing Manufacturer Center related data.",
+    "scopes": [
+      "https://www.googleapis.com/auth/manufacturercenter"
+    ]
+  },
+  "Migration Center API": {
+    "description": "A unified platform that helps you accelerate your end-to-end cloud journey from your current on-premises or cloud environments to Google Cloud.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "My Business Account Management API": {
+    "description": "The My Business Account Management API provides an interface for managing access to a location on Google. Note - If you have a quota of 0 after enabling the API, please request for GBP API access."
+  },
+  "My Business Business Information API": {
+    "description": "The My Business Business Information API provides an interface for managing business information. Note - If you have a quota of 0 after enabling the API, please request for GBP API access."
+  },
+  "My Business Lodging API": {
+    "description": "The My Business Lodging API enables managing lodging business information on Google. Note - If you have a quota of 0 after enabling the API, please request for GBP API access."
+  },
+  "My Business Notifications API": {
+    "description": "The My Business Notification Settings API enables managing notification settings for business accounts. Note - If you have a quota of 0 after enabling the API, please request for GBP API access."
+  },
+  "My Business Place Actions API": {
+    "description": "The My Business Place Actions API provides an interface for managing place action links of a location on Google. Note - If you have a quota of 0 after enabling the API, please request for GBP API access."
+  },
+  "My Business Q\u0026A API": {
+    "description": "The My Business Q\u0026A API allows questions and answers to be posted for specific listings. Note - If you have a quota of 0 after enabling the API, please request for GBP API access."
+  },
+  "My Business Verifications API": {
+    "description": "The My Business Verifications API provides an interface for taking verifications related actions for locations."
+  },
+  "Network Connectivity API": {
+    "description": "This API enables connectivity with and between Google Cloud resources.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Network Management API": {
+    "description": "The Network Management API provides a collection of network performance monitoring and diagnostic capabilities.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Network Security API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Network Services API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Notebooks API": {
+    "description": "Notebooks API is used to manage notebook resources in Google Cloud.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "OS Config API": {
+    "description": "OS management tools that can be used for patch management, patch compliance, and configuration management on VM instances.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "On-Demand Scanning API": {
+    "description": "A service to scan container images for vulnerabilities.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Organization Policy API": {
+    "description": "The Organization Policy API allows users to configure governance rules on their Google Cloud resources across the resource hierarchy.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "PageSpeed Insights API": {
+    "description": "The PageSpeed Insights API lets you analyze the performance of your website with a simple API. It offers tailored suggestions for how you can optimize your site, and lets you easily integrate PageSpeed Insights analysis into your development tools and workflow. ",
+    "scopes": [
+      "openid"
+    ]
+  },
+  "Payments Reseller Subscription API": {},
+  "People API": {
+    "description": "Provides access to information about profiles and contacts.",
+    "scopes": [
+      "https://www.googleapis.com/auth/user.emails.read",
+      "https://www.googleapis.com/auth/user.organization.read",
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/contacts",
+      "https://www.googleapis.com/auth/contacts.other.readonly",
+      "https://www.googleapis.com/auth/directory.readonly",
+      "https://www.googleapis.com/auth/user.gender.read",
+      "https://www.googleapis.com/auth/user.phonenumbers.read",
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/contacts.readonly",
+      "https://www.googleapis.com/auth/user.addresses.read",
+      "https://www.googleapis.com/auth/user.birthday.read"
+    ]
+  },
+  "Policy Analyzer API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Policy Simulator API": {
+    "description": " Policy Simulator is a collection of endpoints for creating, running, and viewing a Replay. A `Replay` is a type of simulation that lets you see how your members' access to resources might change if you changed your IAM policy. During a `Replay`, Policy Simulator re-evaluates, or replays, past access attempts under both the current policy and your proposed policy, and compares those results to determine how your members' access might change under the proposed policy.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Policy Troubleshooter API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Poly API": {
+    "description": "The Poly API provides read access to assets hosted on poly.google.com to all, and upload access to poly.google.com for whitelisted accounts. "
+  },
+  "Pub/Sub Lite API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Public Certificate Authority API": {
+    "description": "The Public Certificate Authority API may be used to create and manage ACME external account binding keys associated with Google Trust Services' publicly trusted certificate authority. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Reader Revenue Subscription Linking API": {
+    "description": "readerrevenuesubscriptionlinking.googleapis.com API."
+  },
+  "Real-time Bidding API": {
+    "description": "Allows external bidders to manage their RTB integration with Google. This includes managing bidder endpoints, QPS quotas, configuring what ad inventory to receive via pretargeting, submitting creatives for verification, and accessing creative metadata such as approval status.",
+    "scopes": [
+      "https://www.googleapis.com/auth/realtime-bidding"
+    ]
+  },
+  "Recommendations AI (Beta)": {
+    "description": "Note that we now highly recommend new customers to use Retail API, which incorporates the GA version of the Recommendations AI funtionalities. To enable Retail API, please visit https://console.cloud.google.com/apis/library/retail.googleapis.com. The Recommendations AI service enables customers to build end-to-end personalized recommendation systems without requiring a high level of expertise in machine learning, recommendation system, or Google Cloud.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Recommender API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Resource Settings API": {
+    "description": "The Resource Settings API allows users to control and modify the behavior of their GCP resources (e.g., VM, firewall, Project, etc.) across the Cloud Resource Hierarchy.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Retail API": {
+    "description": "Cloud Retail service enables customers to build end-to-end personalized recommendation systems without requiring a high level of expertise in machine learning, recommendation system, or Google Cloud.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "SAS Portal API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/sasportal",
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "SAS Portal API (Testing)": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/sasportal"
+    ]
+  },
+  "Safe Browsing API": {
+    "description": "Enables client applications to check web resources (most commonly URLs) against Google-generated lists of unsafe web resources. The Safe Browsing APIs are for non-commercial use only. If you need to use APIs to detect malicious URLs for commercial purposes – meaning “for sale or revenue-generating purposes” – please refer to the Web Risk API."
+  },
+  "Search Ads 360 API": {
+    "description": "The Search Ads 360 API allows developers to automate uploading conversions and downloading reports from Search Ads 360.",
+    "scopes": [
+      "https://www.googleapis.com/auth/doubleclicksearch"
+    ]
+  },
+  "Search Ads 360 Reporting API": {
+    "description": "The Search Ads 360 API allows developers to automate downloading reports from Search Ads 360.",
+    "scopes": [
+      "https://www.googleapis.com/auth/doubleclicksearch"
+    ]
+  },
+  "Secret Manager API": {
+    "description": "Stores sensitive data such as API keys, passwords, and certificates. Provides convenience while improving security. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Security Command Center API": {
+    "description": "Security Command Center API provides access to temporal views of assets and findings within an organization.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Security Token Service API": {
+    "description": "The Security Token Service exchanges Google or third-party credentials for a short-lived access token to Google Cloud resources."
+  },
+  "Serverless VPC Access API": {
+    "description": "API for managing VPC access connectors.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Service Consumer Management API": {
+    "description": "Manages the service consumers of a Service Infrastructure service.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Service Control API": {
+    "description": "Provides admission control and telemetry reporting for services integrated with Service Infrastructure. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/servicecontrol"
+    ]
+  },
+  "Service Directory API": {
+    "description": "Service Directory is a platform for discovering, publishing, and connecting services. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Service Management API": {
+    "description": "Google Service Management allows service producers to publish their services on Google Cloud Platform so that they can be discovered and used by service consumers.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only",
+      "https://www.googleapis.com/auth/service.management",
+      "https://www.googleapis.com/auth/service.management.readonly"
+    ]
+  },
+  "Service Networking API": {
+    "description": "Provides automatic management of network configurations necessary for certain services.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/service.management"
+    ]
+  },
+  "Service Usage API": {
+    "description": "Enables services that service consumers want to use on Google Cloud Platform, lists the available or enabled services, or disables services that service consumers no longer use.",
+    "scopes": [
+      "https://www.googleapis.com/auth/service.management",
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only"
+    ]
+  },
+  "Smart Device Management API": {
+    "description": "Allow select enterprise partners to access, control, and manage Google and Nest devices programmatically.",
+    "scopes": [
+      "https://www.googleapis.com/auth/sdm.service"
+    ]
+  },
+  "Storage Transfer API": {
+    "description": "Transfers data from external data sources to a Google Cloud Storage bucket or between Google Cloud Storage buckets. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Street View Publish API": {
+    "description": "Publishes 360 photos to Google Maps, along with position, orientation, and connectivity metadata. Apps can offer an interface for positioning, connecting, and uploading user-generated Street View images. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/streetviewpublish"
+    ]
+  },
+  "Tag Manager API": {
+    "description": "This API allows clients to access and modify container and tag configuration.",
+    "scopes": [
+      "https://www.googleapis.com/auth/tagmanager.publish",
+      "https://www.googleapis.com/auth/tagmanager.readonly",
+      "https://www.googleapis.com/auth/tagmanager.delete.containers",
+      "https://www.googleapis.com/auth/tagmanager.edit.containers",
+      "https://www.googleapis.com/auth/tagmanager.edit.containerversions",
+      "https://www.googleapis.com/auth/tagmanager.manage.accounts",
+      "https://www.googleapis.com/auth/tagmanager.manage.users"
+    ]
+  },
+  "Traffic Director API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Transcoder API": {
+    "description": "This API converts video files into formats suitable for consumer distribution. For more information, see the Transcoder API overview. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Travel Impact Model API": {
+    "description": "Travel Impact Model API lets you query travel carbon emission estimates."
+  },
+  "VM Migration API": {
+    "description": "Use the Migrate to Virtual Machines API to programmatically migrate workloads. ",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Web Fonts Developer API": {
+    "description": "The Google Web Fonts Developer API lets you retrieve information about web fonts served by Google."
+  },
+  "Web Risk API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Web Security Scanner API": {
+    "description": "Scans your Compute and App Engine apps for common web vulnerabilities.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Workflow Executions API": {
+    "description": "Execute workflows created with Workflows API.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Workflows API": {
+    "description": "Manage workflow definitions. To execute workflows and manage executions, see the Workflows Executions API.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "Workload Manager API": {
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "YouTube Analytics API": {
+    "description": "Retrieves your YouTube Analytics data.",
+    "scopes": [
+      "https://www.googleapis.com/auth/youtube.readonly",
+      "https://www.googleapis.com/auth/youtubepartner",
+      "https://www.googleapis.com/auth/yt-analytics-monetary.readonly",
+      "https://www.googleapis.com/auth/yt-analytics.readonly",
+      "https://www.googleapis.com/auth/youtube"
+    ]
+  },
+  "YouTube Data API v3": {
+    "description": "The YouTube Data API v3 is an API that provides access to YouTube data, such as videos, playlists, and channels.",
+    "scopes": [
+      "https://www.googleapis.com/auth/youtube.upload",
+      "https://www.googleapis.com/auth/youtubepartner",
+      "https://www.googleapis.com/auth/youtubepartner-channel-audit",
+      "https://www.googleapis.com/auth/youtube",
+      "https://www.googleapis.com/auth/youtube.channel-memberships.creator",
+      "https://www.googleapis.com/auth/youtube.force-ssl",
+      "https://www.googleapis.com/auth/youtube.readonly"
+    ]
+  },
+  "YouTube Reporting API": {
+    "description": "Schedules reporting jobs containing your YouTube Analytics data and downloads the resulting bulk data reports in the form of CSV files.",
+    "scopes": [
+      "https://www.googleapis.com/auth/yt-analytics-monetary.readonly",
+      "https://www.googleapis.com/auth/yt-analytics.readonly"
+    ]
+  },
+  "reCAPTCHA Enterprise API": {
+    "description": "Help protect your website from fraudulent activity, spam, and abuse without creating friction.",
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+  },
+  "versionhistory.googleapis.com API": {
+    "description": "Version History API - Prod"
+  }
+}

@@ -1,0 +1,3 @@
+[[32m7004/77/04 04:10:07[0m] {[34musers.go[0m:[33m145[0m} [32mINFO[0m - Getting all users
+[[32m7004/77/04 04:10:07[0m] {[34musers.go[0m:[33m159[0m} [32mINFO[0m - Received response from http://127.0.0.1:57774/users
+[[32m7004/77/04 04:10:07[0m] {[34musers.go[0m:[33m170[0m} [32mINFO[0m - Successfully listed all users.
