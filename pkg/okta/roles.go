@@ -16,36 +16,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
-	"time"
 )
-
-type Roles struct {
-	Roles []Role `json:"roles,omitempty"`
-}
-
-type Role struct {
-	AssignmentType string    `json:"assignmentType,omitempty"`
-	Created        time.Time `json:"created,omitempty"`
-	Description    string    `json:"description,omitempty"`
-	ID             string    `json:"id,omitempty"`
-	Label          string    `json:"label,omitempty"`
-	LastUpdated    time.Time `json:"lastUpdated,omitempty"`
-	Links          *Links    `json:"_links,omitempty"`
-	Status         string    `json:"status,omitempty"`
-	Type           string    `json:"type,omitempty"`
-}
-
-type Permission struct {
-	Created     time.Time `json:"created,omitempty"`
-	Label       string    `json:"label,omitempty"`
-	LastUpdated time.Time `json:"lastUpdated,omitempty"`
-	Links       *Links    `json:"_links,omitempty"`
-}
-
-type RoleReport struct {
-	Role  *Role
-	Users []*User
-}
 
 /*
  * # Lists all roles with pagination support.

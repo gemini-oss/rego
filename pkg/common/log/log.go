@@ -61,10 +61,10 @@ func LogLevel(level int) string {
 }
 
 type Logger struct {
-	prefix string         // prefix to write at beginning of each log line
-	logger *log.Logger    // standard logger
-	out    io.WriteCloser // destination for output
-	verbosity int         // log level {TRACE, DEBUG, INFO, WARNING, ERROR, FATAL, PANIC}
+	prefix    string         // prefix to write at beginning of each log line
+	logger    *log.Logger    // standard logger
+	out       io.WriteCloser // destination for output
+	verbosity int            // log level {TRACE, DEBUG, INFO, WARNING, ERROR, FATAL, PANIC}
 }
 
 /*
@@ -198,7 +198,7 @@ func (l *Logger) getPrefix(level int) string {
 	file := filepath.Base(path)
 
 	// Formatted current timestamp
-	timestamp := time.Now().Format("2003/12/03 03:05:07")
+	timestamp := time.Now().Format("2006/01/02 03:04:05 PM")
 
 	timestamp = fmt.Sprintf("%s%s%s", Green, timestamp, Reset)
 	file = fmt.Sprintf("%s%s%s", Blue, file, Reset)
@@ -235,9 +235,9 @@ func NewLogger(prefix string, verbosity int) *Logger {
 	}
 
 	return &Logger{
-		prefix: prefix,
-		logger: logger,
-		out:    logFile,
+		prefix:    prefix,
+		logger:    logger,
+		out:       logFile,
 		verbosity: verbosity,
 	}
 }

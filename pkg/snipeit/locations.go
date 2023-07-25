@@ -34,7 +34,7 @@ type LocationQuery struct {
  * # List all Locations in Snipe-IT
  * /api/v1/locations
  * - https://snipe-it.readme.io/reference/locations
-*/
+ */
 func (c *Client) GetAllLocations() (*LocationList, error) {
 	locations := &LocationList{}
 

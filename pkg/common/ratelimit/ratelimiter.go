@@ -6,23 +6,33 @@ import (
 )
 
 type RateLimiter struct {
-	rate   int           // maximum number of requests
-	bucket chan struct{} // a bucket holds tokens
+	Rate   int           // maximum number of requests
+	Bucket chan struct{} // a bucket holds tokens
+	Ticker *time.Ticker
 }
 
 func NewRateLimiter(rate int) *RateLimiter {
 	bucket := make(chan struct{}, rate)
-	return &RateLimiter{rate: rate, bucket: bucket}
+	return &RateLimiter{Rate: rate, Bucket: bucket, Ticker: time.NewTicker(time.Second / time.Duration(rate))}
 }
 
 func (rl *RateLimiter) Start() {
-	ticker := time.NewTicker(time.Second / time.Duration(rl.rate))
-	defer ticker.Stop()
-	for range ticker.C {
-		rl.bucket <- struct{}{}
+	for range rl.Ticker.C {
+		rl.Bucket <- struct{}{}
 	}
 }
 
+func (rl *RateLimiter) Stop() {
+	rl.Ticker.Stop()
+}
+
+func (rl *RateLimiter) UpdateRate(rate int) {
+	rl.Stop()
+	rl.Rate = rate
+	rl.Ticker = time.NewTicker(time.Second / time.Duration(rl.Rate))
+	go rl.Start()
+}
+
 func (rl *RateLimiter) Wait() {
-	<-rl.bucket
+	<-rl.Bucket
 }

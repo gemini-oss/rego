@@ -118,13 +118,15 @@ func (c *Client) ImpersonateUser(email string) error {
 }
 
 /*
- * # Generate Google Workspace Client
- * @param auth AuthCredentials
- * @param logger *log.Logger
- * @return *Client
- * @return error
- * Example:
+  - # Generate Google Workspace Client
+  - @param auth AuthCredentials
+  - @param logger *log.Logger
+  - @return *Client
+  - @return error
+  - Example:
+
 ```go
+
 	ac := google.AuthCredentials{
 		CICD: true,
 		Type: google.SERVICE_ACCOUNT,
@@ -133,10 +135,12 @@ func (c *Client) ImpersonateUser(email string) error {
 			"Google Drive API",
 			"Google Sheets API",
 		},
+		Subject: "super.user@domain.com",
 	}
 	g, _ := google.NewClient(ac, log.DEBUG)
+
 ```
- */
+*/
 func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
 
 	c := &Client{

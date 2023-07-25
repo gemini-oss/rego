@@ -48,9 +48,10 @@ func NewClient(c *http.Client, headers Headers) *Client {
  * @param Paged bool
  */
 type Paginator struct {
-	Self     string `json:"self"`
-	NextPage string `json:"next"`
-	Paged    bool   `json:"paged"`
+	Self          string `json:"self"`
+	NextPageLink      string `json:"next"`
+	NextPageToken string `json:"next_page_token"`
+	Paged         bool   `json:"paged"`
 }
 
 /*
@@ -148,6 +149,7 @@ func (c *Client) DoRequest(method string, url string, query interface{}, data in
 	case http.StatusNotFound:
 		return nil, body, fmt.Errorf(string(body))
 	case http.StatusTooManyRequests:
+		fmt.Println(string(body))
 		return nil, body, fmt.Errorf(string(body))
 	default:
 		return resp, body, nil
@@ -193,7 +195,7 @@ func (c *Client) PaginatedRequest(method string, url string, query interface{}, 
 	p := &Paginator{}
 	for p.HasNextPage(resp.Header.Values("Link")) {
 		// Request next page
-		resp, body, err = c.DoRequest("GET", p.NextPage, nil, nil)
+		resp, body, err = c.DoRequest("GET", p.NextPageLink, nil, nil)
 		if err != nil {
 			return results, err
 		}
@@ -234,7 +236,7 @@ func (p *Paginator) HasNextPage(links []string) bool {
 			p.Self = rawLink
 		}
 		if strings.Contains(link, `rel="next"`) {
-			p.NextPage = rawLink
+			p.NextPageLink = rawLink
 			return true
 		}
 	}

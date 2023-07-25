@@ -12,9 +12,8 @@ https://developer.okta.com/docs/api/
 // pkg/snipeit/entities.go
 package snipeit
 
-
 // ### Assets
-//-------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 // Source: https://snipe-it.readme.io/reference/hardware-list
 type HardwareList struct {
 	Total int         `json:"total,omitempty"` // The total number of hardware items.
@@ -100,7 +99,7 @@ type Accessory struct {
 }
 
 // ### Categories
-//-------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 // Source: https://snipe-it.readme.io/reference/categories
 type CategoryList struct {
 	Total int         `json:"total,omitempty"` // Total count of rows
@@ -126,6 +125,7 @@ type Category struct {
 	UpdatedAt         *DateInfo         `json:"updated_at,omitempty"`
 	Actions           *AvailableActions `json:"available_actions,omitempty"`
 }
+
 // END OF CATEGORY STRUCTS
 //-------------------------------------------------------------------------
 
@@ -251,5 +251,6 @@ type AvailableActions struct {
 	Restore  bool `json:"restore,omitempty"`  // Whether restore action is available.
 	Update   bool `json:"update,omitempty"`   // Whether update action is available.
 }
+
 // END OF COMMON ASSET TYPES
 //-------------------------------------------------------------------------

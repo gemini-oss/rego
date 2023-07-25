@@ -8,7 +8,7 @@ This package contains many structs for handling responses from the Google API:
 :Author: Anthony Dardano <anthony.dardano@gemini.com>
 */
 
-// pkg/google/sheets.go
+// pkg/google/entities.go
 package google
 
 import (
@@ -657,7 +657,6 @@ type PivotFilterSpec interface{}
 type PivotValue interface{}
 type PivotValueLayout interface{}
 type PivotGroupValueMetadata interface{}
-type SortOrder interface{}
 type PivotGroupSortValueBucket interface{}
 type PivotGroupRule interface{}
 type PivotGroupLimit interface{}
@@ -1017,6 +1016,16 @@ type UpdateDimensionPropertiesRequest struct {
 
 // ### User Structs
 // ---------------------------------------------------------------------------------------
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#response-body
+type Users struct {
+	Kind          string  `json:"kind,omitempty"`          // The type of the API resource
+	TriggerEvent  string  `json:"trigger_event,omitempty"` // Event that triggered this response (only used in case of Push Response)
+	Etag          string  `json:"etag,omitempty"`          // ETag of the resource
+	Users         []*User `json:"users,omitempty"`         // A list of user objects
+	NextPageToken string  `json:"nextPageToken,omitempty"` // Token to specify the next page in the list
+}
+
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/users#resource:-user
 type User struct {
 	AgreedToTerms              bool           `json:"agreedToTerms,omitempty"`              // User's agreement to terms status
 	Aliases                    []string       `json:"aliases,omitempty"`                    // User aliases
@@ -1043,7 +1052,7 @@ type User struct {
 	Languages                  []Language     `json:"languages,omitempty"`                  // User's languages
 	LastLoginTime              string         `json:"lastLoginTime,omitempty"`              // User's last login time
 	Locations                  []UserLocation `json:"locations,omitempty"`                  // User's locations
-	Name                       Name           `json:"name,omitempty"`                       // User's name
+	Name                       UserName       `json:"name,omitempty"`                       // User's name
 	NonEditableAliases         []string       `json:"nonEditableAliases,omitempty"`         // User's non-editable aliases
 	Notes                      Note           `json:"notes,omitempty"`                      // User's notes
 	OrgUnitPath                string         `json:"orgUnitPath,omitempty"`                // User's organizational unit path
@@ -1108,7 +1117,8 @@ type UserLocation struct {
 	Type         string `json:"type,omitempty"`         // The location type
 }
 
-type Name struct {
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/users#username
+type UserName struct {
 	FullName    string `json:"fullName,omitempty"`    // The user's full name
 	FamilyName  string `json:"familyName,omitempty"`  // The user's last name
 	GivenName   string `json:"givenName,omitempty"`   // The user's first name
@@ -1180,3 +1190,50 @@ type Website struct {
 
 // END OF USER STRUCTS
 //-----------------------------------------------------------------------------
+
+// ### Enums
+// ---------------------------------------------------------------------
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#event
+type UserEvent string
+
+const (
+	Add       UserEvent = "ADD"        // User Created Event
+	Delete    UserEvent = "DELETE"     // User Deleted Event
+	MakeAdmin UserEvent = "MAKE_ADMIN" // User Admin Status Change Event
+	Undelete  UserEvent = "UNDELETE"   // User Undeleted Event
+	Update    UserEvent = "UPDATE"     // User Updated Event
+)
+
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#orderby
+type OrderBy string
+
+const (
+	PrimaryEmail OrderBy = "EMAIL"       // Primary email of the user
+	FamilyName   OrderBy = "FAMILY_NAME" // User's family name
+	GivenName    OrderBy = "GIVEN_NAME"  // User's given name
+)
+
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#projection
+type UserProjection string
+
+const (
+	Basic  UserProjection = "BASIC"  // Do not include any custom fields for the user
+	Custom UserProjection = "CUSTOM" // Include custom fields from scemas requested i nthe customFieldMask
+	Full   UserProjection = "FULL"   // Include all fields associated with this user.
+)
+
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#sortorder
+type SortOrder string
+
+const (
+	Ascending  SortOrder = "ASCENDING"  // Ascending order
+	Descending SortOrder = "DESCENDING" // Descending order
+)
+
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#viewtype
+type UserViewType string
+
+const (
+	AdminView    UserViewType = "admin_view"    // Results include both administrator-only and domain-public fields for the user.
+	DomainPublic UserViewType = "domain_public" // Results only include fields for the user that are publicly visible to other users
+)
