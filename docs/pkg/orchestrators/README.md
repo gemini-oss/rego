@@ -15,7 +15,7 @@ pkg/orchestrators/orchestrators.go
 
 
 <a name="Client"></a>
-## type Client
+## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/orchestrators/orchestrators.go#L22-L28>)
 
 
 
@@ -30,7 +30,7 @@ type Client struct {
 ```
 
 <a name="Client.OktaRoleReportToGoogleSheet"></a>
-### func \(\*Client\) OktaRoleReportToGoogleSheet
+### func \(\*Client\) [OktaRoleReportToGoogleSheet](<https://github.com/gemini-oss/rego/blob/main/pkg/orchestrators/orchestrators.go#L36>)
 
 ```go
 func (c *Client) OktaRoleReportToGoogleSheet() error

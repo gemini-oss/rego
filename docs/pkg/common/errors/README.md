@@ -16,7 +16,7 @@ pkg/common/errors/errors.go
 
 
 <a name="New"></a>
-## func New
+## func [New](<https://github.com/gemini-oss/rego/blob/main/pkg/common/errors/errors.go#L18>)
 
 ```go
 func New(code int, msg string) error
@@ -25,7 +25,7 @@ func New(code int, msg string) error
 
 
 <a name="CustomError"></a>
-## type CustomError
+## type [CustomError](<https://github.com/gemini-oss/rego/blob/main/pkg/common/errors/errors.go#L9-L12>)
 
 
 
@@ -37,7 +37,7 @@ type CustomError struct {
 ```
 
 <a name="CustomError.Error"></a>
-### func \(\*CustomError\) Error
+### func \(\*CustomError\) [Error](<https://github.com/gemini-oss/rego/blob/main/pkg/common/errors/errors.go#L14>)
 
 ```go
 func (e *CustomError) Error() string

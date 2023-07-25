@@ -15,7 +15,7 @@ pkg/common/config/config.go
 
 
 <a name="GetEnv"></a>
-## func GetEnv
+## func [GetEnv](<https://github.com/gemini-oss/rego/blob/main/pkg/common/config/config.go#L10>)
 
 ```go
 func GetEnv(key, defaultVal string) string
@@ -24,7 +24,7 @@ func GetEnv(key, defaultVal string) string
 A simple function to get environment variables with a default value
 
 <a name="GetEnvAsInt"></a>
-## func GetEnvAsInt
+## func [GetEnvAsInt](<https://github.com/gemini-oss/rego/blob/main/pkg/common/config/config.go#L18>)
 
 ```go
 func GetEnvAsInt(key string, defaultVal int) int

@@ -37,7 +37,7 @@ var (
 ```
 
 <a name="Client"></a>
-## type Client
+## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L48-L53>)
 
 
 
@@ -51,7 +51,7 @@ type Client struct {
 ```
 
 <a name="NewClient"></a>
-### func NewClient
+### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L102>)
 
 ```go
 func NewClient(verbosity int) *Client
@@ -60,7 +60,7 @@ func NewClient(verbosity int) *Client
 \* Create a new Jamf Client
 
 <a name="Client.BuildURL"></a>
-### func \(\*Client\) BuildURL
+### func \(\*Client\) [BuildURL](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L56>)
 
 ```go
 func (c *Client) BuildURL(endpoint string, identifiers ...string) string
@@ -69,7 +69,7 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string
 BuildURL builds a URL for a given resource and identifiers.
 
 <a name="Client.GetJamfVersion"></a>
-### func \(\*Client\) GetJamfVersion
+### func \(\*Client\) [GetJamfVersion](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/version.go#L21>)
 
 ```go
 func (c *Client) GetJamfVersion() (string, error)
@@ -81,7 +81,7 @@ func (c *Client) GetJamfVersion() (string, error)
 - \- https://developer.jamf.com/jamf-pro/reference/get_v1-jamf-pro-version
 
 <a name="Credentials"></a>
-## type Credentials
+## type [Credentials](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L37-L41>)
 
 Credentials for Jamf Pro
 
@@ -94,7 +94,7 @@ type Credentials struct {
 ```
 
 <a name="JamfToken"></a>
-## type JamfToken
+## type [JamfToken](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L43-L46>)
 
 
 
@@ -106,7 +106,7 @@ type JamfToken struct {
 ```
 
 <a name="GetToken"></a>
-### func GetToken
+### func [GetToken](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L69>)
 
 ```go
 func GetToken(baseURL string) (*JamfToken, error)

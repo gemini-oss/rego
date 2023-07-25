@@ -15,7 +15,7 @@ pkg/common/auth/auth.go
 
 
 <a name="JWTConfig"></a>
-## type JWTConfig
+## type [JWTConfig](<https://github.com/gemini-oss/rego/blob/main/pkg/common/auth/auth.go#L19>)
 
 
 
@@ -24,7 +24,7 @@ type JWTConfig *jwt.Config
 ```
 
 <a name="OAuthConfig"></a>
-## type OAuthConfig
+## type [OAuthConfig](<https://github.com/gemini-oss/rego/blob/main/pkg/common/auth/auth.go#L21>)
 
 
 

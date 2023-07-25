@@ -14,7 +14,7 @@ pkg/common/retry/retry.go
 
 
 <a name="Retry"></a>
-## func Retry
+## func [Retry](<https://github.com/gemini-oss/rego/blob/main/pkg/common/retry/retry.go#L9>)
 
 ```go
 func Retry(attempts int, sleep time.Duration, fn func() error) error

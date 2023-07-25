@@ -13,22 +13,26 @@ pkg/common/ratelimit/ratelimit.go
 - [type RateLimiter](<#RateLimiter>)
   - [func NewRateLimiter\(rate int\) \*RateLimiter](<#NewRateLimiter>)
   - [func \(rl \*RateLimiter\) Start\(\)](<#RateLimiter.Start>)
+  - [func \(rl \*RateLimiter\) Stop\(\)](<#RateLimiter.Stop>)
+  - [func \(rl \*RateLimiter\) UpdateRate\(rate int\)](<#RateLimiter.UpdateRate>)
   - [func \(rl \*RateLimiter\) Wait\(\)](<#RateLimiter.Wait>)
 
 
 <a name="RateLimiter"></a>
-## type RateLimiter
+## type [RateLimiter](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L8-L12>)
 
 
 
 ```go
 type RateLimiter struct {
-    // contains filtered or unexported fields
+    Rate   int           // maximum number of requests
+    Bucket chan struct{} // a bucket holds tokens
+    Ticker *time.Ticker
 }
 ```
 
 <a name="NewRateLimiter"></a>
-### func NewRateLimiter
+### func [NewRateLimiter](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L14>)
 
 ```go
 func NewRateLimiter(rate int) *RateLimiter
@@ -37,7 +41,7 @@ func NewRateLimiter(rate int) *RateLimiter
 
 
 <a name="RateLimiter.Start"></a>
-### func \(\*RateLimiter\) Start
+### func \(\*RateLimiter\) [Start](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L19>)
 
 ```go
 func (rl *RateLimiter) Start()
@@ -45,8 +49,26 @@ func (rl *RateLimiter) Start()
 
 
 
+<a name="RateLimiter.Stop"></a>
+### func \(\*RateLimiter\) [Stop](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L25>)
+
+```go
+func (rl *RateLimiter) Stop()
+```
+
+
+
+<a name="RateLimiter.UpdateRate"></a>
+### func \(\*RateLimiter\) [UpdateRate](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L29>)
+
+```go
+func (rl *RateLimiter) UpdateRate(rate int)
+```
+
+
+
 <a name="RateLimiter.Wait"></a>
-### func \(\*RateLimiter\) Wait
+### func \(\*RateLimiter\) [Wait](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L36>)
 
 ```go
 func (rl *RateLimiter) Wait()

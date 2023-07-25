@@ -15,7 +15,7 @@ pkg/common/struct/struct.go
 
 
 <a name="PrettyJSON"></a>
-## func PrettyJSON
+## func [PrettyJSON](<https://github.com/gemini-oss/rego/blob/main/pkg/common/starstruct/struct.go#L15>)
 
 ```go
 func PrettyJSON(data interface{}) (string, error)
@@ -24,7 +24,7 @@ func PrettyJSON(data interface{}) (string, error)
 \* Print a struct as a JSON string
 
 <a name="StructToMap"></a>
-## func StructToMap
+## func [StructToMap](<https://github.com/gemini-oss/rego/blob/main/pkg/common/starstruct/struct.go#L30>)
 
 ```go
 func StructToMap(item interface{}) map[string]string
