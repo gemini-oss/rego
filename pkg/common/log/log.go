@@ -72,8 +72,10 @@ type Logger struct {
 - logs formatted message at specified level
 */
 func (l *Logger) logf(level int, format string, v ...interface{}) {
-	l.logger.SetPrefix(l.getPrefix(level))
-	l.logger.Printf(format, v...)
+	if level >= l.verbosity {
+		l.logger.SetPrefix(l.getPrefix(level))
+		l.logger.Printf(format, v...)
+	}
 }
 
 /*
@@ -81,8 +83,10 @@ func (l *Logger) logf(level int, format string, v ...interface{}) {
  * - logs message at specified level
  */
 func (l *Logger) log(level int, v ...interface{}) {
-	l.logger.SetPrefix(l.getPrefix(level))
-	l.logger.Println(v...)
+	if level >= l.verbosity {
+		l.logger.SetPrefix(l.getPrefix(level))
+		l.logger.Println(v...)
+	}
 }
 
 /*

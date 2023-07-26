@@ -49,7 +49,7 @@ func NewClient(c *http.Client, headers Headers) *Client {
  */
 type Paginator struct {
 	Self          string `json:"self"`
-	NextPageLink      string `json:"next"`
+	NextPageLink  string `json:"next"`
 	NextPageToken string `json:"next_page_token"`
 	Paged         bool   `json:"paged"`
 }

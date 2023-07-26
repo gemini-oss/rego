@@ -190,7 +190,16 @@ type RoleReport struct {
 
 // ### Google Drive Structs
 // ---------------------------------------------------------------------
-type Document struct {
+// https://developers.google.com/drive/api/reference/rest/v3/files/list#response-body
+type FileList struct {
+	Kind             string `json:"kind,omitempty"`             // Identifies what kind of resource this is. Value: the fixed string "drive#fileList".
+	IncompleteSearch bool   `json:"incompleteSearch,omitempty"` // Whether the search process was incomplete. If true, then some search results may be missing, since all documents were not searched. This may occur when searching multiple Team Drives with the "default,allTeamDrives" corpora, but all corpora could not be searched. When this happens, it is suggested that clients narrow their query by choosing a different corpus such as "default" or "teamDrive".
+	Files            []File `json:"files,omitempty"`            // The list of files. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
+	NextPageToken    string `json:"nextPageToken,omitempty"`    // The page token for the next page of files. This will be absent if the end of the files list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results.
+}
+
+// https://developers.google.com/drive/api/reference/rest/v3/files#resource:-file
+type File struct {
 	Kind                         string               `json:"kind,omitempty"`                         // drive#file
 	DriveID                      string               `json:"driveId,omitempty"`                      // The ID of the shared drive the file resides in. Only populated for items in shared drives.
 	FileExtension                string               `json:"fileExtension,omitempty"`                // The extension of the file. This is populated even when Drive is unable to determine the extension. This field can be cleared by writing a new empty value to this field.
@@ -253,10 +262,32 @@ type Document struct {
 	LabelInfo                    LabelInfo            `json:"labelInfo,omitempty"`                    // Additional information about the content of the file. These fields are never populated in responses.
 	SHA1Checksum                 string               `json:"sha1Checksum,omitempty"`                 // The SHA1 checksum for the content of the file. It is computed by Drive and guaranteed to be up-to-date at all times. A change in the content of the file will cause a change in its SHA256 checksum.
 	SHA256Checksum               string               `json:"sha256Checksum,omitempty"`               // The SHA256 checksum for the content of the file. It is computed by Drive and guaranteed to be up-to-date at all times. A change in the content of the file will cause a change in its SHA256 checksum.
+	Path                         string               `json:"path,omitempty"`                         // The path of this file. Google Drive doesn't have path concept internally, but we construct a slash-separated path for UX
 }
 
+// https://developers.google.com/drive/api/reference/rest/v3/permissions#resource:-permission
 type Permission struct {
-	// Permission fields here
+	AllowFileDiscovery bool               `json:"allowFileDiscovery,omitempty"` // Whether the permission allows the file to be discovered through search. This is only applicable for permissions of type domain or anyone.
+	Deleted            bool               `json:"deleted,omitempty"`            // Output only. Whether the account associated with this permission has been deleted. This field only pertains to user and group permissions.
+	DisplayName        string             `json:"displayName,omitempty"`        // Output only. The "pretty" name of the value of the permission.
+	Domain             string             `json:"domain,omitempty"`             // The domain to which this permission refers.
+	EmailAddress       string             `json:"emailAddress,omitempty"`       // The email address of the user or group to which this permission refers.
+	ExpirationTime     string             `json:"expirationTime,omitempty"`     // The time at which this permission will expire (RFC 3339 date-time).
+	ID                 string             `json:"id,omitempty"`                 // Output only. The ID of this permission.
+	Kind               string             `json:"kind,omitempty"`               // Output only. Identifies what kind of resource this is. Value: the fixed string "drive#permission".
+	PermissionDetails  []PermissionDetail `json:"permissionDetails,omitempty"`  // Output only. Details of whether the permissions on this shared drive item are inherited or directly on this item.
+	PhotoLink          string             `json:"photoLink,omitempty"`          // Output only. A link to the user's profile photo, if available.
+	PendingOwner       bool               `json:"pendingOwner,omitempty"`       // Whether the account associated with this permission is a pending owner. Only populated for user type permissions for files that are not in a shared drive.
+	Role               string             `json:"role,omitempty"`               // The role granted by this permission. While new values may be supported in the future, the following are currently allowed: owner, organizer, fileOrganizer, writer, commenter, reader
+	Type               string             `json:"type,omitempty"`               // The type of the grantee.
+	View               string             `json:"view,omitempty"`               // Indicates the view for this permission. Only populated for permissions that belong to a view. 'published' is the only supported value.
+}
+
+type PermissionDetail struct {
+	Inherited      bool   `json:"inherited,omitempty"`      // Output only. Whether this permission is inherited. This field is always populated. This is an output-only field.
+	InheritedFrom  string `json:"inheritedFrom,omitempty"`  // Output only. The ID of the item from which this permission is inherited. This is an output-only field.
+	PermissionType string `json:"permissionType,omitempty"` // Output only. The permission type for this user. While new values may be added in future, the following are currently possible: file, member
+	Role           string `json:"role,omitempty"`           // Output only. The primary role for this user. While new values may be added in the future, the following are currently possible: organizer, fileOrganizer, writer, commenter, reader
 }
 
 type ContentHints struct {
@@ -364,8 +395,30 @@ type LabelInfo struct {
 	Labels []Label `json:"labels,omitempty"` // The list of labels belonging to this account.
 }
 
+/*
+ * Label represents a label and its fields.
+ * https://developers.google.com/drive/api/reference/rest/v3/Label
+ */
 type Label struct {
-	// Label fields here
+	Fields     map[string]Field `json:"fields,omitempty"`     // A map of the fields on the label, keyed by the field's ID.
+	ID         string           `json:"id,omitempty"`         // The ID of the label.
+	Kind       string           `json:"kind,omitempty"`       // drive#label.
+	RevisionID string           `json:"revisionId,omitempty"` // The revision ID of the label.
+}
+
+/*
+ * Field represents a field, which is a typed key-value pair.
+ * https://developers.google.com/drive/api/reference/rest/v3/Label#Field
+ */
+type Field struct {
+	DateString []string `json:"dateString,omitempty"` // Only present if valueType is dateString. RFC 3339 formatted date: YYYY-MM-DD.
+	ID         string   `json:"id,omitempty"`         // The identifier of this label field.
+	Integer    []string `json:"integer,omitempty"`    // Only present if valueType is integer.
+	Kind       string   `json:"kind,omitempty"`       // drive#labelField.
+	Selection  []string `json:"selection,omitempty"`  // Only present if valueType is selection.
+	Text       []string `json:"text,omitempty"`       // Only present if valueType is text.
+	User       []User   `json:"user,omitempty"`       // Only present if valueType is user.
+	ValueType  string   `json:"valueType,omitempty"`  // The field type. While new values may be supported in the future, the following are currently allowed: dateString, integer, selection, text, user.
 }
 
 // END OF GOOGLE DRIVE STRUCTS

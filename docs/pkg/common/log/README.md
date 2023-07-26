@@ -82,7 +82,7 @@ type Logger struct {
 ```
 
 <a name="NewLogger"></a>
-### func [NewLogger](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L222>)
+### func [NewLogger](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L226>)
 
 ```go
 func NewLogger(prefix string, verbosity int) *Logger
@@ -93,7 +93,7 @@ func NewLogger(prefix string, verbosity int) *Logger
 - \- creates a new Logger with the specified prefix
 
 <a name="Logger.Close"></a>
-### func \(\*Logger\) [Close](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L186>)
+### func \(\*Logger\) [Close](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L190>)
 
 ```go
 func (l *Logger) Close() error
@@ -104,7 +104,7 @@ func (l *Logger) Close() error
 - \- closes the Logger's file if it is a \*os.File
 
 <a name="Logger.Debug"></a>
-### func \(\*Logger\) [Debug](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L132>)
+### func \(\*Logger\) [Debug](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L136>)
 
 ```go
 func (l *Logger) Debug(v ...interface{})
@@ -115,7 +115,7 @@ func (l *Logger) Debug(v ...interface{})
 - \- logs line at DEBUG level
 
 <a name="Logger.Debugf"></a>
-### func \(\*Logger\) [Debugf](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L140>)
+### func \(\*Logger\) [Debugf](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L144>)
 
 ```go
 func (l *Logger) Debugf(format string, v ...interface{})
@@ -126,7 +126,7 @@ func (l *Logger) Debugf(format string, v ...interface{})
 - \- logs formatted message at DEBUG level
 
 <a name="Logger.Fatal"></a>
-### func \(\*Logger\) [Fatal](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L148>)
+### func \(\*Logger\) [Fatal](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L152>)
 
 ```go
 func (l *Logger) Fatal(v ...interface{})
@@ -137,7 +137,7 @@ func (l *Logger) Fatal(v ...interface{})
 - \- logs line at INFO level
 
 <a name="Logger.Fatalf"></a>
-### func \(\*Logger\) [Fatalf](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L157>)
+### func \(\*Logger\) [Fatalf](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L161>)
 
 ```go
 func (l *Logger) Fatalf(format string, v ...interface{})
@@ -148,7 +148,7 @@ func (l *Logger) Fatalf(format string, v ...interface{})
 - \- logs formatted message at FATAL level and then calls os.Exit\(1\)
 
 <a name="Logger.Panic"></a>
-### func \(\*Logger\) [Panic](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L166>)
+### func \(\*Logger\) [Panic](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L170>)
 
 ```go
 func (l *Logger) Panic(v ...interface{})
@@ -159,7 +159,7 @@ func (l *Logger) Panic(v ...interface{})
 - \- logs line at PANIC level and then panics
 
 <a name="Logger.Panicf"></a>
-### func \(\*Logger\) [Panicf](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L176>)
+### func \(\*Logger\) [Panicf](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L180>)
 
 ```go
 func (l *Logger) Panicf(format string, v ...interface{})
@@ -170,7 +170,7 @@ func (l *Logger) Panicf(format string, v ...interface{})
 - \- logs formatted message at PANIC level and then panics
 
 <a name="Logger.Print"></a>
-### func \(\*Logger\) [Print](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L92>)
+### func \(\*Logger\) [Print](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L96>)
 
 ```go
 func (l *Logger) Print(v ...interface{})
@@ -181,7 +181,7 @@ func (l *Logger) Print(v ...interface{})
 - \- logs line at INFO level
 
 <a name="Logger.Printf"></a>
-### func \(\*Logger\) [Printf](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L100>)
+### func \(\*Logger\) [Printf](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L104>)
 
 ```go
 func (l *Logger) Printf(format string, v ...interface{})
@@ -192,7 +192,7 @@ func (l *Logger) Printf(format string, v ...interface{})
 - \- logs formatted message at INFO level
 
 <a name="Logger.Println"></a>
-### func \(\*Logger\) [Println](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L108>)
+### func \(\*Logger\) [Println](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L112>)
 
 ```go
 func (l *Logger) Println(v ...interface{})
@@ -203,7 +203,7 @@ func (l *Logger) Println(v ...interface{})
 - \- logs line at INFO level
 
 <a name="Logger.Trace"></a>
-### func \(\*Logger\) [Trace](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L116>)
+### func \(\*Logger\) [Trace](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L120>)
 
 ```go
 func (l *Logger) Trace(v ...interface{})
@@ -214,7 +214,7 @@ func (l *Logger) Trace(v ...interface{})
 - \- logs line at TRACE level
 
 <a name="Logger.Tracef"></a>
-### func \(\*Logger\) [Tracef](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L124>)
+### func \(\*Logger\) [Tracef](<https://github.com/gemini-oss/rego/blob/main/pkg/common/log/log.go#L128>)
 
 ```go
 func (l *Logger) Tracef(format string, v ...interface{})

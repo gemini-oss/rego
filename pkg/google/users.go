@@ -57,7 +57,7 @@ func (u *UserQuery) IsEmpty() bool {
 /*
  * Validate the query parameters for the Users resource
  */
- func (u *UserQuery) ValidateQuery() error {
+func (u *UserQuery) ValidateQuery() error {
 	if u.IsEmpty() {
 		u.Customer = "my_customer"
 		u.MaxResults = 100
