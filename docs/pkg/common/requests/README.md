@@ -76,7 +76,7 @@ func (c *Client) DoRequest(method string, url string, query interface{}, data in
 - @return error
 
 <a name="Client.PaginatedRequest"></a>
-### func \(\*Client\) [PaginatedRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L167>)
+### func \(\*Client\) [PaginatedRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L171>)
 
 ```go
 func (c *Client) PaginatedRequest(method string, url string, query interface{}, payload interface{}) ([]json.RawMessage, error)
@@ -118,7 +118,7 @@ type Paginator struct {
 ```
 
 <a name="Paginator.HasNextPage"></a>
-### func \(\*Paginator\) [HasNextPage](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L230>)
+### func \(\*Paginator\) [HasNextPage](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L234>)
 
 ```go
 func (p *Paginator) HasNextPage(links []string) bool

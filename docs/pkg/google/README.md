@@ -16,6 +16,8 @@ pkg/google/entities.go
 
 pkg/google/google.go
 
+pkg/google/permissions.go
+
 pkg/google/sheets.go
 
 pkg/google/users.go
@@ -62,6 +64,8 @@ pkg/google/users.go
   - [func \(c \*Client\) GetFileList\(file File, q DriveFileQuery\) \(\*FileList, error\)](<#Client.GetFileList>)
   - [func \(c \*Client\) GetFileOwnership\(fileID string\) \(string, error\)](<#Client.GetFileOwnership>)
   - [func \(c \*Client\) GetFilePath\(id string\) \(string, error\)](<#Client.GetFilePath>)
+  - [func \(c \*Client\) GetPermissionDetails\(driveID string, permissionID string\) \(\*Permission, error\)](<#Client.GetPermissionDetails>)
+  - [func \(c \*Client\) GetPermissionList\(driveID string\) \(\*PermissionList, error\)](<#Client.GetPermissionList>)
   - [func \(c \*Client\) GetRole\(customerId string, roleId string\) \(\*Role, error\)](<#Client.GetRole>)
   - [func \(c \*Client\) GetRootFileList\(\) \(\*FileList, error\)](<#Client.GetRootFileList>)
   - [func \(c \*Client\) GetUser\(userKey string\) \(\*User, error\)](<#Client.GetUser>)
@@ -73,6 +77,7 @@ pkg/google/users.go
   - [func \(c \*Client\) MoveFileToFolder\(file \*File, folder \*File\) error](<#Client.MoveFileToFolder>)
   - [func \(c \*Client\) SaveRoleReport\(reports \[\]\*RoleReport\) \(\*Spreadsheet, error\)](<#Client.SaveRoleReport>)
   - [func \(c \*Client\) SearchUsers\(q UserQuery\) \(\*Users, error\)](<#Client.SearchUsers>)
+  - [func \(c \*Client\) TransferOwnership\(driveID string, newOwner string\) \(\*Permission, error\)](<#Client.TransferOwnership>)
   - [func \(c \*Client\) UpdateSpreadsheet\(spreadsheetID string, vr \*ValueRange\) error](<#Client.UpdateSpreadsheet>)
 - [type Color](<#Color>)
 - [type ColorStyle](<#ColorStyle>)
@@ -114,8 +119,9 @@ pkg/google/users.go
 - [type Endpoint](<#Endpoint>)
 - [type Endpoints](<#Endpoints>)
 - [type Entity](<#Entity>)
-- [type Error](<#Error>)
 - [type ErrorDetail](<#ErrorDetail>)
+- [type ErrorItem](<#ErrorItem>)
+- [type ErrorResponse](<#ErrorResponse>)
 - [type ErrorValue](<#ErrorValue>)
 - [type Event](<#Event>)
 - [type ExtendedValue](<#ExtendedValue>)
@@ -154,6 +160,9 @@ pkg/google/users.go
 - [type Password](<#Password>)
 - [type Permission](<#Permission>)
 - [type PermissionDetail](<#PermissionDetail>)
+- [type PermissionList](<#PermissionList>)
+- [type PermissionsQuery](<#PermissionsQuery>)
+  - [func \(d \*PermissionsQuery\) IsEmpty\(\) bool](<#PermissionsQuery.IsEmpty>)
 - [type Phone](<#Phone>)
 - [type PivotFilterCriteria](<#PivotFilterCriteria>)
 - [type PivotFilterSpec](<#PivotFilterSpec>)
@@ -386,7 +395,7 @@ func VerifySheetValueRange(vr *ValueRange) error
 - \- Sets default values for ValueRange if they are not defined
 
 <a name="ActivityID"></a>
-## type [ActivityID](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L114-L119>)
+## type [ActivityID](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L122-L127>)
 
 
 
@@ -400,7 +409,7 @@ type ActivityID struct {
 ```
 
 <a name="Actor"></a>
-## type [Actor](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L121-L126>)
+## type [Actor](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L129-L134>)
 
 
 
@@ -449,7 +458,7 @@ type AuthDetail struct {
 ```
 
 <a name="AutoResizeDimensionsRequest"></a>
-## type [AutoResizeDimensionsRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1032-L1035>)
+## type [AutoResizeDimensionsRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1054-L1057>)
 
 AutoResizeDimensionsRequest represents a request to auto resize dimensions. https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#autoresizedimensionsrequest
 
@@ -461,7 +470,7 @@ type AutoResizeDimensionsRequest struct {
 ```
 
 <a name="BandedRange"></a>
-## type [BandedRange](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L907-L912>)
+## type [BandedRange](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L929-L934>)
 
 BandedRange represents a banded \(alternating colors\) range.
 
@@ -475,7 +484,7 @@ type BandedRange struct {
 ```
 
 <a name="BandingProperties"></a>
-## type [BandingProperties](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L914>)
+## type [BandingProperties](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L936>)
 
 
 
@@ -484,7 +493,7 @@ type BandingProperties interface{}
 ```
 
 <a name="BasicFilter"></a>
-## type [BasicFilter](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L887-L892>)
+## type [BasicFilter](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L909-L914>)
 
 BasicFilter represents a basic filter. https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#basicfilter
 
@@ -498,7 +507,7 @@ type BasicFilter struct {
 ```
 
 <a name="BigQueryDataSourceSpec"></a>
-## type [BigQueryDataSourceSpec](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L463-L467>)
+## type [BigQueryDataSourceSpec](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L485-L489>)
 
 BigQueryDataSourceSpec represents the specifications of a BigQuery data source.
 
@@ -511,7 +520,7 @@ type BigQueryDataSourceSpec struct {
 ```
 
 <a name="BigQueryQuerySpec"></a>
-## type [BigQueryQuerySpec](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L470-L472>)
+## type [BigQueryQuerySpec](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L492-L494>)
 
 BigQueryQuerySpec represents the specifications of a BigQuery query.
 
@@ -522,7 +531,7 @@ type BigQueryQuerySpec struct {
 ```
 
 <a name="BigQueryTableSpec"></a>
-## type [BigQueryTableSpec](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L475-L479>)
+## type [BigQueryTableSpec](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L497-L501>)
 
 BigQueryTableSpec represents the specifications of a BigQuery table.
 
@@ -535,7 +544,7 @@ type BigQueryTableSpec struct {
 ```
 
 <a name="BooleanRule"></a>
-## type [BooleanRule](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L829-L831>)
+## type [BooleanRule](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L851-L853>)
 
 BooleanRule represents a boolean rule for conditional formatting.
 
@@ -545,7 +554,7 @@ type BooleanRule struct {
 ```
 
 <a name="Borders"></a>
-## type [Borders](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L754>)
+## type [Borders](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L776>)
 
 
 
@@ -554,7 +563,7 @@ type Borders interface{}
 ```
 
 <a name="Capabilities"></a>
-## type [Capabilities](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L303-L341>)
+## type [Capabilities](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L319-L357>)
 
 
 
@@ -601,7 +610,7 @@ type Capabilities struct {
 ```
 
 <a name="CellData"></a>
-## type [CellData](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L639-L652>)
+## type [CellData](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L661-L674>)
 
 CellData represents data in a cell. https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/cells#celldata
 
@@ -623,7 +632,7 @@ type CellData struct {
 ```
 
 <a name="CellFormat"></a>
-## type [CellFormat](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L739-L752>)
+## type [CellFormat](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L761-L774>)
 
 CellFormat represents the formatting of a cell. https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/cells#CellFormat
 
@@ -645,7 +654,7 @@ type CellFormat struct {
 ```
 
 <a name="ChartSpec"></a>
-## type [ChartSpec](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L904>)
+## type [ChartSpec](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L926>)
 
 
 
@@ -665,7 +674,7 @@ type Client struct {
     OAuth      *auth.OAuthConfig
     JWT        *jwt.Config      // JWT Config
     HTTPClient *requests.Client // HTTP Client
-    Error      *Error           // Error
+    Error      *ErrorResponse   // Error
     Logger     *log.Logger      // Logger
 }
 ```
@@ -805,7 +814,7 @@ func (c *Client) GetFile(driveID string) (*File, error)
 - https://developers.google.com/drive/api/v3/reference/files/get
 
 <a name="Client.GetFileList"></a>
-### func \(\*Client\) [GetFileList](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L196>)
+### func \(\*Client\) [GetFileList](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L198>)
 
 ```go
 func (c *Client) GetFileList(file File, q DriveFileQuery) (*FileList, error)
@@ -829,7 +838,7 @@ func (c *Client) GetFileOwnership(fileID string) (string, error)
 \* Find the file ownership using the Reports API
 
 <a name="Client.GetFilePath"></a>
-### func \(\*Client\) [GetFilePath](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L314>)
+### func \(\*Client\) [GetFilePath](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L317>)
 
 ```go
 func (c *Client) GetFilePath(id string) (string, error)
@@ -841,6 +850,33 @@ func (c *Client) GetFilePath(id string) (string, error)
 - drive/v3/files/\{fileId\}
 - @param \{string\} id \- The ID of the file or shortcut to get the path of.
 - https://developers.google.com/drive/api/v3/reference/files/get
+
+<a name="Client.GetPermissionDetails"></a>
+### func \(\*Client\) [GetPermissionDetails](<https://github.com/gemini-oss/rego/blob/main/pkg/google/permissions.go#L86>)
+
+```go
+func (c *Client) GetPermissionDetails(driveID string, permissionID string) (*Permission, error)
+```
+
+\* \# Get Google Drive File Permission Details
+
+- drive/v3/files/\{fileId\}/permissions/\{permissionId\}
+- @param \{string\} fileId \- The ID of the file or shortcut.
+- @param \{string\} permissionId \- The ID of the permission.
+- https://developers.google.com/drive/api/reference/rest/v3/permissions/get
+
+<a name="Client.GetPermissionList"></a>
+### func \(\*Client\) [GetPermissionList](<https://github.com/gemini-oss/rego/blob/main/pkg/google/permissions.go#L57>)
+
+```go
+func (c *Client) GetPermissionList(driveID string) (*PermissionList, error)
+```
+
+\* \# Get Google Drive File Permissions
+
+- drive/v3/files/\{fileId\}/permissions
+- @param \{string\} fileId \- The ID of the file or shortcut.
+- https://developers.google.com/drive/api/reference/rest/v3/permissions/list
 
 <a name="Client.GetRole"></a>
 ### func \(\*Client\) [GetRole](<https://github.com/gemini-oss/rego/blob/main/pkg/google/admin.go#L107>)
@@ -855,7 +891,7 @@ func (c *Client) GetRole(customerId string, roleId string) (*Role, error)
 - https://developers.google.com/admin-sdk/directory/v1/reference/roles/get
 
 <a name="Client.GetRootFileList"></a>
-### func \(\*Client\) [GetRootFileList](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L179>)
+### func \(\*Client\) [GetRootFileList](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L181>)
 
 ```go
 func (c *Client) GetRootFileList() (*FileList, error)
@@ -936,7 +972,7 @@ func (c *Client) ListAllUsers() (*Users, error)
 - https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list
 
 <a name="Client.MoveFileToFolder"></a>
-### func \(\*Client\) [MoveFileToFolder](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L145>)
+### func \(\*Client\) [MoveFileToFolder](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L146>)
 
 ```go
 func (c *Client) MoveFileToFolder(file *File, folder *File) error
@@ -973,6 +1009,21 @@ func (c *Client) SearchUsers(q UserQuery) (*Users, error)
 - /admin/directory/v1/users
 - https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list
 
+<a name="Client.TransferOwnership"></a>
+### func \(\*Client\) [TransferOwnership](<https://github.com/gemini-oss/rego/blob/main/pkg/google/permissions.go#L114>)
+
+```go
+func (c *Client) TransferOwnership(driveID string, newOwner string) (*Permission, error)
+```
+
+\* \# Transfer Google Drive File Ownership
+
+- drive/v3/files/\{fileId\}/permissions/\{permissionId\}/update
+- Warning: Concurrent permissions operations on the same file are not supported; only the last update is applied.
+- @param \{string\} fileId \- The ID of the file or shortcut.
+- @param \{string\} permissionId \- The ID of the permission.
+- https://developers.google.com/drive/api/reference/rest/v3/permissions/create
+
 <a name="Client.UpdateSpreadsheet"></a>
 ### func \(\*Client\) [UpdateSpreadsheet](<https://github.com/gemini-oss/rego/blob/main/pkg/google/sheets.go#L86>)
 
@@ -987,7 +1038,7 @@ func (c *Client) UpdateSpreadsheet(spreadsheetID string, vr *ValueRange) error
 - \- https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/update
 
 <a name="Color"></a>
-## type [Color](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L721-L726>)
+## type [Color](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L743-L748>)
 
 Color represents the color object https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/other#color
 
@@ -1001,7 +1052,7 @@ type Color struct {
 ```
 
 <a name="ColorStyle"></a>
-## type [ColorStyle](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L730-L733>)
+## type [ColorStyle](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L752-L755>)
 
 ColorStyle represents the color style object https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/other#colorstyle
 
@@ -1013,7 +1064,7 @@ type ColorStyle struct {
 ```
 
 <a name="ConditionalFormatRule"></a>
-## type [ConditionalFormatRule](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L839-L843>)
+## type [ConditionalFormatRule](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L861-L865>)
 
 ConditionalFormatRule represents a conditional formatting rule.
 
@@ -1026,7 +1077,7 @@ type ConditionalFormatRule struct {
 ```
 
 <a name="ContentHints"></a>
-## type [ContentHints](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L293-L296>)
+## type [ContentHints](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L309-L312>)
 
 
 
@@ -1038,17 +1089,23 @@ type ContentHints struct {
 ```
 
 <a name="ContentRestriction"></a>
-## type [ContentRestriction](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L385-L387>)
+## type [ContentRestriction](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L402-L409>)
 
-
+https://developers.google.com/drive/api/reference/rest/v3/files#contentrestriction
 
 ```go
 type ContentRestriction struct {
+    OwnerRestricted bool   `json:"ownerRestricted,omitempty"` // Whether the content restriction can only be modified or removed by a user who owns the file.
+    ReadOnly        bool   `json:"readOnly,omitempty"`        // Whether the content of the file is read-only.
+    Reason          string `json:"reason,omitempty"`          // Reason for why the content of the file is restricted.
+    RestrictingUser *User  `json:"restrictingUser,omitempty"` // The user who set the content restriction.
+    RestrictionTime string `json:"restrictionTime,omitempty"` // The time at which the content restriction was set.
+    Type            string `json:"type,omitempty"`            // The type of the content restriction.
 }
 ```
 
 <a name="DataExecutionStatus"></a>
-## type [DataExecutionStatus](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L617>)
+## type [DataExecutionStatus](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L639>)
 
 
 
@@ -1057,7 +1114,7 @@ type DataExecutionStatus interface{}
 ```
 
 <a name="DataSource"></a>
-## type [DataSource](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L449-L454>)
+## type [DataSource](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L471-L476>)
 
 DataSource represents a data source in a spreadsheet.
 
@@ -1071,7 +1128,7 @@ type DataSource struct {
 ```
 
 <a name="DataSourceColumn"></a>
-## type [DataSourceColumn](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L489-L492>)
+## type [DataSourceColumn](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L511-L514>)
 
 DataSourceColumn represents a column in the data source.
 
@@ -1083,7 +1140,7 @@ type DataSourceColumn struct {
 ```
 
 <a name="DataSourceColumnReference"></a>
-## type [DataSourceColumnReference](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L496-L498>)
+## type [DataSourceColumnReference](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L518-L520>)
 
 DataSourceColumnReference represents a reference to a column in the data source. https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/other#DataSourceColumnReference
 
@@ -1094,7 +1151,7 @@ type DataSourceColumnReference struct {
 ```
 
 <a name="DataSourceFormula"></a>
-## type [DataSourceFormula](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L656>)
+## type [DataSourceFormula](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L678>)
 
 
 
@@ -1103,7 +1160,7 @@ type DataSourceFormula interface{}
 ```
 
 <a name="DataSourceParameter"></a>
-## type [DataSourceParameter](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L482-L486>)
+## type [DataSourceParameter](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L504-L508>)
 
 DataSourceParameter represents a parameter of a data source.
 
@@ -1116,7 +1173,7 @@ type DataSourceParameter struct {
 ```
 
 <a name="DataSourceRefreshDailySchedule"></a>
-## type [DataSourceRefreshDailySchedule](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L511-L513>)
+## type [DataSourceRefreshDailySchedule](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L533-L535>)
 
 DataSourceRefreshDailySchedule represents a daily schedule for data source refresh.
 
@@ -1127,7 +1184,7 @@ type DataSourceRefreshDailySchedule struct {
 ```
 
 <a name="DataSourceRefreshMonthlySchedule"></a>
-## type [DataSourceRefreshMonthlySchedule](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L522-L525>)
+## type [DataSourceRefreshMonthlySchedule](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L544-L547>)
 
 DataSourceRefreshMonthlySchedule represents a monthly schedule for data source refresh.
 
@@ -1139,7 +1196,7 @@ type DataSourceRefreshMonthlySchedule struct {
 ```
 
 <a name="DataSourceRefreshSchedule"></a>
-## type [DataSourceRefreshSchedule](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L501-L508>)
+## type [DataSourceRefreshSchedule](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L523-L530>)
 
 DataSourceRefreshSchedule represents a refresh schedule of a data source.
 
@@ -1155,7 +1212,7 @@ type DataSourceRefreshSchedule struct {
 ```
 
 <a name="DataSourceRefreshWeeklySchedule"></a>
-## type [DataSourceRefreshWeeklySchedule](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L516-L519>)
+## type [DataSourceRefreshWeeklySchedule](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L538-L541>)
 
 DataSourceRefreshWeeklySchedule represents a weekly schedule for data source refresh.
 
@@ -1167,7 +1224,7 @@ type DataSourceRefreshWeeklySchedule struct {
 ```
 
 <a name="DataSourceSheetDimensionRange"></a>
-## type [DataSourceSheetDimensionRange](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1039-L1042>)
+## type [DataSourceSheetDimensionRange](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1061-L1064>)
 
 DataSourceSheetDimensionRange represents the data source sheet dimension range object https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#DataDourceSheetDimensionRange
 
@@ -1179,7 +1236,7 @@ type DataSourceSheetDimensionRange struct {
 ```
 
 <a name="DataSourceSheetProperties"></a>
-## type [DataSourceSheetProperties](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L611-L615>)
+## type [DataSourceSheetProperties](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L633-L637>)
 
 DataSourceSheetProperties represents the properties of a data source sheet. https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#datasourcesheetproperties
 
@@ -1192,7 +1249,7 @@ type DataSourceSheetProperties struct {
 ```
 
 <a name="DataSourceSpec"></a>
-## type [DataSourceSpec](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L457-L460>)
+## type [DataSourceSpec](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L479-L482>)
 
 DataSourceSpec represents the specifications of a data source.
 
@@ -1204,7 +1261,7 @@ type DataSourceSpec struct {
 ```
 
 <a name="DataSourceTable"></a>
-## type [DataSourceTable](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L655>)
+## type [DataSourceTable](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L677>)
 
 
 
@@ -1213,7 +1270,7 @@ type DataSourceTable interface{}
 ```
 
 <a name="DataValidationRule"></a>
-## type [DataValidationRule](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L672-L677>)
+## type [DataValidationRule](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L694-L699>)
 
 DataValidationRule represents a rule for data validation. https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/other#ExtendedValue
 
@@ -1227,7 +1284,7 @@ type DataValidationRule struct {
 ```
 
 <a name="DayOfWeek"></a>
-## type [DayOfWeek](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L528>)
+## type [DayOfWeek](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L550>)
 
 DayOfWeek represents a day of the week.
 
@@ -1236,7 +1293,7 @@ type DayOfWeek int
 ```
 
 <a name="DeveloperMetadata"></a>
-## type [DeveloperMetadata](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L548-L554>)
+## type [DeveloperMetadata](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L570-L576>)
 
 DeveloperMetadata represents metadata associated with a developer.
 
@@ -1251,7 +1308,7 @@ type DeveloperMetadata struct {
 ```
 
 <a name="DeveloperMetadataLocation"></a>
-## type [DeveloperMetadataLocation](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L556>)
+## type [DeveloperMetadataLocation](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L578>)
 
 
 
@@ -1260,7 +1317,7 @@ type DeveloperMetadataLocation interface{}
 ```
 
 <a name="DeveloperMetadataLocationType"></a>
-## type [DeveloperMetadataLocationType](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L545>)
+## type [DeveloperMetadataLocationType](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L567>)
 
 DeveloperMetadataLocationType represents the type of location on which developer metadata may be associated.
 
@@ -1269,7 +1326,7 @@ type DeveloperMetadataLocationType int
 ```
 
 <a name="DimensionGroup"></a>
-## type [DimensionGroup](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L917-L921>)
+## type [DimensionGroup](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L939-L943>)
 
 DimensionGroup represents a group of dimensions.
 
@@ -1282,7 +1339,7 @@ type DimensionGroup struct {
 ```
 
 <a name="DimensionProperties"></a>
-## type [DimensionProperties](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L811-L817>)
+## type [DimensionProperties](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L833-L839>)
 
 DimensionProperties represents properties of dimensions within a sheet. https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#dimensionproperties
 
@@ -1297,7 +1354,7 @@ type DimensionProperties struct {
 ```
 
 <a name="DimensionRange"></a>
-## type [DimensionRange](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L925-L930>)
+## type [DimensionRange](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L947-L952>)
 
 DimensionRange represents the dimension range object https://developers.google.com/sheets/api/reference/rest/v4/DimensionRange
 
@@ -1393,7 +1450,7 @@ func (d *DriveFileQuery) ValidateQuery() error
 \* Validate the query parameters for the Files resource
 
 <a name="Editors"></a>
-## type [Editors](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L883>)
+## type [Editors](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L905>)
 
 
 
@@ -1402,7 +1459,7 @@ type Editors interface{}
 ```
 
 <a name="Email"></a>
-## type [Email](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1129-L1134>)
+## type [Email](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1151-L1156>)
 
 
 
@@ -1416,7 +1473,7 @@ type Email struct {
 ```
 
 <a name="EmbeddedChart"></a>
-## type [EmbeddedChart](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L895-L900>)
+## type [EmbeddedChart](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L917-L922>)
 
 EmbeddedChart represents an embedded chart.
 
@@ -1430,7 +1487,7 @@ type EmbeddedChart struct {
 ```
 
 <a name="EmbeddedObjectBorder"></a>
-## type [EmbeddedObjectBorder](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L902>)
+## type [EmbeddedObjectBorder](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L924>)
 
 
 
@@ -1439,7 +1496,7 @@ type EmbeddedObjectBorder interface{}
 ```
 
 <a name="EmbeddedObjectPosition"></a>
-## type [EmbeddedObjectPosition](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L903>)
+## type [EmbeddedObjectPosition](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L925>)
 
 
 
@@ -1475,7 +1532,7 @@ type Endpoints []Endpoint
 ```
 
 <a name="Entity"></a>
-## type [Entity](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L139-L145>)
+## type [Entity](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L147-L153>)
 
 
 
@@ -1489,38 +1546,48 @@ type Entity struct {
 }
 ```
 
-<a name="Error"></a>
-## type [Error](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L46-L52>)
-
-
-
-```go
-type Error struct {
-    Error struct {
-        Errors  []ErrorDetail `json:"errors"`
-        Code    int           `json:"code"`
-        Message string        `json:"message"`
-    } `json:"error"`
-}
-```
-
 <a name="ErrorDetail"></a>
-## type [ErrorDetail](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L54-L60>)
+## type [ErrorDetail](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L56-L60>)
 
-
+ErrorDetail contains detailed information about an error.
 
 ```go
 type ErrorDetail struct {
-    Domain       string `json:"domain"`
-    Reason       string `json:"reason"`
-    Message      string `json:"message"`
-    LocationType string `json:"locationType"`
-    Location     string `json:"location"`
+    Code    int          `json:"code,omitempty"`    // The HTTP status code for the error.
+    Message string       `json:"message,omitempty"` // The error message.
+    Errors  []*ErrorItem `json:"errors,omitempty"`  // An array of more detailed error items.
+}
+```
+
+<a name="ErrorItem"></a>
+## type [ErrorItem](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L63-L67>)
+
+ErrorItem contains detailed information about an individual error.
+
+```go
+type ErrorItem struct {
+    Domain  string `json:"domain,omitempty"`  // The domain of the error.
+    Message string `json:"message,omitempty"` // The error message.
+    Reason  string `json:"reason,omitempty"`  // The reason for the error.
+}
+```
+
+<a name="ErrorResponse"></a>
+## type [ErrorResponse](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L51-L53>)
+
+\* \# ErrorResponse
+
+- ErrorResponse represents the structure of an error response.
+- Example: https://developers.google.com/drive/api/guides/handle-errors
+
+```go
+type ErrorResponse struct {
+    Error *ErrorDetail `json:"error,omitempty"` // The details of the error.
 }
 ```
 
 <a name="ErrorValue"></a>
-## type [ErrorValue](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L668>)
+## type [ErrorValue](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L690>)
 
 
 
@@ -1529,7 +1596,7 @@ type ErrorValue interface{}
 ```
 
 <a name="Event"></a>
-## type [Event](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L95-L99>)
+## type [Event](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L102-L106>)
 
 
 
@@ -1542,7 +1609,7 @@ type Event struct {
 ```
 
 <a name="ExtendedValue"></a>
-## type [ExtendedValue](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L660-L666>)
+## type [ExtendedValue](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L682-L688>)
 
 ExtendedValue represents a user\-entered value. https://developers.google.com/sheets/api/reference/rest/v4/sheets#ExtendedValue
 
@@ -1557,7 +1624,7 @@ type ExtendedValue struct {
 ```
 
 <a name="ExternalID"></a>
-## type [ExternalID](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1136-L1140>)
+## type [ExternalID](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1158-L1162>)
 
 
 
@@ -1570,7 +1637,7 @@ type ExternalID struct {
 ```
 
 <a name="Field"></a>
-## type [Field](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L413-L422>)
+## type [Field](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L435-L444>)
 
 \* Field represents a field, which is a typed key\-value pair.
 
@@ -1590,7 +1657,7 @@ type Field struct {
 ```
 
 <a name="File"></a>
-## type [File](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L202-L266>)
+## type [File](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L210-L274>)
 
 https://developers.google.com/drive/api/reference/rest/v3/files#resource:-file
 
@@ -1663,13 +1730,13 @@ type File struct {
 ```
 
 <a name="FileList"></a>
-## type [FileList](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L194-L199>)
+## type [FileList](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L202-L207>)
 
 \#\#\# Google Drive Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- https://developers.google.com/drive/api/reference/rest/v3/files/list#response-body
 
 ```go
 type FileList struct {
-    Kind             string `json:"kind,omitempty"`             // Identifies what kind of resource this is. Value: the fixed string "drive#fileList".
+    Kind             string `json:"kind,omitempty"`             // drive#fileList
     IncompleteSearch bool   `json:"incompleteSearch,omitempty"` // Whether the search process was incomplete. If true, then some search results may be missing, since all documents were not searched. This may occur when searching multiple Team Drives with the "default,allTeamDrives" corpora, but all corpora could not be searched. When this happens, it is suggested that clients narrow their query by choosing a different corpus such as "default" or "teamDrive".
     Files            []File `json:"files,omitempty"`            // The list of files. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
     NextPageToken    string `json:"nextPageToken,omitempty"`    // The page token for the next page of files. This will be absent if the end of the files list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results.
@@ -1677,7 +1744,7 @@ type FileList struct {
 ```
 
 <a name="FilterCriteria"></a>
-## type [FilterCriteria](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L851-L853>)
+## type [FilterCriteria](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L873-L875>)
 
 FilterCriteria represents filter criteria.
 
@@ -1687,7 +1754,7 @@ type FilterCriteria struct {
 ```
 
 <a name="FilterSpec"></a>
-## type [FilterSpec](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L856-L858>)
+## type [FilterSpec](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L878-L880>)
 
 FilterSpec represents a filter specification.
 
@@ -1697,7 +1764,7 @@ type FilterSpec struct {
 ```
 
 <a name="FilterView"></a>
-## type [FilterView](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L861-L869>)
+## type [FilterView](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L883-L891>)
 
 FilterView represents a filter view.
 
@@ -1714,7 +1781,7 @@ type FilterView struct {
 ```
 
 <a name="Gender"></a>
-## type [Gender](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1142-L1146>)
+## type [Gender](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1164-L1168>)
 
 
 
@@ -1739,7 +1806,7 @@ type GoogleConfig struct {
 ```
 
 <a name="GradientRule"></a>
-## type [GradientRule](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L834-L836>)
+## type [GradientRule](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L856-L858>)
 
 GradientRule represents a gradient rule for conditional formatting.
 
@@ -1749,7 +1816,7 @@ type GradientRule struct {
 ```
 
 <a name="GridData"></a>
-## type [GridData](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L801-L807>)
+## type [GridData](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L823-L829>)
 
 GridData represents the data in a grid \(or sheet\). https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#griddata
 
@@ -1764,7 +1831,7 @@ type GridData struct {
 ```
 
 <a name="GridProperties"></a>
-## type [GridProperties](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L621-L629>)
+## type [GridProperties](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L643-L651>)
 
 GridProperties represents the properties of a grid. https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#gridproperties
 
@@ -1781,7 +1848,7 @@ type GridProperties struct {
 ```
 
 <a name="GridRange"></a>
-## type [GridRange](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L820-L826>)
+## type [GridRange](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L842-L848>)
 
 GridRange represents a range in a grid \(or sheet\).
 
@@ -1796,7 +1863,7 @@ type GridRange struct {
 ```
 
 <a name="HorizontalAlign"></a>
-## type [HorizontalAlign](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L952>)
+## type [HorizontalAlign](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L974>)
 
 
 
@@ -1805,7 +1872,7 @@ type HorizontalAlign interface{}
 ```
 
 <a name="IM"></a>
-## type [IM](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1148-L1155>)
+## type [IM](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1170-L1177>)
 
 
 
@@ -1833,7 +1900,7 @@ type Icon struct {
 ```
 
 <a name="ImageMediaMetadata"></a>
-## type [ImageMediaMetadata](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L343-L365>)
+## type [ImageMediaMetadata](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L359-L381>)
 
 
 
@@ -1864,7 +1931,7 @@ type ImageMediaMetadata struct {
 ```
 
 <a name="Interval"></a>
-## type [Interval](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L539-L542>)
+## type [Interval](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L561-L564>)
 
 Interval represents a time interval.
 
@@ -1876,7 +1943,7 @@ type Interval struct {
 ```
 
 <a name="IterativeCalculationSettings"></a>
-## type [IterativeCalculationSettings](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L783-L786>)
+## type [IterativeCalculationSettings](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L805-L808>)
 
 IterativeCalculationSettings represents the settings for iterative calculations. https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#IterativeCalculationSettings
 
@@ -1888,7 +1955,7 @@ type IterativeCalculationSettings struct {
 ```
 
 <a name="Label"></a>
-## type [Label](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L402-L407>)
+## type [Label](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L424-L429>)
 
 \* Label represents a label and its fields.
 
@@ -1904,7 +1971,7 @@ type Label struct {
 ```
 
 <a name="LabelInfo"></a>
-## type [LabelInfo](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L394-L396>)
+## type [LabelInfo](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L416-L418>)
 
 
 
@@ -1915,7 +1982,7 @@ type LabelInfo struct {
 ```
 
 <a name="Language"></a>
-## type [Language](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1157-L1161>)
+## type [Language](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1179-L1183>)
 
 
 
@@ -1928,7 +1995,7 @@ type Language struct {
 ```
 
 <a name="LinkShareMetadata"></a>
-## type [LinkShareMetadata](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L389-L392>)
+## type [LinkShareMetadata](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L411-L414>)
 
 
 
@@ -1940,7 +2007,7 @@ type LinkShareMetadata struct {
 ```
 
 <a name="Location"></a>
-## type [Location](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L367-L371>)
+## type [Location](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L383-L387>)
 
 
 
@@ -1953,7 +2020,7 @@ type Location struct {
 ```
 
 <a name="NamedRange"></a>
-## type [NamedRange](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L559-L563>)
+## type [NamedRange](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L581-L585>)
 
 NamedRange represents a named range in a spreadsheet.
 
@@ -1966,7 +2033,7 @@ type NamedRange struct {
 ```
 
 <a name="Note"></a>
-## type [Note](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1181-L1184>)
+## type [Note](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1203-L1206>)
 
 
 
@@ -1978,7 +2045,7 @@ type Note struct {
 ```
 
 <a name="NumberFormat"></a>
-## type [NumberFormat](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L755>)
+## type [NumberFormat](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L777>)
 
 
 
@@ -1998,7 +2065,7 @@ type Oauth2Scopes struct {
 ```
 
 <a name="OrderBy"></a>
-## type [OrderBy](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1261>)
+## type [OrderBy](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1283>)
 
 https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#orderby
 
@@ -2017,7 +2084,7 @@ const (
 ```
 
 <a name="Organization"></a>
-## type [Organization](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1186-L1199>)
+## type [Organization](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1208-L1221>)
 
 
 
@@ -2039,7 +2106,7 @@ type Organization struct {
 ```
 
 <a name="POSIXAccount"></a>
-## type [POSIXAccount](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1212-L1223>)
+## type [POSIXAccount](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1234-L1245>)
 
 
 
@@ -2059,7 +2126,7 @@ type POSIXAccount struct {
 ```
 
 <a name="Padding"></a>
-## type [Padding](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L756>)
+## type [Padding](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L778>)
 
 
 
@@ -2068,7 +2135,7 @@ type Padding interface{}
 ```
 
 <a name="Password"></a>
-## type [Password](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1201-L1203>)
+## type [Password](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1223-L1225>)
 
 
 
@@ -2079,7 +2146,7 @@ type Password struct {
 ```
 
 <a name="Permission"></a>
-## type [Permission](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L269-L284>)
+## type [Permission](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L285-L300>)
 
 https://developers.google.com/drive/api/reference/rest/v3/permissions#resource:-permission
 
@@ -2097,13 +2164,13 @@ type Permission struct {
     PhotoLink          string             `json:"photoLink,omitempty"`          // Output only. A link to the user's profile photo, if available.
     PendingOwner       bool               `json:"pendingOwner,omitempty"`       // Whether the account associated with this permission is a pending owner. Only populated for user type permissions for files that are not in a shared drive.
     Role               string             `json:"role,omitempty"`               // The role granted by this permission. While new values may be supported in the future, the following are currently allowed: owner, organizer, fileOrganizer, writer, commenter, reader
-    Type               string             `json:"type,omitempty"`               // The type of the grantee.
+    Type               string             `json:"type,omitempty"`               // The type of the grantee. Valid values are: `user`, `group`, `domain`, `anyone`. When creating a permission, if type is `user`` or `group`, you must provide an `emailAddress` for the user or group. When type is `domain`, you must provide a `domain`. There isn't extra information required for `anyone`.
     View               string             `json:"view,omitempty"`               // Indicates the view for this permission. Only populated for permissions that belong to a view. 'published' is the only supported value.
 }
 ```
 
 <a name="PermissionDetail"></a>
-## type [PermissionDetail](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L286-L291>)
+## type [PermissionDetail](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L302-L307>)
 
 
 
@@ -2116,8 +2183,52 @@ type PermissionDetail struct {
 }
 ```
 
+<a name="PermissionList"></a>
+## type [PermissionList](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L277-L282>)
+
+https://developers.google.com/drive/api/reference/rest/v3/permissions/list#response-body
+
+```go
+type PermissionList struct {
+    Kind             string       `json:"kind,omitempty"`             // drive#permissionList
+    IncompleteSearch bool         `json:"incompleteSearch,omitempty"` // Whether the search process was incomplete. If true, then some search results may be missing, since all documents were not searched. This may occur when searching multiple Team Drives with the "default,allTeamDrives" corpora, but all corpora could not be searched. When this happens, it is suggested that clients narrow their query by choosing a different corpus such as "default" or "teamDrive".
+    Permissions      []Permission `json:"permissions,omitempty"`      // The list of permissions. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
+    NextPageToken    string       `json:"nextPageToken,omitempty"`    // The page token for the next page of files. This will be absent if the end of the files list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results.
+}
+```
+
+<a name="PermissionsQuery"></a>
+## type [PermissionsQuery](<https://github.com/gemini-oss/rego/blob/main/pkg/google/permissions.go#L24-L34>)
+
+\* Query Parameters for Permissions
+
+- Reference: https://developers.google.com/drive/api/reference/rest/v3/permissions/create#query-parameters
+
+```go
+type PermissionsQuery struct {
+    EmailMessage              string `json:"emailMessage,omitempty"`              // A plain text custom message to include in the notification email.
+    IncludePermissionsForView string `json:"includePermissionsForView,omitempty"` // Specifies which additional view's permissions to include in the response.
+    PageSize                  int    `json:"pageSize,omitempty"`                  // The maximum number of permissions to return per page.
+    PageToken                 string `json:"pageToken,omitempty"`                 // The token for continuing a previous list request on the next page.
+    MoveToNewOwnersRoot       bool   `json:"moveToNewOwnersRoot,omitempty"`       // This parameter will only take effect if the item is not in a shared drive and the request is attempting to transfer the ownership of the item.
+    SendNotificationEmail     bool   `json:"sendNotificationEmail,omitempty"`     // Whether to send a notification email when sharing to users or groups.
+    SupportsAllDrives         bool   `json:"supportsAllDrives,omitempty"`         // Whether the requesting application supports both My Drives and shared drives.
+    TransferOwnership         bool   `json:"transferOwnership,omitempty"`         // Whether to transfer ownership to the specified user and downgrade the current owner to a writer.
+    UseDomainAdminAccess      bool   `json:"useDomainAdminAccess,omitempty"`      // Issue the request as a domain administrator.
+}
+```
+
+<a name="PermissionsQuery.IsEmpty"></a>
+### func \(\*PermissionsQuery\) [IsEmpty](<https://github.com/gemini-oss/rego/blob/main/pkg/google/permissions.go#L39>)
+
+```go
+func (d *PermissionsQuery) IsEmpty() bool
+```
+
+\* Check if the PermissionsQuery is empty
+
 <a name="Phone"></a>
-## type [Phone](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1205-L1210>)
+## type [Phone](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1227-L1232>)
 
 
 
@@ -2131,7 +2242,7 @@ type Phone struct {
 ```
 
 <a name="PivotFilterCriteria"></a>
-## type [PivotFilterCriteria](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L708>)
+## type [PivotFilterCriteria](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L730>)
 
 
 
@@ -2140,7 +2251,7 @@ type PivotFilterCriteria interface{}
 ```
 
 <a name="PivotFilterSpec"></a>
-## type [PivotFilterSpec](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L709>)
+## type [PivotFilterSpec](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L731>)
 
 
 
@@ -2149,7 +2260,7 @@ type PivotFilterSpec interface{}
 ```
 
 <a name="PivotGroup"></a>
-## type [PivotGroup](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L695-L706>)
+## type [PivotGroup](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L717-L728>)
 
 PivotGroup represents a group in a pivot table. https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/pivot-tables#pivotgroup
 
@@ -2169,7 +2280,7 @@ type PivotGroup struct {
 ```
 
 <a name="PivotGroupLimit"></a>
-## type [PivotGroupLimit](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L715>)
+## type [PivotGroupLimit](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L737>)
 
 
 
@@ -2178,7 +2289,7 @@ type PivotGroupLimit interface{}
 ```
 
 <a name="PivotGroupRule"></a>
-## type [PivotGroupRule](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L714>)
+## type [PivotGroupRule](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L736>)
 
 
 
@@ -2187,7 +2298,7 @@ type PivotGroupRule interface{}
 ```
 
 <a name="PivotGroupSortValueBucket"></a>
-## type [PivotGroupSortValueBucket](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L713>)
+## type [PivotGroupSortValueBucket](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L735>)
 
 
 
@@ -2196,7 +2307,7 @@ type PivotGroupSortValueBucket interface{}
 ```
 
 <a name="PivotGroupValueMetadata"></a>
-## type [PivotGroupValueMetadata](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L712>)
+## type [PivotGroupValueMetadata](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L734>)
 
 
 
@@ -2205,7 +2316,7 @@ type PivotGroupValueMetadata interface{}
 ```
 
 <a name="PivotTable"></a>
-## type [PivotTable](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L681-L691>)
+## type [PivotTable](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L703-L713>)
 
 PivotTable represents a pivot table. https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/pivot-tables
 
@@ -2224,7 +2335,7 @@ type PivotTable struct {
 ```
 
 <a name="PivotValue"></a>
-## type [PivotValue](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L710>)
+## type [PivotValue](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L732>)
 
 
 
@@ -2233,7 +2344,7 @@ type PivotValue interface{}
 ```
 
 <a name="PivotValueLayout"></a>
-## type [PivotValueLayout](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L711>)
+## type [PivotValueLayout](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L733>)
 
 
 
@@ -2242,7 +2353,7 @@ type PivotValueLayout interface{}
 ```
 
 <a name="ProtectedRange"></a>
-## type [ProtectedRange](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L872-L881>)
+## type [ProtectedRange](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L894-L903>)
 
 ProtectedRange represents a range that is protected.
 
@@ -2260,7 +2371,7 @@ type ProtectedRange struct {
 ```
 
 <a name="RecalculationInterval"></a>
-## type [RecalculationInterval](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L735>)
+## type [RecalculationInterval](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L757>)
 
 
 
@@ -2269,7 +2380,7 @@ type RecalculationInterval interface{}
 ```
 
 <a name="Relation"></a>
-## type [Relation](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1225-L1229>)
+## type [Relation](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1247-L1251>)
 
 
 
@@ -2282,7 +2393,7 @@ type Relation struct {
 ```
 
 <a name="RepeatCellRequest"></a>
-## type [RepeatCellRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1052-L1056>)
+## type [RepeatCellRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1074-L1078>)
 
 RepeatCellRequest sets the values of cells in a range to a set of values in a certain pattern. https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#repeatcellrequest
 
@@ -2295,7 +2406,7 @@ type RepeatCellRequest struct {
 ```
 
 <a name="Report"></a>
-## type [Report](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L79-L93>)
+## type [Report](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L86-L100>)
 
 https://developers.google.com/admin-sdk/reports/reference/rest/v1/activities/list#Activity
 
@@ -2318,9 +2429,9 @@ type Report struct {
 ```
 
 <a name="ReportParameter"></a>
-## type [ReportParameter](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L101-L112>)
+## type [ReportParameter](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L109-L120>)
 
-
+https://developers.google.com/admin-sdk/reports/reference/rest/v1/NestedParameter
 
 ```go
 type ReportParameter struct {
@@ -2363,7 +2474,7 @@ type ReportsQuery struct {
 ```
 
 <a name="Role"></a>
-## type [Role](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L153-L162>)
+## type [Role](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L161-L170>)
 
 
 
@@ -2381,7 +2492,7 @@ type Role struct {
 ```
 
 <a name="RoleAssignment"></a>
-## type [RoleAssignment](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L169-L181>)
+## type [RoleAssignment](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L177-L189>)
 
 
 
@@ -2402,7 +2513,7 @@ type RoleAssignment struct {
 ```
 
 <a name="RolePrivilege"></a>
-## type [RolePrivilege](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L164-L167>)
+## type [RolePrivilege](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L172-L175>)
 
 
 
@@ -2414,7 +2525,7 @@ type RolePrivilege struct {
 ```
 
 <a name="RoleReport"></a>
-## type [RoleReport](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L183-L186>)
+## type [RoleReport](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L191-L194>)
 
 
 
@@ -2426,7 +2537,7 @@ type RoleReport struct {
 ```
 
 <a name="Roles"></a>
-## type [Roles](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L147-L151>)
+## type [Roles](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L155-L159>)
 
 
 
@@ -2439,7 +2550,7 @@ type Roles struct {
 ```
 
 <a name="RowData"></a>
-## type [RowData](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L633-L635>)
+## type [RowData](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L655-L657>)
 
 RowData represents data in a row. https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#rowdata
 
@@ -2450,7 +2561,7 @@ type RowData struct {
 ```
 
 <a name="SSHPublicKey"></a>
-## type [SSHPublicKey](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1231-L1235>)
+## type [SSHPublicKey](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1253-L1257>)
 
 
 
@@ -2475,7 +2586,7 @@ type ScopeDetail struct {
 ```
 
 <a name="ServiceAccount"></a>
-## type [ServiceAccount](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L62-L70>)
+## type [ServiceAccount](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L69-L77>)
 
 
 
@@ -2492,7 +2603,7 @@ type ServiceAccount struct {
 ```
 
 <a name="SetBasicFilterRequest"></a>
-## type [SetBasicFilterRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1046-L1048>)
+## type [SetBasicFilterRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1068-L1070>)
 
 SetBasicFilterRequest represents the request to set a basic filter Source: https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#setbasicfilterrequest
 
@@ -2503,7 +2614,7 @@ type SetBasicFilterRequest struct {
 ```
 
 <a name="Sheet"></a>
-## type [Sheet](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L578-L592>)
+## type [Sheet](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L600-L614>)
 
 Sheet represents a sheet within a spreadsheet. https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets
 
@@ -2526,7 +2637,7 @@ type Sheet struct {
 ```
 
 <a name="SheetBatchRequest"></a>
-## type [SheetBatchRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L956-L961>)
+## type [SheetBatchRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L978-L983>)
 
 SheetBatchRequest represents a batch of updates to apply to a spreadsheet. https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#Request
 
@@ -2540,7 +2651,7 @@ type SheetBatchRequest struct {
 ```
 
 <a name="SheetLink"></a>
-## type [SheetLink](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L776-L779>)
+## type [SheetLink](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L798-L801>)
 
 Link represents the link object https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/cells#link
 
@@ -2552,7 +2663,7 @@ type SheetLink struct {
 ```
 
 <a name="SheetProperties"></a>
-## type [SheetProperties](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L596-L607>)
+## type [SheetProperties](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L618-L629>)
 
 SheetProperties represents properties of a sheet. https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#sheetproperties
 
@@ -2572,7 +2683,7 @@ type SheetProperties struct {
 ```
 
 <a name="SheetRequest"></a>
-## type [SheetRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L965-L1028>)
+## type [SheetRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L987-L1050>)
 
 SheetRequest represents a single kind of update to apply to a spreadsheet. https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#Request
 
@@ -2644,7 +2755,7 @@ type SheetRequest struct {
 ```
 
 <a name="SheetType"></a>
-## type [SheetType](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L717>)
+## type [SheetType](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L739>)
 
 
 
@@ -2667,7 +2778,7 @@ type SheetValueQuery struct {
 ```
 
 <a name="ShortcutDetails"></a>
-## type [ShortcutDetails](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L379-L383>)
+## type [ShortcutDetails](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L395-L399>)
 
 
 
@@ -2680,7 +2791,7 @@ type ShortcutDetails struct {
 ```
 
 <a name="Slicer"></a>
-## type [Slicer](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L933-L937>)
+## type [Slicer](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L955-L959>)
 
 Slicer represents a slicer.
 
@@ -2693,7 +2804,7 @@ type Slicer struct {
 ```
 
 <a name="SlicerSpec"></a>
-## type [SlicerSpec](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L940-L950>)
+## type [SlicerSpec](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L962-L972>)
 
 SlicerSpec represents the specification for a slicer.
 
@@ -2712,7 +2823,7 @@ type SlicerSpec struct {
 ```
 
 <a name="SortOrder"></a>
-## type [SortOrder](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1279>)
+## type [SortOrder](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1301>)
 
 https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#sortorder
 
@@ -2730,7 +2841,7 @@ const (
 ```
 
 <a name="SortSpec"></a>
-## type [SortSpec](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L846-L848>)
+## type [SortSpec](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L868-L870>)
 
 SortSpec represents a sort specification.
 
@@ -2740,7 +2851,7 @@ type SortSpec struct {
 ```
 
 <a name="Spreadsheet"></a>
-## type [Spreadsheet](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L430-L439>)
+## type [Spreadsheet](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L452-L461>)
 
 \#\#\# Spreadsheet Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- Spreadsheet represents a spreadsheet.
 
@@ -2758,7 +2869,7 @@ type Spreadsheet struct {
 ```
 
 <a name="SpreadsheetProperties"></a>
-## type [SpreadsheetProperties](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L566-L574>)
+## type [SpreadsheetProperties](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L588-L596>)
 
 SpreadsheetProperties represents properties of a spreadsheet.
 
@@ -2775,7 +2886,7 @@ type SpreadsheetProperties struct {
 ```
 
 <a name="SpreadsheetTheme"></a>
-## type [SpreadsheetTheme](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L794-L797>)
+## type [SpreadsheetTheme](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L816-L819>)
 
 SpreadsheetTheme represents a theme of a spreadsheet.
 
@@ -2787,7 +2898,7 @@ type SpreadsheetTheme struct {
 ```
 
 <a name="TextFormat"></a>
-## type [TextFormat](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L760-L770>)
+## type [TextFormat](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L782-L792>)
 
 TextFormat represents the text format https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/other#textformat
 
@@ -2806,7 +2917,7 @@ type TextFormat struct {
 ```
 
 <a name="TextFormatRun"></a>
-## type [TextFormatRun](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L654>)
+## type [TextFormatRun](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L676>)
 
 
 
@@ -2815,7 +2926,7 @@ type TextFormatRun interface{}
 ```
 
 <a name="TextRotation"></a>
-## type [TextRotation](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L772>)
+## type [TextRotation](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L794>)
 
 
 
@@ -2824,7 +2935,7 @@ type TextRotation interface{}
 ```
 
 <a name="ThemeColorPair"></a>
-## type [ThemeColorPair](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L789-L791>)
+## type [ThemeColorPair](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L811-L813>)
 
 ThemeColorPair represents a pair of theme color.
 
@@ -2834,7 +2945,7 @@ type ThemeColorPair struct {
 ```
 
 <a name="Thumbnail"></a>
-## type [Thumbnail](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L298-L301>)
+## type [Thumbnail](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L314-L317>)
 
 
 
@@ -2846,7 +2957,7 @@ type Thumbnail struct {
 ```
 
 <a name="TimeOfDay"></a>
-## type [TimeOfDay](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L531-L536>)
+## type [TimeOfDay](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L553-L558>)
 
 TimeOfDay represents a time of a day.
 
@@ -2860,7 +2971,7 @@ type TimeOfDay struct {
 ```
 
 <a name="UpdateDimensionPropertiesRequest"></a>
-## type [UpdateDimensionPropertiesRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1060-L1065>)
+## type [UpdateDimensionPropertiesRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1082-L1087>)
 
 UpdateDimensionPropertiesRequest represents the request to update dimension properties https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#updatedimensionpropertiesrequest
 
@@ -2874,7 +2985,7 @@ type UpdateDimensionPropertiesRequest struct {
 ```
 
 <a name="User"></a>
-## type [User](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1082-L1127>)
+## type [User](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1104-L1149>)
 
 https://developers.google.com/admin-sdk/directory/reference/rest/v1/users#resource:-user
 
@@ -2899,7 +3010,7 @@ type User struct {
     IsEnforcedIn2Sv            bool           `json:"isEnforcedIn2Sv,omitempty"`            // User's 2SV enforcement status
     IsEnrolledIn2Sv            bool           `json:"isEnrolledIn2Sv,omitempty"`            // User's 2SV enrolment status
     IsMailboxSetup             bool           `json:"isMailboxSetup,omitempty"`             // User's mailbox setup status
-    Ims                        []IM           `json:"ims,omitempty"`                        // User's instant messaging addresses
+    IMs                        []IM           `json:"ims,omitempty"`                        // User's instant messaging addresses
     IpWhitelisted              bool           `json:"ipWhitelisted,omitempty"`              // User's IP whitelist status
     Kind                       string         `json:"kind,omitempty"`                       // The type of the API resource
     Languages                  []Language     `json:"languages,omitempty"`                  // User's languages
@@ -2917,7 +3028,7 @@ type User struct {
     RecoveryEmail              string         `json:"recoveryEmail,omitempty"`              // User's recovery email
     RecoveryPhone              string         `json:"recoveryPhone,omitempty"`              // User's recovery phone number
     Relations                  []Relation     `json:"relations,omitempty"`                  // User's relations
-    Roles                      interface{}    `json:"roles,omitempty"`                      // User's roles
+    Roles                      []Role         `json:"roles,omitempty"`                      // User's roles
     SshPublicKeys              []SSHPublicKey `json:"sshPublicKeys,omitempty"`              // A list of SSH public keys
     Suspended                  bool           `json:"suspended,omitempty"`                  // User's suspension status
     SuspensionReason           string         `json:"suspensionReason,omitempty"`           // User's suspension reason
@@ -2928,7 +3039,7 @@ type User struct {
 ```
 
 <a name="UserEvent"></a>
-## type [UserEvent](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1250>)
+## type [UserEvent](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1272>)
 
 \#\#\# Enums \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#event
 
@@ -2949,7 +3060,7 @@ const (
 ```
 
 <a name="UserLocation"></a>
-## type [UserLocation](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1163-L1171>)
+## type [UserLocation](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1185-L1193>)
 
 
 
@@ -2966,7 +3077,7 @@ type UserLocation struct {
 ```
 
 <a name="UserName"></a>
-## type [UserName](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1174-L1179>)
+## type [UserName](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1196-L1201>)
 
 https://developers.google.com/admin-sdk/directory/reference/rest/v1/users#username
 
@@ -2980,7 +3091,7 @@ type UserName struct {
 ```
 
 <a name="UserProjection"></a>
-## type [UserProjection](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1270>)
+## type [UserProjection](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1292>)
 
 https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#projection
 
@@ -3041,7 +3152,7 @@ func (u *UserQuery) ValidateQuery() error
 \* Validate the query parameters for the Users resource
 
 <a name="UserViewType"></a>
-## type [UserViewType](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1287>)
+## type [UserViewType](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1309>)
 
 https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#viewtype
 
@@ -3059,7 +3170,7 @@ const (
 ```
 
 <a name="Users"></a>
-## type [Users](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1073-L1079>)
+## type [Users](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1095-L1101>)
 
 \#\#\# User Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#response-body
 
@@ -3074,7 +3185,7 @@ type Users struct {
 ```
 
 <a name="ValueRange"></a>
-## type [ValueRange](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L442-L446>)
+## type [ValueRange](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L464-L468>)
 
 ValueRange represents a value range in a spreadsheet.
 
@@ -3087,7 +3198,7 @@ type ValueRange struct {
 ```
 
 <a name="VideoMediaMetadata"></a>
-## type [VideoMediaMetadata](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L373-L377>)
+## type [VideoMediaMetadata](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L389-L393>)
 
 
 
@@ -3100,7 +3211,7 @@ type VideoMediaMetadata struct {
 ```
 
 <a name="Warning"></a>
-## type [Warning](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L128-L132>)
+## type [Warning](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L136-L140>)
 
 
 
@@ -3113,7 +3224,7 @@ type Warning struct {
 ```
 
 <a name="WarningData"></a>
-## type [WarningData](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L134-L137>)
+## type [WarningData](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L142-L145>)
 
 
 
@@ -3125,7 +3236,7 @@ type WarningData struct {
 ```
 
 <a name="Website"></a>
-## type [Website](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1237-L1242>)
+## type [Website](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1259-L1264>)
 
 
 
