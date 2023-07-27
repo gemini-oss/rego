@@ -116,6 +116,7 @@ func (c *Client) GetFile(driveID string) (*File, error) {
 
 	q := DriveFileQuery{
 		Fields: "*",
+		SupportsAllDrives: true,
 	}
 
 	url := fmt.Sprintf("%s/%s", DriveFiles, driveID)
@@ -159,6 +160,7 @@ func (c *Client) MoveFileToFolder(file *File, folder *File) error {
 		AddParents:    folder.ID,
 		RemoveParents: file.Parents[0],
 		Fields:        "id,name,parents",
+		SupportsAllDrives: true,
 	}
 
 	res, body, err := c.HTTPClient.DoRequest("PATCH", url, q, nil)
@@ -211,6 +213,7 @@ func (c *Client) GetFileList(file File, q DriveFileQuery) (*FileList, error) {
 		q.PageSize = 1000
 		q.IncludeLabels = "*"
 		q.Q = fmt.Sprintf(`'%s' in parents and trashed = false`, file.ID)
+		q.SupportsAllDrives = true
 	} else {
 		err := q.ValidateQuery()
 		if err != nil {

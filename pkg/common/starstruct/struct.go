@@ -15,7 +15,7 @@ import (
 func PrettyJSON(data interface{}) (string, error) {
 	buffer := new(bytes.Buffer)
 	encoder := json.NewEncoder(buffer)
-	encoder.SetIndent("", "\t")
+	encoder.SetIndent("", "  ")
 
 	err := encoder.Encode(data)
 	if err != nil {

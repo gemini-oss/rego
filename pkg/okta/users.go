@@ -9,7 +9,7 @@ https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/
 :Author: Anthony Dardano <anthony.dardano@gemini.com>
 */
 
-// pkg/okta/users/users.go
+// pkg/okta/users.go
 package okta
 
 import (
@@ -31,7 +31,7 @@ type UserQuery struct {
 }
 
 /*
- * Get all users, regardless of status
+ * # Get all users, regardless of status
  * /api/v1/users
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/listUsers
  */
@@ -66,7 +66,7 @@ func (c *Client) ListAllUsers() (*Users, error) {
 }
 
 /*
- * List all ACTIVE users
+ * # List all ACTIVE users
  * /api/v1/users
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/listUsers
  */
@@ -99,7 +99,7 @@ func (c *Client) ListActiveUsers() (*Users, error) {
 }
 
 /*
- * Get a user by ID
+ * # Get a user by ID
  * /api/v1/users/{userId}
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/getUser
  */
@@ -107,10 +107,12 @@ func (c *Client) GetUser(userID string) (*User, error) {
 
 	// url := fmt.Sprintf("%s/users/%s", c.BaseURL, userID)
 	url := c.BuildURL(OktaUsers, userID)
-	_, body, err := c.HTTPClient.DoRequest("GET", url, nil, nil)
+	res, body, err := c.HTTPClient.DoRequest("GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
+	c.Logger.Println("Response Status:", res.Status)
+	c.Logger.Debug("Response Body:", string(body))
 
 	user := &User{}
 	err = json.Unmarshal(body, &user)
@@ -122,7 +124,77 @@ func (c *Client) GetUser(userID string) (*User, error) {
 }
 
 /*
- * Get all Assigned Application Links for a User
+ * # Update a user's properties by ID
+ * /api/v1/users/{userId}
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/updateUser
+ */
+func (c *Client) UpdateUser(userID string, u *User) (*User, error) {
+
+	// url := fmt.Sprintf("%s/users/%s", c.BaseURL, userID)
+	url := c.BuildURL(OktaUsers, userID)
+
+	res, body, err := c.HTTPClient.DoRequest("POST", url, nil, &u)
+	if err != nil {
+		return nil, err
+	}
+	c.Logger.Println("Response Status:", res.Status)
+	c.Logger.Debug("Response Body:", string(body))
+
+	user := &User{}
+	err = json.Unmarshal(body, &user)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshalling user: %w", err)
+	}
+
+	return user, nil
+}
+
+/*
+ * # Get all Assigned Application Links for a User
  * /api/v1/users/{userId}/appLinks
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/listAppLinks
  */
+func (c *Client) GetUserAppLinks(userID string) (*[]AppLink, error) {
+
+	// url := fmt.Sprintf("%s/users/%s/appLinks", c.BaseURL, userID)
+	url := c.BuildURL(OktaUsers, userID, "appLinks")
+	res, body, err := c.HTTPClient.DoRequest("GET", url, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	c.Logger.Println("Response Status:", res.Status)
+	c.Logger.Debug("Response Body:", string(body))
+
+	appLinks := &[]AppLink{}
+	err = json.Unmarshal(body, &appLinks)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshalling user app links: %w", err)
+	}
+
+	return appLinks, nil
+}
+
+/*
+ * # List all Groups for a User
+ * /api/v1/users/{userId}/groups
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/updateUser
+ */
+func (c *Client) GetUserGroups(userID string) (*Groups, error) {
+
+	// url := fmt.Sprintf("%s/users/%s/groups", c.BaseURL, userID)
+	url := c.BuildURL(OktaUsers, userID, "groups")
+	res, body, err := c.HTTPClient.DoRequest("GET", url, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	c.Logger.Println("Response Status:", res.Status)
+	c.Logger.Debug("Response Body:", string(body))
+
+	groups := &Groups{}
+	err = json.Unmarshal(body, &groups)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshalling user groups: %w", err)
+	}
+
+	return groups, nil
+}

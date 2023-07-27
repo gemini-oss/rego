@@ -26,11 +26,13 @@ var (
 )
 
 const (
-	OktaApps    = "%s/apps"      // https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Application/
-	OktaDevices = "%s/devices"   // https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Device/
-	OktaUsers   = "%s/users"     // https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/
-	OktaIAM     = "%s/iam"       // https://developer.okta.com/docs/api/openapi/okta-management/management/tag/RoleAssignment/
-	OktaRoles   = "%s/iam/roles" // https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Role/
+	OktaApps       = "%s/apps"         // https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Application/
+	OktaGroups     = "%s/groups"       // https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Group/
+	OktaGroupRules = "%s/groups/rules" // https://developer.okta.com/docs/api/openapi/okta-management/management/tag/GroupRule/
+	OktaDevices    = "%s/devices"      // https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Device/
+	OktaUsers      = "%s/users"        // https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/
+	OktaIAM        = "%s/iam"          // https://developer.okta.com/docs/api/openapi/okta-management/management/tag/RoleAssignment/
+	OktaRoles      = "%s/iam/roles"    // https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Role/
 )
 
 // BuildURL builds a URL for a given resource and identifiers.

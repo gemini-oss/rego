@@ -31,6 +31,7 @@ type AppQuery struct {
 }
 
 /*
+ * # List All Applications
  * Lists all applications with pagination. A subset of apps can be returned that match a supported filter expression or query.
  * /api/v1/apps
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Application/#tag/Application/operation/listApplications

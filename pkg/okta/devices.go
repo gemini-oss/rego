@@ -47,6 +47,7 @@ type DeviceQuery struct {
 }
 
 /*
+ * # List All Devices
  * Lists all devices with pagination support.
  * /api/v1/devices
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Device/#tag/Device/operation/listDevices
@@ -76,6 +77,7 @@ func (c *Client) ListAllDevices() (*Devices, error) {
 }
 
 /*
+ * # List Devices (Queried)
  * Query devices with pagination support.
  * /api/v1/devices
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Device/#tag/Device/operation/listDevices
@@ -103,7 +105,7 @@ func (c *Client) ListDevices(q DeviceQuery) (*Devices, error) {
 }
 
 /*
- * Lists all Users for a Device
+ * # List all Users for a Device
  * /api/v1/devices/{deviceId}/users
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Device/#tag/Device/operation/listDevices
  */
@@ -128,7 +130,7 @@ func (c *Client) ListUsersForDevice(deviceID string) (*DeviceUsers, error) {
 }
 
 /*
- * Lists all non-mobile devices with Managed Status
+ * # List all non-mobile devices with Managed Status
  * /api/v1/devices
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Device/#tag/Device/operation/listDevices
  */

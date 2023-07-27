@@ -215,7 +215,7 @@ func (l *Logger) getPrefix(level int) string {
 		Python Format
 		[%s] {%s:%d} %s - ", timestamp, file, line, LogLevel(level))
 	*/
-	return fmt.Sprintf("[%s] {%s:%s} %s - ", timestamp, file, lineColor, LogLevel(level)) // Python Format
+	return fmt.Sprintf("[%s] %s {%s:%s} %s - ", timestamp, l.prefix, file, lineColor, LogLevel(level))
 
 }
 

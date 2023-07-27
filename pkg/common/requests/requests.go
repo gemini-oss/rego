@@ -144,6 +144,10 @@ func (c *Client) DoRequest(method string, url string, query interface{}, data in
 	}
 
 	switch resp.StatusCode {
+	case http.StatusBadRequest:
+		return nil, body, fmt.Errorf(string(body))
+	case http.StatusUnauthorized:
+		return nil, body, fmt.Errorf(string(body))
 	case http.StatusForbidden:
 		return nil, body, fmt.Errorf(string(body))
 	case http.StatusNotFound:

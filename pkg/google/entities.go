@@ -39,24 +39,31 @@ type Client struct {
 	OAuth      *auth.OAuthConfig
 	JWT        *jwt.Config      // JWT Config
 	HTTPClient *requests.Client // HTTP Client
-	Error      *Error           // Error
+	Error      *ErrorResponse   // Error
 	Logger     *log.Logger      // Logger
 }
 
-type Error struct {
-	Error struct {
-		Errors  []ErrorDetail `json:"errors"`
-		Code    int           `json:"code"`
-		Message string        `json:"message"`
-	} `json:"error"`
+/*
+ * # ErrorResponse
+ * ErrorResponse represents the structure of an error response.
+ * Example: https://developers.google.com/drive/api/guides/handle-errors
+ */
+type ErrorResponse struct {
+	Error *ErrorDetail `json:"error,omitempty"` // The details of the error.
 }
 
+// ErrorDetail contains detailed information about an error.
 type ErrorDetail struct {
-	Domain       string `json:"domain"`
-	Reason       string `json:"reason"`
-	Message      string `json:"message"`
-	LocationType string `json:"locationType"`
-	Location     string `json:"location"`
+	Code    int          `json:"code,omitempty"`    // The HTTP status code for the error.
+	Message string       `json:"message,omitempty"` // The error message.
+	Errors  []*ErrorItem `json:"errors,omitempty"`  // An array of more detailed error items.
+}
+
+// ErrorItem contains detailed information about an individual error.
+type ErrorItem struct {
+	Domain  string `json:"domain,omitempty"`  // The domain of the error.
+	Message string `json:"message,omitempty"` // The error message.
+	Reason  string `json:"reason,omitempty"`  // The reason for the error.
 }
 
 type ServiceAccount struct {
@@ -98,6 +105,7 @@ type Event struct {
 	Parameters []ReportParameter `json:"parameters,omitempty"` // Parameter value pairs for various applications
 }
 
+// https://developers.google.com/admin-sdk/reports/reference/rest/v1/NestedParameter
 type ReportParameter struct {
 	Name              string            `json:"name,omitempty"`              // The name of the parameter
 	Value             string            `json:"value,omitempty"`             // String value of the parameter
@@ -192,7 +200,7 @@ type RoleReport struct {
 // ---------------------------------------------------------------------
 // https://developers.google.com/drive/api/reference/rest/v3/files/list#response-body
 type FileList struct {
-	Kind             string `json:"kind,omitempty"`             // Identifies what kind of resource this is. Value: the fixed string "drive#fileList".
+	Kind             string `json:"kind,omitempty"`             // drive#fileList
 	IncompleteSearch bool   `json:"incompleteSearch,omitempty"` // Whether the search process was incomplete. If true, then some search results may be missing, since all documents were not searched. This may occur when searching multiple Team Drives with the "default,allTeamDrives" corpora, but all corpora could not be searched. When this happens, it is suggested that clients narrow their query by choosing a different corpus such as "default" or "teamDrive".
 	Files            []File `json:"files,omitempty"`            // The list of files. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
 	NextPageToken    string `json:"nextPageToken,omitempty"`    // The page token for the next page of files. This will be absent if the end of the files list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results.
@@ -265,6 +273,14 @@ type File struct {
 	Path                         string               `json:"path,omitempty"`                         // The path of this file. Google Drive doesn't have path concept internally, but we construct a slash-separated path for UX
 }
 
+// https://developers.google.com/drive/api/reference/rest/v3/permissions/list#response-body
+type PermissionList struct {
+	Kind             string       `json:"kind,omitempty"`             // drive#permissionList
+	IncompleteSearch bool         `json:"incompleteSearch,omitempty"` // Whether the search process was incomplete. If true, then some search results may be missing, since all documents were not searched. This may occur when searching multiple Team Drives with the "default,allTeamDrives" corpora, but all corpora could not be searched. When this happens, it is suggested that clients narrow their query by choosing a different corpus such as "default" or "teamDrive".
+	Permissions      []Permission `json:"permissions,omitempty"`      // The list of permissions. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
+	NextPageToken    string       `json:"nextPageToken,omitempty"`    // The page token for the next page of files. This will be absent if the end of the files list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results.
+}
+
 // https://developers.google.com/drive/api/reference/rest/v3/permissions#resource:-permission
 type Permission struct {
 	AllowFileDiscovery bool               `json:"allowFileDiscovery,omitempty"` // Whether the permission allows the file to be discovered through search. This is only applicable for permissions of type domain or anyone.
@@ -279,7 +295,7 @@ type Permission struct {
 	PhotoLink          string             `json:"photoLink,omitempty"`          // Output only. A link to the user's profile photo, if available.
 	PendingOwner       bool               `json:"pendingOwner,omitempty"`       // Whether the account associated with this permission is a pending owner. Only populated for user type permissions for files that are not in a shared drive.
 	Role               string             `json:"role,omitempty"`               // The role granted by this permission. While new values may be supported in the future, the following are currently allowed: owner, organizer, fileOrganizer, writer, commenter, reader
-	Type               string             `json:"type,omitempty"`               // The type of the grantee.
+	Type               string             `json:"type,omitempty"`               // The type of the grantee. Valid values are: `user`, `group`, `domain`, `anyone`. When creating a permission, if type is `user`` or `group`, you must provide an `emailAddress` for the user or group. When type is `domain`, you must provide a `domain`. There isn't extra information required for `anyone`.
 	View               string             `json:"view,omitempty"`               // Indicates the view for this permission. Only populated for permissions that belong to a view. 'published' is the only supported value.
 }
 
@@ -382,8 +398,14 @@ type ShortcutDetails struct {
 	TargetResourceKey string `json:"targetResourceKey,omitempty"` // The resource key of the target file. This is a unique identifier of the target file and is guaranteed to be immutable across file renames.
 }
 
+// https://developers.google.com/drive/api/reference/rest/v3/files#contentrestriction
 type ContentRestriction struct {
-	// Content restriction fields here
+	OwnerRestricted bool   `json:"ownerRestricted,omitempty"` // Whether the content restriction can only be modified or removed by a user who owns the file.
+	ReadOnly        bool   `json:"readOnly,omitempty"`        // Whether the content of the file is read-only.
+	Reason          string `json:"reason,omitempty"`          // Reason for why the content of the file is restricted.
+	RestrictingUser *User  `json:"restrictingUser,omitempty"` // The user who set the content restriction.
+	RestrictionTime string `json:"restrictionTime,omitempty"` // The time at which the content restriction was set.
+	Type            string `json:"type,omitempty"`            // The type of the content restriction.
 }
 
 type LinkShareMetadata struct {
@@ -1099,7 +1121,7 @@ type User struct {
 	IsEnforcedIn2Sv            bool           `json:"isEnforcedIn2Sv,omitempty"`            // User's 2SV enforcement status
 	IsEnrolledIn2Sv            bool           `json:"isEnrolledIn2Sv,omitempty"`            // User's 2SV enrolment status
 	IsMailboxSetup             bool           `json:"isMailboxSetup,omitempty"`             // User's mailbox setup status
-	Ims                        []IM           `json:"ims,omitempty"`                        // User's instant messaging addresses
+	IMs                        []IM           `json:"ims,omitempty"`                        // User's instant messaging addresses
 	IpWhitelisted              bool           `json:"ipWhitelisted,omitempty"`              // User's IP whitelist status
 	Kind                       string         `json:"kind,omitempty"`                       // The type of the API resource
 	Languages                  []Language     `json:"languages,omitempty"`                  // User's languages
@@ -1117,7 +1139,7 @@ type User struct {
 	RecoveryEmail              string         `json:"recoveryEmail,omitempty"`              // User's recovery email
 	RecoveryPhone              string         `json:"recoveryPhone,omitempty"`              // User's recovery phone number
 	Relations                  []Relation     `json:"relations,omitempty"`                  // User's relations
-	Roles                      interface{}    `json:"roles,omitempty"`                      // User's roles
+	Roles                      []Role         `json:"roles,omitempty"`                      // User's roles
 	SshPublicKeys              []SSHPublicKey `json:"sshPublicKeys,omitempty"`              // A list of SSH public keys
 	Suspended                  bool           `json:"suspended,omitempty"`                  // User's suspension status
 	SuspensionReason           string         `json:"suspensionReason,omitempty"`           // User's suspension reason

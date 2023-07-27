@@ -403,6 +403,9 @@ func (c *Client) GetFileOwnership(fileID string) (string, error) {
 	}
 	c.Logger.Println(ss.PrettyJSON(fileReport))
 
+	if len(fileReport.Items) == 0 {
+		return "", fmt.Errorf("no events found for file %s", fileID)
+	}
 	for _, event := range fileReport.Items[0].Events {
 		for i, param := range event.Parameters {
 			if param.Name == "owner" {
