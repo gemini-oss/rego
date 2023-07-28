@@ -52,19 +52,19 @@ var (
  * https://developers.google.com/admin-sdk/reports/reference/rest/v1/activities/list#query-parameters
  */
 type ReportsQuery struct {
-	ActorIpAddress                 string `json:"actorIpAddress,omitempty"`                 // The Internet Protocol (IP) Address of host where the event was performed.
-	CustomerId                     string `json:"customerId,omitempty"`                     // The unique ID of the customer to retrieve data for.
-	EndTime                        string `json:"endTime,omitempty"`                        // Sets the end of the range of time shown in the report.
-	EventName                      string `json:"eventName,omitempty"`                      // The name of the event being queried by the API.
-	Filters                        string `json:"filters,omitempty"`                        // The filters query string is a comma-separated list composed of event parameters manipulated by relational operators.
-	MaxResults                     int    `json:"maxResults,omitempty"`                     // Determines how many activity records are shown on each response page.
-	OrgUnitId                      string `json:"orgUnitId,omitempty"`                      // ID of the organizational unit to report on.
-	PageToken                      string `json:"pageToken,omitempty"`                      // The token to specify next page.
-	StartTime                      string `json:"startTime,omitempty"`                      // Sets the beginning of the range of time shown in the report.
-	GroupIdFilter                  string `json:"groupIdFilter,omitempty"`                  // Comma separated group ids (obfuscated) on which user activities are filtered.
-	RoleId                         string `json:"roleId,omitempty"`                         // ID of the role to report on.
-	UserKey                        string `json:"userKey,omitempty"`                        // Represents the profile id or the user email for which the data should be filtered.
-	IncludeIndirectRoleAssignments bool   `json:"includeIndirectRoleAssignments,omitempty"` // Whether to include indirect role assignments.
+	ActorIpAddress                 string `url:"actorIpAddress,omitempty"`                 // The Internet Protocol (IP) Address of host where the event was performed.
+	CustomerId                     string `url:"customerId,omitempty"`                     // The unique ID of the customer to retrieve data for.
+	EndTime                        string `url:"endTime,omitempty"`                        // Sets the end of the range of time shown in the report.
+	EventName                      string `url:"eventName,omitempty"`                      // The name of the event being queried by the API.
+	Filters                        string `url:"filters,omitempty"`                        // The filters query string is a comma-separated list composed of event parameters manipulated by relational operators.
+	MaxResults                     int    `url:"maxResults,omitempty"`                     // Determines how many activity records are shown on each response page.
+	OrgUnitId                      string `url:"orgUnitId,omitempty"`                      // ID of the organizational unit to report on.
+	PageToken                      string `url:"pageToken,omitempty"`                      // The token to specify next page.
+	StartTime                      string `url:"startTime,omitempty"`                      // Sets the beginning of the range of time shown in the report.
+	GroupIdFilter                  string `url:"groupIdFilter,omitempty"`                  // Comma separated group ids (obfuscated) on which user activities are filtered.
+	RoleId                         string `url:"roleId,omitempty"`                         // ID of the role to report on.
+	UserKey                        string `url:"userKey,omitempty"`                        // Represents the profile id or the user email for which the data should be filtered.
+	IncludeIndirectRoleAssignments bool   `url:"includeIndirectRoleAssignments,omitempty"` // Whether to include indirect role assignments.
 }
 
 /*
@@ -380,7 +380,6 @@ func (c *Client) GetFileOwnership(fileID string) (string, error) {
 	fileReport := &Report{}
 
 	q := ReportsQuery{
-		EventName:  "edit",
 		Filters:    fmt.Sprintf("doc_id==%s", fileID),
 		MaxResults: 1,
 	}

@@ -222,10 +222,10 @@ type File struct {
 	ThumbnailLink                string               `json:"thumbnailLink,omitempty"`                // A short-lived link to the file's thumbnail, if available. Typically lasts on the order of hours. Only populated when the requesting app can access the file's content.
 	IconLink                     string               `json:"iconLink,omitempty"`                     // A static, unauthenticated link to the file's icon.
 	Shared                       bool                 `json:"shared,omitempty"`                       // Whether the file has been shared. Not populated for items in shared drives.
-	LastModifyingUser            User                 `json:"lastModifyingUser,omitempty"`            // The user who last modified the file.
-	Owners                       []User               `json:"owners,omitempty"`                       // The owners of the file. Currently, only certain legacy files may have more than one owner. Not populated for items in shared drives.
+	LastModifyingUser            FileUser             `json:"lastModifyingUser,omitempty"`            // The user who last modified the file.
+	Owners                       []FileUser           `json:"owners,omitempty"`                       // The owners of the file. Currently, only certain legacy files may have more than one owner. Not populated for items in shared drives.
 	HeadRevisionID               string               `json:"headRevisionId,omitempty"`               // The ID of the file's head revision. This field is only populated for files with content stored in Drive; it is not populated for Google Docs or shortcut files.
-	SharingUser                  User                 `json:"sharingUser,omitempty"`                  // The user who shared the file with the requesting user, if applicable.
+	SharingUser                  FileUser             `json:"sharingUser,omitempty"`                  // The user who shared the file with the requesting user, if applicable.
 	WebViewLink                  string               `json:"webViewLink,omitempty"`                  // A link for opening the file in a relevant Google editor or viewer in a browser.
 	WebContentLink               string               `json:"webContentLink,omitempty"`               // A link for downloading the content of the file in a browser. This is only available for files with binary content in Drive.
 	Size                         string               `json:"size,omitempty"`                         // The size of the file's content in bytes. This is only applicable to files with binary content in Drive.
@@ -256,7 +256,7 @@ type File struct {
 	TeamDriveID                  string               `json:"teamDriveId,omitempty"`                  // The ID of the Team Drive that owns the file. Not populated for items in shared drives.
 	Capabilities                 Capabilities         `json:"capabilities,omitempty"`                 // Capabilities the current user has on this file. Each capability corresponds to a fine-grained action that a user may take.
 	HasAugmentedPermissions      bool                 `json:"hasAugmentedPermissions,omitempty"`      // Whether the options to copy, print, or download this file, should be disabled for readers and commenters.
-	TrashingUser                 User                 `json:"trashingUser,omitempty"`                 // The user who trashed the file. Only populated for items in shared drives.
+	TrashingUser                 FileUser             `json:"trashingUser,omitempty"`                 // The user who trashed the file. Only populated for items in shared drives.
 	ThumbnailVersion             string               `json:"thumbnailVersion,omitempty"`             // A monotonically increasing version number for the thumbnail image for this file. This reflects every change made to the thumbnail on the server, including those not visible to the requesting user.
 	TrashedTime                  string               `json:"trashedTime,omitempty"`                  // The time that the item was trashed (RFC 3339 date-time). Only populated for items in shared drives.
 	ModifiedByMe                 bool                 `json:"modifiedByMe,omitempty"`                 // Whether the file has been modified by this user.
@@ -271,6 +271,17 @@ type File struct {
 	SHA1Checksum                 string               `json:"sha1Checksum,omitempty"`                 // The SHA1 checksum for the content of the file. It is computed by Drive and guaranteed to be up-to-date at all times. A change in the content of the file will cause a change in its SHA256 checksum.
 	SHA256Checksum               string               `json:"sha256Checksum,omitempty"`               // The SHA256 checksum for the content of the file. It is computed by Drive and guaranteed to be up-to-date at all times. A change in the content of the file will cause a change in its SHA256 checksum.
 	Path                         string               `json:"path,omitempty"`                         // The path of this file. Google Drive doesn't have path concept internally, but we construct a slash-separated path for UX
+}
+
+// https://developers.google.com/drive/api/reference/rest/v3/User
+// FileUser represents information about a Drive user.
+type FileUser struct {
+	DisplayName  string `json:"displayName,omitempty"`  // Output only. A plain text displayable name for this user.
+	Kind         string `json:"kind,omitempty"`         // Output only. Identifies what kind of resource this is. Value: the fixed string "drive#user".
+	Me           bool   `json:"me,omitempty"`           // Output only. Whether this user is the requesting user.
+	PermissionID string `json:"permissionId,omitempty"` // Output only. The user's ID as visible in Permission resources.
+	EmailAddress string `json:"emailAddress,omitempty"` // Output only. The email address of the user. This may not be present in certain contexts if the user has not made their email address visible to the requester.
+	PhotoLink    string `json:"photoLink,omitempty"`    // Output only. A link to the user's profile photo, if available.
 }
 
 // https://developers.google.com/drive/api/reference/rest/v3/permissions/list#response-body

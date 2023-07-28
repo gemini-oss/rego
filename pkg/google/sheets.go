@@ -15,6 +15,8 @@ package google
 import (
 	"encoding/json"
 	"fmt"
+
+	ss "github.com/gemini-oss/rego/pkg/common/starstruct"
 )
 
 var (
@@ -52,6 +54,32 @@ func VerifySheetValueRange(vr *ValueRange) error {
 		return fmt.Errorf("ValueRange.Values cannot be empty")
 	}
 	return nil
+}
+
+/*
+ * Generate Google Sheets ValueRange from a slice of any structs
+ */
+func GenerateValueRange(data []interface{}, headers *[]string) *ValueRange {
+	vr := &ValueRange{
+		MajorDimension: "ROWS",
+		Range:          "A:ZZ",
+	}
+
+	vr.Values = append(vr.Values, *headers)
+	for _, d := range data {
+		orderedData, _ := ss.FlattenStructFields(d, headers)
+		row := make([]string, 0, len(*headers))
+		for i, value := range orderedData {
+			// If the value matches the header, append it to the row
+			if value[0] == (*headers)[i] {
+				row = append(row, value[1])
+			}
+		}
+		vr.Values = append(vr.Values, row)
+	}
+	vr.Values[0] = *headers
+
+	return vr
 }
 
 /*
@@ -168,7 +196,7 @@ func (c *Client) FormatHeaderAndAutoSize(spreadsheetId string, rows int, columns
 						Blue:  (168.0 / 255.0),
 					},
 					TextFormat: &TextFormat{
-						FontSize: 12,
+						FontSize: 10,
 						Bold:     true,
 					},
 				},
@@ -182,7 +210,7 @@ func (c *Client) FormatHeaderAndAutoSize(spreadsheetId string, rows int, columns
 		SetBasicFilter: &SetBasicFilterRequest{
 			Filter: &BasicFilter{
 				Range: &GridRange{
-					SheetID:          0,
+					SheetID:          0, // Currently assumes the original sheet from a new spreadsheet
 					StartRowIndex:    0,
 					EndRowIndex:      rows,
 					StartColumnIndex: 0,

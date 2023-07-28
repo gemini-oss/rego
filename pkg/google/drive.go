@@ -35,25 +35,26 @@ var (
  * Reference: https://developers.google.com/drive/api/reference/rest/v3/files/list#query-parameters
  */
 type DriveFileQuery struct {
-	AcknowledgeAbuse          bool   `json:"acknowledgeAbuse,omitempty"`          // Whether the user is acknowledging the risk of downloading known malware or other abusive files. This is only applicable when alt=media.
-	Corpora                   string `json:"corpora,omitempty"`                   // Bodies of items (files/documents) to which the query applies. Supported bodies are 'user', 'domain', 'drive', and 'allDrives'. Prefer 'user' or 'drive' to 'allDrives' for efficiency.
-	DriveID                   string `json:"driveId,omitempty"`                   // ID of the shared drive to search.
-	IncludeItemsFromAllDrives bool   `json:"includeItemsFromAllDrives,omitempty"` // Whether both My Drive and shared drive items should be included in results.
-	OrderBy                   string `json:"orderBy,omitempty"`                   // A comma-separated list of sort keys.
-	PageSize                  int    `json:"pageSize,omitempty"`                  // The maximum number of files to return per page. Partial or empty result pages are possible even before the end of the files list has been reached. Default: 100. Max: 1000. https://developers.google.com/drive/api/guides/limits
-	PageToken                 string `json:"pageToken,omitempty"`                 // The token for continuing a previous list request on the next page.
-	Q                         string `json:"q,omitempty"`                         // A query for filtering the file results. See the [Search for Files](https://developers.google.com/drive/api/guides/search-files) guide for supported syntax.
-	Spaces                    string `json:"spaces,omitempty"`                    // A comma-separated list of spaces to query within the corpora. Supported values are 'drive' and 'appDataFolder'.
-	SupportsAllDrives         bool   `json:"supportsAllDrives,omitempty"`         // Whether the requesting application supports both My Drives and shared drives.
-	IncludePermissionsForView string `json:"includePermissionsForView,omitempty"` // Specifies which additional view's permissions to include in the response. Only 'published' is supported.
-	IncludeLabels             string `json:"includeLabels,omitempty"`             // A comma-separated list of IDs of labels to include in the labelInfo part of the response.
-	Fields                    string `json:"fields,omitempty"`                    // Examples: `files(id, name, parents)` or `id,name,parents` https://developers.google.com/drive/api/guides/fields-parameter#format
-	UploadType                string `json:"uploadType,omitempty"`                // https://developers.google.com/drive/api/reference/rest/v3/files/update
-	AddParents                string `json:"addParents,omitempty"`                // A comma-separated list of parent IDs to add.
-	KeepRevisionForever       bool   `json:"keepRevisionForever,omitempty"`       // Whether to set the 'keepForever' field in the new head revision. This is only applicable to files with binary content in Google Drive.
-	OCRLanguage               string `json:"ocrLanguage,omitempty"`               // A language hint for OCR processing during image import (ISO 639-1 code).
-	RemoveParents             string `json:"removeParents,omitempty"`             // A comma-separated list of parent IDs to remove.
-	UseContentAsIndexableText bool   `json:"useContentAsIndexableText,omitempty"` // Whether to use the uploaded content as indexable text.
+	AcknowledgeAbuse          bool   `url:"acknowledgeAbuse,omitempty"`          // Whether the user is acknowledging the risk of downloading known malware or other abusive files. This is only applicable when alt=media.
+	Corpora                   string `url:"corpora,omitempty"`                   // Bodies of items (files/documents) to which the query applies. Supported bodies are 'user', 'domain', 'drive', and 'allDrives'. Prefer 'user' or 'drive' to 'allDrives' for efficiency.
+	DriveID                   string `url:"driveId,omitempty"`                   // ID of the shared drive to search.
+	Depth                     int    `url:"depth,omitempty"`                     // The depth of the traversal. **ReGo only**
+	IncludeItemsFromAllDrives bool   `url:"includeItemsFromAllDrives,omitempty"` // Whether both My Drive and shared drive items should be included in results.
+	OrderBy                   string `url:"orderBy,omitempty"`                   // A comma-separated list of sort keys.
+	PageSize                  int    `url:"pageSize,omitempty"`                  // The maximum number of files to return per page. Partial or empty result pages are possible even before the end of the files list has been reached. Default: 100. Max: 1000. https://developers.google.com/drive/api/guides/limits
+	PageToken                 string `url:"pageToken,omitempty"`                 // The token for continuing a previous list request on the next page.
+	Q                         string `url:"q,omitempty"`                         // A query for filtering the file results. See the [Search for Files](https://developers.google.com/drive/api/guides/search-files) guide for supported syntax.
+	Spaces                    string `url:"spaces,omitempty"`                    // A comma-separated list of spaces to query within the corpora. Supported values are 'drive' and 'appDataFolder'.
+	SupportsAllDrives         bool   `url:"supportsAllDrives,omitempty"`         // Whether the requesting application supports both My Drives and shared drives.
+	IncludePermissionsForView string `url:"includePermissionsForView,omitempty"` // Specifies which additional view's permissions to include in the response. Only 'published' is supported.
+	IncludeLabels             string `url:"includeLabels,omitempty"`             // A comma-separated list of IDs of labels to include in the labelInfo part of the response.
+	Fields                    string `url:"fields,omitempty"`                    // Examples: `files(id, name, parents)` or `id,name,parents` https://developers.google.com/drive/api/guides/fields-parameter#format
+	UploadType                string `url:"uploadType,omitempty"`                // https://developers.google.com/drive/api/reference/rest/v3/files/update
+	AddParents                string `url:"addParents,omitempty"`                // A comma-separated list of parent IDs to add.
+	KeepRevisionForever       bool   `url:"keepRevisionForever,omitempty"`       // Whether to set the 'keepForever' field in the new head revision. This is only applicable to files with binary content in Google Drive.
+	OCRLanguage               string `url:"ocrLanguage,omitempty"`               // A language hint for OCR processing during image import (ISO 639-1 code).
+	RemoveParents             string `url:"removeParents,omitempty"`             // A comma-separated list of parent IDs to remove.
+	UseContentAsIndexableText bool   `url:"useContentAsIndexableText,omitempty"` // Whether to use the uploaded content as indexable text.
 }
 
 /*
@@ -87,6 +88,7 @@ func (d *DriveFileQuery) IsEmpty() bool {
 func (d *DriveFileQuery) ValidateQuery() error {
 	if d.IsEmpty() {
 		d.Fields = "*"
+		d.Depth = 1
 		return nil
 	}
 
@@ -106,22 +108,53 @@ func (d *DriveFileQuery) ValidateQuery() error {
 }
 
 /*
- * # Get Google Drive File
- * drive/v3/files/{fileId}
- * @param {string} fileId - The ID of the file or shortcut.
- * https://developers.google.com/drive/api/v3/reference/files/get
- */
+# Get Google Drive File
+- drive/v3/files/{fileId}
+- @param {string} fileId - The ID of the file or shortcut.
+- https://developers.google.com/drive/api/v3/reference/files/get
+*/
 func (c *Client) GetFile(driveID string) (*File, error) {
 	file := &File{}
 
 	q := DriveFileQuery{
-		Fields: "*",
+		Fields:            "*",
 		SupportsAllDrives: true,
 	}
 
 	url := fmt.Sprintf("%s/%s", DriveFiles, driveID)
 	c.Logger.Debug("url:", url)
 	res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
+	if err != nil {
+		return nil, err
+	}
+	c.Logger.Println("Response Status:", res.Status)
+	c.Logger.Debug("Response Body:", string(body))
+
+	err = json.Unmarshal(body, &file)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshalling user: %w", err)
+	}
+
+	return file, nil
+}
+
+/*
+_Create Google Drive File/Folder_
+  - If no file is provided, a folder will be created
+  - drive/v3/files
+  - https://developers.google.com/drive/api/v3/reference/files/update
+*/
+func (c *Client) CreateFile(file *File) (*File, error) {
+	if file == nil {
+		file = &File{
+			MimeType: "application/vnd.google-apps.folder",
+			Name:     "New Folder",
+		}
+	}
+
+	url := DriveFiles
+	c.Logger.Debug("url:", url)
+	res, body, err := c.HTTPClient.DoRequest("POST", url, nil, file)
 	if err != nil {
 		return nil, err
 	}
@@ -157,9 +190,9 @@ func (c *Client) MoveFileToFolder(file *File, folder *File) error {
 	}
 
 	q := DriveFileQuery{
-		AddParents:    folder.ID,
-		RemoveParents: file.Parents[0],
-		Fields:        "id,name,parents",
+		AddParents:        folder.ID,
+		RemoveParents:     file.Parents[0],
+		Fields:            "id,name,parents",
 		SupportsAllDrives: true,
 	}
 
@@ -278,6 +311,44 @@ func (c *Client) GetFileList(file File, q DriveFileQuery) (*FileList, error) {
 	}
 
 	return allFiles, nil
+}
+
+/*
+# Save File List to Google Sheet
+*/
+func (c *Client) SaveFileListToSheet(fileList *FileList, sheetID string, headers *[]string) error {
+
+	if sheetID == "" {
+		c.Logger.Println("No sheet ID provided, creating new sheet")
+		c.Logger.Println("Creating new spreadsheet for file list")
+		sheet, err := c.CreateSpreadsheet()
+		if err != nil {
+			return err
+		}
+		sheetID = sheet.SpreadsheetID
+	}
+
+	sheetData := make([]interface{}, len(fileList.Files))
+	for i, v := range fileList.Files {
+		sheetData[i] = v
+	}
+
+	c.Logger.Println("Saving File List to spreadsheet")
+	if headers == nil {
+		headers = &[]string{"id", "name", "path", "md5Checksum", "mimeType", "originalFilename", "owners", "parents", "shortcutDetails"}
+	}
+	vr := GenerateValueRange(sheetData, headers)
+	err := c.UpdateSpreadsheet(sheetID, vr)
+	if err != nil {
+		return err
+	}
+
+	c.Logger.Println("Formatting spreadsheet")
+	rows := len(vr.Values)
+	columns := len(vr.Values[0])
+	c.FormatHeaderAndAutoSize(sheetID, rows, columns)
+
+	return nil
 }
 
 /*

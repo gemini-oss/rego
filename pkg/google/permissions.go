@@ -22,15 +22,15 @@ import (
  * Reference: https://developers.google.com/drive/api/reference/rest/v3/permissions/create#query-parameters
  */
 type PermissionsQuery struct {
-	EmailMessage              string `json:"emailMessage,omitempty"`              // A plain text custom message to include in the notification email.
-	IncludePermissionsForView string `json:"includePermissionsForView,omitempty"` // Specifies which additional view's permissions to include in the response.
-	PageSize                  int    `json:"pageSize,omitempty"`                  // The maximum number of permissions to return per page.
-	PageToken                 string `json:"pageToken,omitempty"`                 // The token for continuing a previous list request on the next page.
-	MoveToNewOwnersRoot       bool   `json:"moveToNewOwnersRoot,omitempty"`       // This parameter will only take effect if the item is not in a shared drive and the request is attempting to transfer the ownership of the item.
-	SendNotificationEmail     bool   `json:"sendNotificationEmail,omitempty"`     // Whether to send a notification email when sharing to users or groups.
-	SupportsAllDrives         bool   `json:"supportsAllDrives,omitempty"`         // Whether the requesting application supports both My Drives and shared drives.
-	TransferOwnership         bool   `json:"transferOwnership,omitempty"`         // Whether to transfer ownership to the specified user and downgrade the current owner to a writer.
-	UseDomainAdminAccess      bool   `json:"useDomainAdminAccess,omitempty"`      // Issue the request as a domain administrator.
+	EmailMessage              string `url:"emailMessage,omitempty"`              // A plain text custom message to include in the notification email.
+	IncludePermissionsForView string `url:"includePermissionsForView,omitempty"` // Specifies which additional view's permissions to include in the response.
+	PageSize                  int    `url:"pageSize,omitempty"`                  // The maximum number of permissions to return per page.
+	PageToken                 string `url:"pageToken,omitempty"`                 // The token for continuing a previous list request on the next page.
+	MoveToNewOwnersRoot       bool   `url:"moveToNewOwnersRoot,omitempty"`       // This parameter will only take effect if the item is not in a shared drive and the request is attempting to transfer the ownership of the item.
+	SendNotificationEmail     bool   `url:"sendNotificationEmail,omitempty"`     // Whether to send a notification email when sharing to users or groups.
+	SupportsAllDrives         bool   `url:"supportsAllDrives,omitempty"`         // Whether the requesting application supports both My Drives and shared drives.
+	TransferOwnership         bool   `url:"transferOwnership,omitempty"`         // Whether to transfer ownership to the specified user and downgrade the current owner to a writer.
+	UseDomainAdminAccess      bool   `url:"useDomainAdminAccess,omitempty"`      // Issue the request as a domain administrator.
 }
 
 /*

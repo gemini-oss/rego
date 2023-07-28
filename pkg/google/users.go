@@ -22,18 +22,18 @@ import (
  * Reference: https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#query-parameters
  */
 type UserQuery struct {
-	CustomFieldMask string         `json:"customFieldMask,omitempty"` // A comma-separated list of schema names. All fields from these schemas are fetched. This should only be set when projection=custom.
-	Customer        string         `json:"customer,omitempty"`        // The unique ID for the customer's Google Workspace account. In case of a multi-domain account, to fetch all groups for a customer, use this field instead of domain. You can also use the my_customer alias to represent your account's customerId. The customerId is also returned as part of the Users resource. You must provide either the customer or the domain parameter.
-	Domain          string         `json:"domain,omitempty"`          // The domain name. Use this field to get groups from only one domain. To return all domains for a customer account, use the customer query parameter instead. Either the customer or the domain parameter must be provided.
-	Event           UserEvent      `json:"event,omitempty"`           // Event on which subscription is intended (if subscribing)
-	MaxResults      int            `json:"maxResults,omitempty"`      // Maximum number of results to return. Default: 100. Max 500. https://developers.google.com/admin-sdk/directory/v1/limits#api-limits-and-quotas
-	OrderBy         OrderBy        `json:"orderBy,omitempty"`         // Property to use for sorting results.
-	PageToken       string         `json:"pageToken,omitempty"`       // Token to specify next page in the list
-	Projection      UserProjection `json:"projection,omitempty"`      // What subset of fields to fetch for this user.
-	Query           string         `json:"query,omitempty"`           // Query string for searching user fields. For more information on constructing user queries, see [Search for Users](https://developers.google.com/admin-sdk/directory/v1/guides/search-users).
-	ShowDeleted     string         `json:"showDeleted,omitempty"`     // If set to true, retrieves the list of deleted users. (Default: false)
-	SortOrder       SortOrder      `json:"sortOrder,omitempty"`       // Whether to return results in ascending or descending order, ignoring case.
-	ViewType        UserViewType   `json:"viewType,omitempty"`        // Whether to fetch the administrator-only or domain-wide public view of the user. For more information, see Retrieve a user as a non-administrator.
+	CustomFieldMask string         `url:"customFieldMask,omitempty"` // A comma-separated list of schema names. All fields from these schemas are fetched. This should only be set when projection=custom.
+	Customer        string         `url:"customer,omitempty"`        // The unique ID for the customer's Google Workspace account. In case of a multi-domain account, to fetch all groups for a customer, use this field instead of domain. You can also use the my_customer alias to represent your account's customerId. The customerId is also returned as part of the Users resource. You must provide either the customer or the domain parameter.
+	Domain          string         `url:"domain,omitempty"`          // The domain name. Use this field to get groups from only one domain. To return all domains for a customer account, use the customer query parameter instead. Either the customer or the domain parameter must be provided.
+	Event           UserEvent      `url:"event,omitempty"`           // Event on which subscription is intended (if subscribing)
+	MaxResults      int            `url:"maxResults,omitempty"`      // Maximum number of results to return. Default: 100. Max 500. https://developers.google.com/admin-sdk/directory/v1/limits#api-limits-and-quotas
+	OrderBy         OrderBy        `url:"orderBy,omitempty"`         // Property to use for sorting results.
+	PageToken       string         `url:"pageToken,omitempty"`       // Token to specify next page in the list
+	Projection      UserProjection `url:"projection,omitempty"`      // What subset of fields to fetch for this user.
+	Query           string         `url:"query,omitempty"`           // Query string for searching user fields. For more information on constructing user queries, see [Search for Users](https://developers.google.com/admin-sdk/directory/v1/guides/search-users).
+	ShowDeleted     string         `url:"showDeleted,omitempty"`     // If set to true, retrieves the list of deleted users. (Default: false)
+	SortOrder       SortOrder      `url:"sortOrder,omitempty"`       // Whether to return results in ascending or descending order, ignoring case.
+	ViewType        UserViewType   `url:"viewType,omitempty"`        // Whether to fetch the administrator-only or domain-wide public view of the user. For more information, see Retrieve a user as a non-administrator.
 }
 
 /*
