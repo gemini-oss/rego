@@ -10,12 +10,22 @@ pkg/common/struct/struct.go
 
 ## Index
 
+- [func FlattenStructFields\(item interface\{\}, fields \*\[\]string\) \(\[\]\[\]string, error\)](<#FlattenStructFields>)
 - [func PrettyJSON\(data interface\{\}\) \(string, error\)](<#PrettyJSON>)
 - [func StructToMap\(item interface\{\}\) map\[string\]string](<#StructToMap>)
 
 
+<a name="FlattenStructFields"></a>
+## func [FlattenStructFields](<https://github.com/gemini-oss/rego/blob/main/pkg/common/starstruct/struct.go#L72>)
+
+```go
+func FlattenStructFields(item interface{}, fields *[]string) ([][]string, error)
+```
+
+FlattenStructFields parses a struct and its nested fields, if any, to a flat slice. It also updates the input fields with any new subfields found.
+
 <a name="PrettyJSON"></a>
-## func [PrettyJSON](<https://github.com/gemini-oss/rego/blob/main/pkg/common/starstruct/struct.go#L15>)
+## func [PrettyJSON](<https://github.com/gemini-oss/rego/blob/main/pkg/common/starstruct/struct.go#L16>)
 
 ```go
 func PrettyJSON(data interface{}) (string, error)
@@ -24,7 +34,7 @@ func PrettyJSON(data interface{}) (string, error)
 \* Print a struct as a JSON string
 
 <a name="StructToMap"></a>
-## func [StructToMap](<https://github.com/gemini-oss/rego/blob/main/pkg/common/starstruct/struct.go#L30>)
+## func [StructToMap](<https://github.com/gemini-oss/rego/blob/main/pkg/common/starstruct/struct.go#L31>)
 
 ```go
 func StructToMap(item interface{}) map[string]string
