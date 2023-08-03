@@ -32,6 +32,9 @@ func StructToMap(item interface{}) map[string]string {
 	out := make(map[string]string)
 
 	v := reflect.ValueOf(item)
+	if v.Kind() != reflect.Struct {
+		return nil
+	}
 	typeOfItem := v.Type()
 
 	for i := 0; i < v.NumField(); i++ {

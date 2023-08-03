@@ -6,12 +6,37 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 
 	ss "github.com/gemini-oss/rego/pkg/common/starstruct"
 )
 
 type Headers map[string]string
+
+const (
+	Atom              = "application/atom+xml"
+	CSS               = "text/css"
+	Excel             = "application/vnd.ms-excel"
+	FormURLEncoded    = "application/x-www-form-urlencoded"
+	GIF               = "image/gif"
+	HTML              = "text/html"
+	JPEG              = "image/jpeg"
+	JavaScript        = "text/javascript"
+	JSON              = "application/json"
+	MP3               = "audio/mpeg"
+	MP4               = "video/mp4"
+	MPEG              = "video/mpeg"
+	MultipartFormData = "multipart/form-data"
+	OctetStream       = "application/octet-stream"
+	PDF               = "application/pdf"
+	PNG               = "image/png"
+	Plain             = "text/plain"
+	RSS               = "application/rss+xml"
+	WAV               = "audio/wav"
+	XML               = "application/xml"
+	ZIP               = "application/zip"
+)
 
 /*
  * Client
@@ -20,7 +45,7 @@ type Headers map[string]string
  */
 type Client struct {
 	httpClient *http.Client
-	headers    Headers
+	Headers    Headers
 }
 
 /*
@@ -32,13 +57,18 @@ func NewClient(c *http.Client, headers Headers) *Client {
 	if c != nil {
 		return &Client{
 			httpClient: c,
-			headers:    headers,
+			Headers:    headers,
 		}
 	}
 	return &Client{
 		httpClient: &http.Client{},
-		headers:    headers,
+		Headers:    headers,
 	}
+}
+
+// UpdateHeaders changes the headers for the HTTP client
+func (c *Client) UpdateContentType(contentType string) {
+	c.Headers["Content-Type"] = contentType
 }
 
 /*
@@ -64,72 +94,87 @@ func DecodeJSON(body []byte, result interface{}) error {
 	return json.Unmarshal(body, result)
 }
 
-/*
- * DoRequest
- * @param method string
- * @param url string
- * @param query interface{}
- * @return *http.Response
- * @return []byte
- * @return error
- */
-func (c *Client) DoRequest(method string, url string, query interface{}, data interface{}) (*http.Response, []byte, error) {
-
+func (c *Client) CreateRequest(method string, url string) (*http.Request, error) {
 	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set headers
+	for key, value := range c.Headers {
+		req.Header.Set(key, value)
+	}
+
+	return req, nil
+}
+
+func SetQueryParams(req *http.Request, query interface{}) {
+	if query == nil {
+		return
+	}
+
+	q := req.URL.Query()
+	parameters := ss.StructToMap(query)
+
+	for key, value := range parameters {
+		q.Add(key, value)
+	}
+
+	req.URL.RawQuery = q.Encode()
+}
+
+func SetJSONPayload(req *http.Request, data interface{}) error {
+	if data == nil {
+		return nil
+	}
+	p := ss.StructToMap(data)
+	payload, err := json.Marshal(p)
+	if err != nil {
+		return fmt.Errorf("marshaling request body: %w", err)
+	}
+
+	req.Body = io.NopCloser(strings.NewReader(string(payload)))
+	req.ContentLength = int64(len(payload))
+	return nil
+}
+
+func SetFormURLEncodedPayload(req *http.Request, data interface{}) error {
+	if data == nil {
+		return nil
+	}
+
+	// Convert data to URL-encoded form
+	formData := url.Values{}
+	parameters := ss.StructToMap(data)
+	for key, value := range parameters {
+		formData.Add(key, value)
+	}
+
+	req.Body = io.NopCloser(strings.NewReader(formData.Encode()))
+	req.Header.Set("Content-Type", FormURLEncoded)
+	req.ContentLength = int64(len(formData.Encode()))
+	return nil
+}
+
+func (c *Client) DoRequest(method string, url string, query interface{}, data interface{}) (*http.Response, []byte, error) {
+	req, err := c.CreateRequest(method, url)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// Set headers
-	for key, value := range c.headers {
-		req.Header.Set(key, value)
+	SetQueryParams(req, query)
+
+	switch c.Headers["Content-Type"] {
+	case FormURLEncoded, fmt.Sprintf("%s; charset=utf-8", FormURLEncoded):
+		err = SetFormURLEncodedPayload(req, data)
+	case MultipartFormData:
+	case JSON, fmt.Sprintf("%s; charset=utf-8", JSON):
+		err = SetJSONPayload(req, data)
+	default:
 	}
 
-	// Set data
-	if query != nil {
-		switch method {
-		case "GET":
-			// Data will be treated as query parameters
-			q := req.URL.Query()
-
-			parameters := ss.StructToMap(query)
-
-			for key, value := range parameters {
-				q.Add(key, value)
-			}
-
-			req.URL.RawQuery = q.Encode()
-		case "POST", "PUT", "PATCH":
-			// Data will be treated as query parameters
-			q := req.URL.Query()
-
-			parameters := ss.StructToMap(query)
-
-			for key, value := range parameters {
-				q.Add(key, value)
-			}
-
-			req.URL.RawQuery = q.Encode()
-
-			// Data will be treated as a JSON payload
-			payload, err := json.Marshal(data)
-			if err != nil {
-				return nil, nil, fmt.Errorf("marshaling request body: %w", err)
-			}
-			req.Body = io.NopCloser(strings.NewReader(string(payload)))
-			req.ContentLength = int64(len(payload))
-		}
-	} else if data != nil {
-		switch method {
-		case "POST", "PUT", "PATCH":
-			// Data will be treated as a JSON payload
-			payload, err := json.Marshal(data)
-			if err != nil {
-				return nil, nil, fmt.Errorf("marshaling request body: %w", err)
-			}
-			req.Body = io.NopCloser(strings.NewReader(string(payload)))
-			req.ContentLength = int64(len(payload))
-		}
+	if err != nil {
+		return nil, nil, err
 	}
 
 	resp, err := c.httpClient.Do(req)
