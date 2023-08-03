@@ -77,6 +77,7 @@ String representation for log levels
 
 ```go
 type Logger struct {
+    Verbosity int // log level {TRACE, DEBUG, INFO, WARNING, ERROR, FATAL, PANIC}
     // contains filtered or unexported fields
 }
 ```

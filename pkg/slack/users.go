@@ -67,7 +67,7 @@ func (c *Client) GetUserChannels(userID string) (*UserChannels, error) {
 	url := c.BuildURL("%s/users.conversations")
 
 	q := UserParameters{
-		User: userID,
+		User:  userID,
 		Types: "public_channel,private_channel",
 	}
 

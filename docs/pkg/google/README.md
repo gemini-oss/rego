@@ -55,6 +55,7 @@ pkg/google/users.go
   - [func NewClient\(ac AuthCredentials, verbosity int\) \(\*Client, error\)](<#NewClient>)
   - [func \(c \*Client\) AppendSpreadsheet\(spreadsheetID string, vr \*ValueRange\) error](<#Client.AppendSpreadsheet>)
   - [func \(c \*Client\) BuildURL\(endpoint string, identifiers ...string\) string](<#Client.BuildURL>)
+  - [func \(c \*Client\) CopyFileToFolder\(file \*File, folder \*File\) error](<#Client.CopyFileToFolder>)
   - [func \(c \*Client\) CreateFile\(file \*File\) \(\*File, error\)](<#Client.CreateFile>)
   - [func \(c \*Client\) CreateSpreadsheet\(\) \(\*Spreadsheet, error\)](<#Client.CreateSpreadsheet>)
   - [func \(c \*Client\) FormatHeaderAndAutoSize\(spreadsheetId string, rows int, columns int\) error](<#Client.FormatHeaderAndAutoSize>)
@@ -62,7 +63,7 @@ pkg/google/users.go
   - [func \(c \*Client\) GenerateRoleReport\(customerId string, roleId string\) \(\[\]\*RoleReport, error\)](<#Client.GenerateRoleReport>)
   - [func \(c \*Client\) GetAssignmentsForRole\(customerId string, roleId string\) \(\*RoleAssignment, error\)](<#Client.GetAssignmentsForRole>)
   - [func \(c \*Client\) GetFile\(driveID string\) \(\*File, error\)](<#Client.GetFile>)
-  - [func \(c \*Client\) GetFileList\(file File, q DriveFileQuery\) \(\*FileList, error\)](<#Client.GetFileList>)
+  - [func \(c \*Client\) GetFileList\(file \*File, q DriveFileQuery\) \(\*FileList, error\)](<#Client.GetFileList>)
   - [func \(c \*Client\) GetFileOwnership\(fileID string\) \(string, error\)](<#Client.GetFileOwnership>)
   - [func \(c \*Client\) GetFilePath\(id string\) \(string, error\)](<#Client.GetFilePath>)
   - [func \(c \*Client\) GetPermissionDetails\(driveID string, permissionID string\) \(\*Permission, error\)](<#Client.GetPermissionDetails>)
@@ -742,6 +743,20 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string
 - @param identifiers ...string
 - @return string
 
+<a name="Client.CopyFileToFolder"></a>
+### func \(\*Client\) [CopyFileToFolder](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L216>)
+
+```go
+func (c *Client) CopyFileToFolder(file *File, folder *File) error
+```
+
+\* \# Move Google Drive File/Folder
+
+- drive/v3/files/\{fileId\}
+- @param \{File\} file \- The file to move
+- @param \{File\} folder \- The folder to move the file to
+- https://developers.google.com/drive/api/v3/reference/files/update
+
 <a name="Client.CreateFile"></a>
 ### func \(\*Client\) [CreateFile](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L147>)
 
@@ -827,10 +842,10 @@ func (c *Client) GetFile(driveID string) (*File, error)
 \# Get Google Drive File \- drive/v3/files/\{fileId\} \- @param \{string\} fileId \- The ID of the file or shortcut. \- https://developers.google.com/drive/api/v3/reference/files/get
 
 <a name="Client.GetFileList"></a>
-### func \(\*Client\) [GetFileList](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L231>)
+### func \(\*Client\) [GetFileList](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L264>)
 
 ```go
-func (c *Client) GetFileList(file File, q DriveFileQuery) (*FileList, error)
+func (c *Client) GetFileList(file *File, q DriveFileQuery) (*FileList, error)
 ```
 
 \* \# Get File List
@@ -851,7 +866,7 @@ func (c *Client) GetFileOwnership(fileID string) (string, error)
 \* Find the file ownership using the Reports API
 
 <a name="Client.GetFilePath"></a>
-### func \(\*Client\) [GetFilePath](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L388>)
+### func \(\*Client\) [GetFilePath](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L426>)
 
 ```go
 func (c *Client) GetFilePath(id string) (string, error)
@@ -904,7 +919,7 @@ func (c *Client) GetRole(customerId string, roleId string) (*Role, error)
 - https://developers.google.com/admin-sdk/directory/v1/reference/roles/get
 
 <a name="Client.GetRootFileList"></a>
-### func \(\*Client\) [GetRootFileList](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L214>)
+### func \(\*Client\) [GetRootFileList](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L247>)
 
 ```go
 func (c *Client) GetRootFileList() (*FileList, error)
@@ -999,7 +1014,7 @@ func (c *Client) MoveFileToFolder(file *File, folder *File) error
 - https://developers.google.com/drive/api/v3/reference/files/update
 
 <a name="Client.SaveFileListToSheet"></a>
-### func \(\*Client\) [SaveFileListToSheet](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L319>)
+### func \(\*Client\) [SaveFileListToSheet](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L357>)
 
 ```go
 func (c *Client) SaveFileListToSheet(fileList *FileList, sheetID string, headers *[]string) error

@@ -10,18 +10,54 @@ pkg/common/requests/requests.go
 
 ## Index
 
+- [Constants](<#constants>)
 - [func DecodeJSON\(body \[\]byte, result interface\{\}\) error](<#DecodeJSON>)
+- [func SetFormURLEncodedPayload\(req \*http.Request, data interface\{\}\) error](<#SetFormURLEncodedPayload>)
+- [func SetJSONPayload\(req \*http.Request, data interface\{\}\) error](<#SetJSONPayload>)
+- [func SetQueryParams\(req \*http.Request, query interface\{\}\)](<#SetQueryParams>)
 - [type Client](<#Client>)
   - [func NewClient\(c \*http.Client, headers Headers\) \*Client](<#NewClient>)
+  - [func \(c \*Client\) CreateRequest\(method string, url string\) \(\*http.Request, error\)](<#Client.CreateRequest>)
   - [func \(c \*Client\) DoRequest\(method string, url string, query interface\{\}, data interface\{\}\) \(\*http.Response, \[\]byte, error\)](<#Client.DoRequest>)
   - [func \(c \*Client\) PaginatedRequest\(method string, url string, query interface\{\}, payload interface\{\}\) \(\[\]json.RawMessage, error\)](<#Client.PaginatedRequest>)
+  - [func \(c \*Client\) UpdateContentType\(contentType string\)](<#Client.UpdateContentType>)
 - [type Headers](<#Headers>)
 - [type Paginator](<#Paginator>)
   - [func \(p \*Paginator\) HasNextPage\(links \[\]string\) bool](<#Paginator.HasNextPage>)
 
 
+## Constants
+
+<a name="Atom"></a>
+
+```go
+const (
+    Atom              = "application/atom+xml"
+    CSS               = "text/css"
+    Excel             = "application/vnd.ms-excel"
+    FormURLEncoded    = "application/x-www-form-urlencoded"
+    GIF               = "image/gif"
+    HTML              = "text/html"
+    JPEG              = "image/jpeg"
+    JavaScript        = "text/javascript"
+    JSON              = "application/json"
+    MP3               = "audio/mpeg"
+    MP4               = "video/mp4"
+    MPEG              = "video/mpeg"
+    MultipartFormData = "multipart/form-data"
+    OctetStream       = "application/octet-stream"
+    PDF               = "application/pdf"
+    PNG               = "image/png"
+    Plain             = "text/plain"
+    RSS               = "application/rss+xml"
+    WAV               = "audio/wav"
+    XML               = "application/xml"
+    ZIP               = "application/zip"
+)
+```
+
 <a name="DecodeJSON"></a>
-## func [DecodeJSON](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L63>)
+## func [DecodeJSON](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L93>)
 
 ```go
 func DecodeJSON(body []byte, result interface{}) error
@@ -33,8 +69,35 @@ func DecodeJSON(body []byte, result interface{}) error
 - @param result interface\{\}
 - @return error
 
+<a name="SetFormURLEncodedPayload"></a>
+## func [SetFormURLEncodedPayload](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L141>)
+
+```go
+func SetFormURLEncodedPayload(req *http.Request, data interface{}) error
+```
+
+
+
+<a name="SetJSONPayload"></a>
+## func [SetJSONPayload](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L126>)
+
+```go
+func SetJSONPayload(req *http.Request, data interface{}) error
+```
+
+
+
+<a name="SetQueryParams"></a>
+## func [SetQueryParams](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L111>)
+
+```go
+func SetQueryParams(req *http.Request, query interface{})
+```
+
+
+
 <a name="Client"></a>
-## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L21-L24>)
+## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L46-L49>)
 
 \* Client
 
@@ -43,12 +106,13 @@ func DecodeJSON(body []byte, result interface{}) error
 
 ```go
 type Client struct {
+    Headers Headers
     // contains filtered or unexported fields
 }
 ```
 
 <a name="NewClient"></a>
-### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L31>)
+### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L56>)
 
 ```go
 func NewClient(c *http.Client, headers Headers) *Client
@@ -59,24 +123,26 @@ func NewClient(c *http.Client, headers Headers) *Client
 - @param headers Headers
 - @return \*Client
 
+<a name="Client.CreateRequest"></a>
+### func \(\*Client\) [CreateRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L97>)
+
+```go
+func (c *Client) CreateRequest(method string, url string) (*http.Request, error)
+```
+
+
+
 <a name="Client.DoRequest"></a>
-### func \(\*Client\) [DoRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L76>)
+### func \(\*Client\) [DoRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L159>)
 
 ```go
 func (c *Client) DoRequest(method string, url string, query interface{}, data interface{}) (*http.Response, []byte, error)
 ```
 
-\* DoRequest
 
-- @param method string
-- @param url string
-- @param query interface\{\}
-- @return \*http.Response
-- @return \[\]byte
-- @return error
 
 <a name="Client.PaginatedRequest"></a>
-### func \(\*Client\) [PaginatedRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L171>)
+### func \(\*Client\) [PaginatedRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L216>)
 
 ```go
 func (c *Client) PaginatedRequest(method string, url string, query interface{}, payload interface{}) ([]json.RawMessage, error)
@@ -90,8 +156,17 @@ func (c *Client) PaginatedRequest(method string, url string, query interface{}, 
 - @return \[\]json.RawMessage
 - @return error
 
+<a name="Client.UpdateContentType"></a>
+### func \(\*Client\) [UpdateContentType](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L70>)
+
+```go
+func (c *Client) UpdateContentType(contentType string)
+```
+
+UpdateHeaders changes the headers for the HTTP client
+
 <a name="Headers"></a>
-## type [Headers](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L14>)
+## type [Headers](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L15>)
 
 
 
@@ -100,7 +175,7 @@ type Headers map[string]string
 ```
 
 <a name="Paginator"></a>
-## type [Paginator](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L50-L55>)
+## type [Paginator](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L80-L85>)
 
 \* Paginator
 
@@ -118,7 +193,7 @@ type Paginator struct {
 ```
 
 <a name="Paginator.HasNextPage"></a>
-### func \(\*Paginator\) [HasNextPage](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L234>)
+### func \(\*Paginator\) [HasNextPage](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L279>)
 
 ```go
 func (p *Paginator) HasNextPage(links []string) bool

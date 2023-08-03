@@ -16,7 +16,7 @@ pkg/common/struct/struct.go
 
 
 <a name="FlattenStructFields"></a>
-## func [FlattenStructFields](<https://github.com/gemini-oss/rego/blob/main/pkg/common/starstruct/struct.go#L72>)
+## func [FlattenStructFields](<https://github.com/gemini-oss/rego/blob/main/pkg/common/starstruct/struct.go#L75>)
 
 ```go
 func FlattenStructFields(item interface{}, fields *[]string) ([][]string, error)

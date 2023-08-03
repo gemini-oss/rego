@@ -213,7 +213,7 @@ func (c *Client) MoveFileToFolder(file *File, folder *File) error {
  * @param {File} folder - The folder to move the file to
  * https://developers.google.com/drive/api/v3/reference/files/update
  */
- func (c *Client) CopyFileToFolder(file *File, folder *File) error {
+func (c *Client) CopyFileToFolder(file *File, folder *File) error {
 	url := fmt.Sprintf("%s/%s/copy", DriveFiles, file.ID)
 	c.Logger.Debug("url:", url)
 

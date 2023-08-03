@@ -171,8 +171,8 @@ func (c *Client) SendMessage(e *Event, m *SlackMessage) error {
 	url := c.BuildURL("%s/chat.postMessage")
 
 	message := SlackMessage{
-		Channel: m.Channel,
-		Text:    m.Text,
+		Channel:  m.Channel,
+		Text:     m.Text,
 		Markdown: true,
 	}
 
