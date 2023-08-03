@@ -64,7 +64,7 @@ type Logger struct {
 	prefix    string         // prefix to write at beginning of each log line
 	logger    *log.Logger    // standard logger
 	out       io.WriteCloser // destination for output
-	verbosity int            // log level {TRACE, DEBUG, INFO, WARNING, ERROR, FATAL, PANIC}
+	Verbosity int            // log level {TRACE, DEBUG, INFO, WARNING, ERROR, FATAL, PANIC}
 }
 
 /*
@@ -72,7 +72,7 @@ type Logger struct {
 - logs formatted message at specified level
 */
 func (l *Logger) logf(level int, format string, v ...interface{}) {
-	if level >= l.verbosity {
+	if level >= l.Verbosity {
 		l.logger.SetPrefix(l.getPrefix(level))
 		l.logger.Printf(format, v...)
 	}
@@ -83,7 +83,7 @@ func (l *Logger) logf(level int, format string, v ...interface{}) {
  * - logs message at specified level
  */
 func (l *Logger) log(level int, v ...interface{}) {
-	if level >= l.verbosity {
+	if level >= l.Verbosity {
 		l.logger.SetPrefix(l.getPrefix(level))
 		l.logger.Println(v...)
 	}
@@ -242,6 +242,6 @@ func NewLogger(prefix string, verbosity int) *Logger {
 		prefix:    prefix,
 		logger:    logger,
 		out:       logFile,
-		verbosity: verbosity,
+		Verbosity: verbosity,
 	}
 }

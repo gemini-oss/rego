@@ -154,7 +154,7 @@ func (c *Client) CreateFile(file *File) (*File, error) {
 
 	url := DriveFiles
 	c.Logger.Debug("url:", url)
-	res, body, err := c.HTTPClient.DoRequest("POST", url, nil, file)
+	res, body, err := c.HTTPClient.DoRequest("POST", url, nil, &file)
 	if err != nil {
 		return nil, err
 	}
@@ -207,6 +207,39 @@ func (c *Client) MoveFileToFolder(file *File, folder *File) error {
 }
 
 /*
+ * # Move Google Drive File/Folder
+ * drive/v3/files/{fileId}
+ * @param {File} file - The file to move
+ * @param {File} folder - The folder to move the file to
+ * https://developers.google.com/drive/api/v3/reference/files/update
+ */
+ func (c *Client) CopyFileToFolder(file *File, folder *File) error {
+	url := fmt.Sprintf("%s/%s/copy", DriveFiles, file.ID)
+	c.Logger.Debug("url:", url)
+
+	q := DriveFileQuery{
+		SupportsAllDrives: true,
+	}
+
+	res, body, err := c.HTTPClient.DoRequest("POST", url, q, nil)
+	if err != nil {
+		return err
+	}
+	c.Logger.Println("Response Status:", res.Status)
+	c.Logger.Debug("Response Body:", string(body))
+
+	copy := &File{}
+	err = json.Unmarshal(body, &copy)
+	if err != nil {
+		return nil
+	}
+
+	c.MoveFileToFolder(copy, folder)
+
+	return nil
+}
+
+/*
  * # Get File List ("My Drive")
  * drive/v3/files
  * https://developers.google.com/drive/api/v3/reference/files/list
@@ -217,7 +250,7 @@ func (c *Client) GetRootFileList() (*FileList, error) {
 		Path: "/",
 	}
 	q := DriveFileQuery{}
-	return c.GetFileList(file, q)
+	return c.GetFileList(&file, q)
 }
 
 /*
@@ -228,18 +261,22 @@ func (c *Client) GetRootFileList() (*FileList, error) {
  * @param {DriveFileQuery} q - The query parameters to use
  * https://developers.google.com/drive/api/v3/reference/files/list
  */
-func (c *Client) GetFileList(file File, q DriveFileQuery) (*FileList, error) {
+func (c *Client) GetFileList(file *File, q DriveFileQuery) (*FileList, error) {
 	allFiles := &FileList{}
+	allFiles.Files = append(allFiles.Files, *file)
 
+	var parentPath string
 	if file.Path == "" && file.ID != "root" {
 		var err error // Prevent Variable shadowing
 		file.Path, err = c.GetFilePath(file.ID)
 		if err != nil {
 			return nil, err
 		}
-		file.Path += "/"
+	} else if file.ID == "root" || file.Path == "/" {
+		file.Path = "My Drive"
+		parentPath = file.Path
 	}
-	parentPath := file.Path
+	// parentPath := file.Path
 
 	if q.IsEmpty() {
 		q.Fields = `files(id, name, md5Checksum, mimeType, originalFilename, owners, parents, shortcutDetails/targetId, shortcutDetails/targetMimeType)`
@@ -247,6 +284,7 @@ func (c *Client) GetFileList(file File, q DriveFileQuery) (*FileList, error) {
 		q.IncludeLabels = "*"
 		q.Q = fmt.Sprintf(`'%s' in parents and trashed = false`, file.ID)
 		q.SupportsAllDrives = true
+		parentPath = "Search Results"
 	} else {
 		err := q.ValidateQuery()
 		if err != nil {
@@ -270,7 +308,7 @@ func (c *Client) GetFileList(file File, q DriveFileQuery) (*FileList, error) {
 
 		for _, file := range filesPage.Files {
 			// Generate file's path and append it to the list
-			file.Path = parentPath + file.Name
+			file.Path = parentPath + "/" + file.Name
 			c.Logger.Println("File Path:", file.Path)
 			allFiles.Files = append(allFiles.Files, file)
 			if file.MimeType == "application/vnd.google-apps.folder" {
@@ -278,7 +316,7 @@ func (c *Client) GetFileList(file File, q DriveFileQuery) (*FileList, error) {
 				go func(fileId string, filePath string) {
 					defer wg.Done()
 					sem <- struct{}{}
-					subFiles, err := c.GetFileList(File{ID: fileId, Path: filePath + "/"}, DriveFileQuery{})
+					subFiles, err := c.GetFileList(&File{ID: fileId, Path: filePath + "/"}, DriveFileQuery{})
 					<-sem
 					if err != nil {
 						filesErrChannel <- err
@@ -393,10 +431,10 @@ func (c *Client) GetFilePath(id string) (string, error) {
 
 	// If file has no parents, it's in root (My Drive) or "Shared With Me" via the WebUI
 	if len(file.Parents) == 0 {
-		if file.Shared {
-			return "/Shared with me/" + file.Name, nil
+		if file.Shared && !file.OwnedByMe {
+			return "Shared with me/" + file.Name, nil
 		}
-		return "/" + file.Name, nil
+		return file.Name, nil
 	}
 
 	// We will take only the first parent, because a folder can have multiple parents in Google Drive
