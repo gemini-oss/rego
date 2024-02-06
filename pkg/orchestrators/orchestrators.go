@@ -70,5 +70,8 @@ func (c *Client) OktaRoleReportToGoogleSheet() error {
 		return err
 	}
 
+	c.Logger.Println("Okta role report saved to Google Sheet.")
+	c.Logger.Println("Spreadsheet URL: ", sheet.SpreadsheetURL)
+
 	return nil
 }

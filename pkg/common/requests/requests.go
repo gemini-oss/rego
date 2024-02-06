@@ -127,8 +127,9 @@ func SetJSONPayload(req *http.Request, data interface{}) error {
 	if data == nil {
 		return nil
 	}
-	p := ss.StructToMap(data)
-	payload, err := json.Marshal(p)
+	// p := ss.StructToMap(data)
+	// payload, err := json.Marshal(p)
+	payload, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("marshaling request body: %w", err)
 	}

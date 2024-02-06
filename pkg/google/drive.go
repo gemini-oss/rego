@@ -276,7 +276,7 @@ func (c *Client) GetFileList(file *File, q DriveFileQuery) (*FileList, error) {
 		file.Path = "My Drive"
 		parentPath = file.Path
 	}
-	// parentPath := file.Path
+	parentPath = "Search Results"
 
 	if q.IsEmpty() {
 		q.Fields = `files(id, name, md5Checksum, mimeType, originalFilename, owners, parents, shortcutDetails/targetId, shortcutDetails/targetMimeType)`

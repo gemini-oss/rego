@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/gemini-oss/rego/pkg/common/config"
 	"github.com/gemini-oss/rego/pkg/common/log"
@@ -32,25 +31,6 @@ var (
 	JamfManagementFramework = fmt.Sprintf("%s/users", "%s")               // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api/management-framework
 	JameUsers               = fmt.Sprintf("%s/iam", "%s")                 // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api/users
 )
-
-// Credentials for Jamf Pro
-type Credentials struct {
-	Username string
-	Password string
-	Token    JamfToken
-}
-
-type JamfToken struct {
-	Token   string    `json:"token"`
-	Expires time.Time `json:"expires"`
-}
-
-type Client struct {
-	BaseURL    string
-	ClassicURL string
-	HTTP       *requests.Client
-	Logger     *log.Logger
-}
 
 // BuildURL builds a URL for a given resource and identifiers.
 func (c *Client) BuildURL(endpoint string, identifiers ...string) string {

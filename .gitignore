@@ -30,3 +30,6 @@ go.work
 
 # Build output
 /build/
+
+*.bak
+*.log

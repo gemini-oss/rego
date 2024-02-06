@@ -58,19 +58,19 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
 */
 func NewClient(verbosity int) *Client {
 
-	// org_name := config.GetEnv("OKTA_ORG_NAME", "yourOktaDomain")
-	org_name := config.GetEnv("OKTA_SANDBOX_ORG_NAME", "yourOktaDomain")
+	org_name := config.GetEnv("OKTA_ORG_NAME", "yourOktaDomain")
+	// org_name := config.GetEnv("OKTA_SANDBOX_ORG_NAME", "yourOktaDomain")
 	org_name = strings.TrimPrefix(org_name, "https://")
 	org_name = strings.TrimPrefix(org_name, "http://")
 	org_name = strings.TrimSuffix(org_name, ".okta.com")
 
-	// base := config.GetEnv("OKTA_BASE_URL", "okta.com")
-	base := config.GetEnv("OKTA_SANDBOX_BASE_URL", "oktapreview.com")
+	base := config.GetEnv("OKTA_BASE_URL", "okta.com")
+	// base := config.GetEnv("OKTA_SANDBOX_BASE_URL", "oktapreview.com")
 	base = strings.Trim(base, "./")
 	base = strings.TrimSuffix(base, ".com")
 
-	// token := config.GetEnv("OKTA_API_TOKEN", "oktaApiKey")
-	token := config.GetEnv("OKTA_SANDBOX_API_TOKEN", "oktaApiKey")
+	token := config.GetEnv("OKTA_API_TOKEN", "oktaApiKey")
+	// token := config.GetEnv("OKTA_SANDBOX_API_TOKEN", "oktaApiKey")
 	BaseURL := fmt.Sprintf(BaseURL, org_name, base)
 
 	headers := requests.Headers{
