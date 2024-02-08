@@ -31,5 +31,8 @@ go.work
 # Build output
 /build/
 
+# Backup files
 *.bak
+
+# Log files
 *.log

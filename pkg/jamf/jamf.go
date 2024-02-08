@@ -25,11 +25,11 @@ import (
 )
 
 var (
-	BaseURL                 = fmt.Sprintf("https://%s/api/v1", "%s")      // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api
-	ClassicURL              = fmt.Sprintf("https://%s/JSSResource", "%s") // https://developer.jamf.com/jamf-pro/reference/classic-api
-	JamfDevices             = fmt.Sprintf("%s/devices", "%s")             // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api/devices
-	JamfManagementFramework = fmt.Sprintf("%s/users", "%s")               // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api/management-framework
-	JameUsers               = fmt.Sprintf("%s/iam", "%s")                 // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api/users
+	BaseURL      = fmt.Sprintf("https://%s/api", "%s")         // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api
+	V1           = "%s/v1"                                     // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api
+	V1_AuthToken = fmt.Sprintf("%s/auth/token", V1)            // https://developer.jamf.com/jamf-pro/reference/post_v1-auth-token
+	V2           = "%s/v2"                                     // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api
+	ClassicURL   = fmt.Sprintf("https://%s/JSSResource", "%s") // https://developer.jamf.com/jamf-pro/reference/classic-api
 )
 
 // BuildURL builds a URL for a given resource and identifiers.
@@ -38,6 +38,7 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
 	for _, id := range identifiers {
 		url = fmt.Sprintf("%s/%s", url, id)
 	}
+	c.Logger.Debug("url:", url)
 	return url
 }
 
@@ -47,7 +48,7 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
  * - https://developer.jamf.com/jamf-pro/reference/post_v1-auth-token
  */
 func GetToken(baseURL string) (*JamfToken, error) {
-	url := baseURL + "/auth/token"
+	url := fmt.Sprintf(V1_AuthToken, baseURL)
 
 	// Prepare the credentials for Basic Auth
 	creds := Credentials{

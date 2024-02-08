@@ -6,38 +6,221 @@
 import "github.com/gemini-oss/rego/pkg/jamf"
 ```
 
+pkg/jamf/devices.go
+
+pkg/jamf/entities.go
+
 pkg/jamf/jamf.go
+
+pkg/jamf/devices.go
+
+pkg/jamf/mdm.go
 
 pkg/jamf/version.go
 
 ## Index
 
 - [Variables](<#variables>)
+- [type Application](<#Application>)
+- [type Attachment](<#Attachment>)
+- [type BootPartitionDetails](<#BootPartitionDetails>)
+- [type CacheAlert](<#CacheAlert>)
+- [type CacheDetail](<#CacheDetail>)
+- [type Certificate](<#Certificate>)
 - [type Client](<#Client>)
   - [func NewClient\(verbosity int\) \*Client](<#NewClient>)
   - [func \(c \*Client\) BuildURL\(endpoint string, identifiers ...string\) string](<#Client.BuildURL>)
+  - [func \(c \*Client\) GetComputerDetails\(id string\) \(\*Computer, error\)](<#Client.GetComputerDetails>)
   - [func \(c \*Client\) GetJamfVersion\(\) \(string, error\)](<#Client.GetJamfVersion>)
+  - [func \(c \*Client\) ListAllComputerGroups\(\) \(\*\[\]GroupMembership, error\)](<#Client.ListAllComputerGroups>)
+  - [func \(c \*Client\) ListAllComputers\(\) \(\*Computers, error\)](<#Client.ListAllComputers>)
+  - [func \(c \*Client\) ListAllMobileDevices\(\) \(\*MobileDevices, error\)](<#Client.ListAllMobileDevices>)
+  - [func \(c \*Client\) RenewMDMProfile\(udids \[\]string\) \(\*ManagementResponse, error\)](<#Client.RenewMDMProfile>)
+  - [func \(c \*Client\) RepairManagementFramework\(id string\) \(string, error\)](<#Client.RepairManagementFramework>)
+- [type Computer](<#Computer>)
+- [type Computers](<#Computers>)
+- [type ConfigurationProfile](<#ConfigurationProfile>)
+- [type ContentCaching](<#ContentCaching>)
 - [type Credentials](<#Credentials>)
+- [type DataMigrationError](<#DataMigrationError>)
+- [type DataMigrationInfo](<#DataMigrationInfo>)
+- [type DeviceQuery](<#DeviceQuery>)
+  - [func \(d \*DeviceQuery\) IsEmpty\(\) bool](<#DeviceQuery.IsEmpty>)
+  - [func \(d \*DeviceQuery\) ValidateQuery\(\) error](<#DeviceQuery.ValidateQuery>)
+- [type Disk](<#Disk>)
+- [type DiskEncryption](<#DiskEncryption>)
+- [type EnrollmentMethod](<#EnrollmentMethod>)
+- [type ExtensionAttribute](<#ExtensionAttribute>)
+- [type Font](<#Font>)
+- [type General](<#General>)
+- [type GroupMembership](<#GroupMembership>)
+- [type Hardware](<#Hardware>)
+- [type IBeacon](<#IBeacon>)
+- [type Inventory](<#Inventory>)
 - [type JamfToken](<#JamfToken>)
   - [func GetToken\(baseURL string\) \(\*JamfToken, error\)](<#GetToken>)
+- [type KeyValue](<#KeyValue>)
+- [type LicensedSoftware](<#LicensedSoftware>)
+- [type LocalUserAccount](<#LocalUserAccount>)
+- [type ManagementResponse](<#ManagementResponse>)
+- [type MdmCapable](<#MdmCapable>)
+- [type MobileDevice](<#MobileDevice>)
+- [type MobileDevices](<#MobileDevices>)
+- [type OperatingSystem](<#OperatingSystem>)
+- [type PackageReceipts](<#PackageReceipts>)
+- [type Partition](<#Partition>)
+- [type Plugin](<#Plugin>)
+- [type Printer](<#Printer>)
+- [type Purchasing](<#Purchasing>)
+- [type RemoteManagement](<#RemoteManagement>)
+- [type Security](<#Security>)
+- [type Service](<#Service>)
+- [type Site](<#Site>)
+- [type SoftwareUpdate](<#SoftwareUpdate>)
+- [type Storage](<#Storage>)
+- [type UDIDsNotProcessed](<#UDIDsNotProcessed>)
+- [type UserAndLocation](<#UserAndLocation>)
 
 
 ## Variables
+
+<a name="ComputersInventory"></a>
+
+```go
+var (
+    ComputersInventory       = fmt.Sprintf("%s/computers-inventory", V1)        // /api/v1/computers-inventory
+    ComputersInventoryDetail = fmt.Sprintf("%s/computers-inventory-detail", V1) // /api/v1/computers-inventory-detail
+    ComputerGroups           = fmt.Sprintf("%s/computer-groups", V1)            // /api/v1/computer-groups
+    MobileDev                = fmt.Sprintf("%s/mobile-devices", V2)             // /api/v2/mobile-devices
+)
+```
 
 <a name="BaseURL"></a>
 
 ```go
 var (
-    BaseURL                 = fmt.Sprintf("https://%s/api/v1", "%s")      // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api
-    ClassicURL              = fmt.Sprintf("https://%s/JSSResource", "%s") // https://developer.jamf.com/jamf-pro/reference/classic-api
-    JamfDevices             = fmt.Sprintf("%s/devices", "%s")             // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api/devices
-    JamfManagementFramework = fmt.Sprintf("%s/users", "%s")               // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api/management-framework
-    JameUsers               = fmt.Sprintf("%s/iam", "%s")                 // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api/users
+    BaseURL      = fmt.Sprintf("https://%s/api", "%s")         // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api
+    V1           = "%s/v1"                                     // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api
+    V1_AuthToken = fmt.Sprintf("%s/auth/token", V1)            // https://developer.jamf.com/jamf-pro/reference/post_v1-auth-token
+    V2           = "%s/v2"                                     // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api
+    ClassicURL   = fmt.Sprintf("https://%s/JSSResource", "%s") // https://developer.jamf.com/jamf-pro/reference/classic-api
 )
 ```
 
+<a name="ManagementFramework"></a>
+
+```go
+var (
+    ManagementFramework = fmt.Sprintf("%s/jamf-management-framework", V1) // /api/v1/jamf-management-framework
+    V1_MDM              = fmt.Sprintf("%s/mdm", V1)                       // /api/v1/mdm
+    RenewProfile        = fmt.Sprintf("%s/renew-profile", V1_MDM)         // /api/v1/mdm/renew-profile
+    V2_MDM              = fmt.Sprintf("%s/mdm", V2)                       // /api/v2/mdm
+)
+```
+
+<a name="JamfProVersion"></a>
+
+```go
+var (
+    JamfProVersion = fmt.Sprintf("%s/jamf-pro-version", V1) // /api/v1/jamf-pro-version
+)
+```
+
+<a name="Application"></a>
+## type [Application](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L100-L109>)
+
+Application represents the details of an application installed on the computer.
+
+```go
+type Application struct {
+    BundleID          string `json:"bundleId,omitempty"`          // Bundle identifier of the application.
+    ExternalVersionID string `json:"externalVersionId,omitempty"` // External version identifier.
+    MacAppStore       bool   `json:"macAppStore,omitempty"`       // Indicates if the application is from Mac App Store.
+    Name              string `json:"name,omitempty"`              // Name of the application.
+    Path              string `json:"path,omitempty"`              // Installation path of the application.
+    SizeMegabytes     int    `json:"sizeMegabytes,omitempty"`     // Size of the application in megabytes.
+    UpdateAvailable   bool   `json:"updateAvailable,omitempty"`   // Indicates if an update is available.
+    Version           string `json:"version,omitempty"`           // Version of the application.
+}
+```
+
+<a name="Attachment"></a>
+## type [Attachment](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L112-L117>)
+
+Attachment represents an attachment in the inventory.
+
+```go
+type Attachment struct {
+    FileType  string `json:"fileType,omitempty"`  // Type of the file.
+    Id        string `json:"id,omitempty"`        // ID of the attachment.
+    Name      string `json:"name,omitempty"`      // Name of the attachment.
+    SizeBytes int    `json:"sizeBytes,omitempty"` // Size of the attachment in bytes.
+}
+```
+
+<a name="BootPartitionDetails"></a>
+## type [BootPartitionDetails](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L233-L237>)
+
+
+
+```go
+type BootPartitionDetails struct {
+    PartitionName              string `json:"partitionName"`              // Name of the partition.
+    PartitionFileVault2State   string `json:"partitionFileVault2State"`   // FileVault 2 state of the partition.
+    PartitionFileVault2Percent int    `json:"partitionFileVault2Percent"` // FileVault 2 percent of the partition.
+}
+```
+
+<a name="CacheAlert"></a>
+## type [CacheAlert](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L188-L195>)
+
+CacheAlert represents an alert related to caching.
+
+```go
+type CacheAlert struct {
+    CacheBytesLimit      int64  `json:"cacheBytesLimit,omitempty"`      // Limit of cache bytes for the alert.
+    ClassName            string `json:"className,omitempty"`            // The class name of the alert.
+    PathPreventingAccess string `json:"pathPreventingAccess,omitempty"` // Path that is preventing access.
+    PostDate             string `json:"postDate,omitempty"`             // Post date of the alert.
+    ReservedVolumeBytes  int64  `json:"reservedVolumeBytes,omitempty"`  // Reserved volume bytes.
+    Resource             string `json:"resource,omitempty"`             // Resource associated with the alert.
+}
+```
+
+<a name="CacheDetail"></a>
+## type [CacheDetail](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L198-L202>)
+
+CacheDetail represents details of the cache.
+
+```go
+type CacheDetail struct {
+    ComputerContentCachingCacheDetailsID string `json:"computerContentCachingCacheDetailsId,omitempty"` // ID of the cache detail.
+    CategoryName                         string `json:"categoryName,omitempty"`                         // Name of the category.
+    DiskSpaceBytesUsed                   int64  `json:"diskSpaceBytesUsed,omitempty"`                   // Disk space used in bytes.
+}
+```
+
+<a name="Certificate"></a>
+## type [Certificate](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L119-L129>)
+
+
+
+```go
+type Certificate struct {
+    CertificateStatus string `json:"certificateStatus,omitempty"` // Status of the certificate.
+    CommonName        string `json:"commonName,omitempty"`        // Common name of the certificate.
+    ExpirationDate    string `json:"expirationDate,omitempty"`    // Expiration date of the certificate.
+    Identity          bool   `json:"identity,omitempty"`          // Indicates if the certificate is an identity certificate.
+    IssuedDate        string `json:"issuedDate,omitempty"`        // Issued date of the certificate.
+    LifecycleStatus   string `json:"lifecycleStatus,omitempty"`   // Lifecycle status of the certificate.
+    SerialNumber      string `json:"serialNumber,omitempty"`      // Serial number of the certificate.
+    Sha1Fingerprint   string `json:"sha1Fingerprint,omitempty"`   // SHA1 fingerprint of the certificate.
+    SubjectName       string `json:"subjectName,omitempty"`       // Subject name of the certificate.
+}
+```
+
 <a name="Client"></a>
-## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L48-L53>)
+## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L25-L30>)
 
 
 
@@ -51,7 +234,7 @@ type Client struct {
 ```
 
 <a name="NewClient"></a>
-### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L102>)
+### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L83>)
 
 ```go
 func NewClient(verbosity int) *Client
@@ -60,7 +243,7 @@ func NewClient(verbosity int) *Client
 \* Create a new Jamf Client
 
 <a name="Client.BuildURL"></a>
-### func \(\*Client\) [BuildURL](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L56>)
+### func \(\*Client\) [BuildURL](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L36>)
 
 ```go
 func (c *Client) BuildURL(endpoint string, identifiers ...string) string
@@ -68,8 +251,20 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string
 
 BuildURL builds a URL for a given resource and identifiers.
 
+<a name="Client.GetComputerDetails"></a>
+### func \(\*Client\) [GetComputerDetails](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L199>)
+
+```go
+func (c *Client) GetComputerDetails(id string) (*Computer, error)
+```
+
+\* \# Get Computer Details
+
+- /api/v1/computers\-inventory\-detail/\{id\}
+- \- https://developer.jamf.com/jamf-pro/reference/get_v1-computers-inventory-detail-id
+
 <a name="Client.GetJamfVersion"></a>
-### func \(\*Client\) [GetJamfVersion](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/version.go#L21>)
+### func \(\*Client\) [GetJamfVersion](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/version.go#L29>)
 
 ```go
 func (c *Client) GetJamfVersion() (string, error)
@@ -80,10 +275,186 @@ func (c *Client) GetJamfVersion() (string, error)
 - /api/v1/jamf\-pro\-version
 - \- https://developer.jamf.com/jamf-pro/reference/get_v1-jamf-pro-version
 
-<a name="Credentials"></a>
-## type [Credentials](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L37-L41>)
+<a name="Client.ListAllComputerGroups"></a>
+### func \(\*Client\) [ListAllComputerGroups](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L223>)
 
-Credentials for Jamf Pro
+```go
+func (c *Client) ListAllComputerGroups() (*[]GroupMembership, error)
+```
+
+\* \# Get Computer Groups
+
+- /api/v1/computer\-groups
+- \- https://developer.jamf.com/jamf-pro/reference/get_v1-computers-inventory
+
+<a name="Client.ListAllComputers"></a>
+### func \(\*Client\) [ListAllComputers](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L96>)
+
+```go
+func (c *Client) ListAllComputers() (*Computers, error)
+```
+
+\* \# Get Computer Devices
+
+- /api/v1/computers\-inventory
+- \- https://developer.jamf.com/jamf-pro/reference/get_v1-computers-inventory
+
+<a name="Client.ListAllMobileDevices"></a>
+### func \(\*Client\) [ListAllMobileDevices](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L247>)
+
+```go
+func (c *Client) ListAllMobileDevices() (*MobileDevices, error)
+```
+
+\* \# Get Mobile Devices
+
+- /api/v2/mobile\-devices
+- \- https://developer.jamf.com/jamf-pro/reference/get_v2-mobile-devices
+
+<a name="Client.RenewMDMProfile"></a>
+### func \(\*Client\) [RenewMDMProfile](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/management.go#L33>)
+
+```go
+func (c *Client) RenewMDMProfile(udids []string) (*ManagementResponse, error)
+```
+
+\* \# Renew MDM Profile
+
+- /api/v1/mdm/renew\-profile
+- \- https://developer.jamf.com/jamf-pro/reference/post_v1-mdm-renew-profile
+
+<a name="Client.RepairManagementFramework"></a>
+### func \(\*Client\) [RepairManagementFramework](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/management.go#L62>)
+
+```go
+func (c *Client) RepairManagementFramework(id string) (string, error)
+```
+
+\* \# Repair Jamf Management Framework
+
+- /api/v1/jamf\-management\-framework/redeploy/\{id\}
+- \- https://developer.jamf.com/jamf-pro/reference/post_v1-jamf-management-framework-redeploy-id
+
+<a name="Computer"></a>
+## type [Computer](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L71-L97>)
+
+Computer represents the details of a computer.
+
+```go
+type Computer struct {
+    Applications          []Application          `json:"applications,omitempty"`          // List of applications installed on the computer.
+    Attachments           []Attachment           `json:"attachments,omitempty"`           // List of attachments.
+    Certificates          []Certificate          `json:"certificates,omitempty"`          // List of certificates installed on the computer.
+    ConfigurationProfiles []ConfigurationProfile `json:"configurationProfiles,omitempty"` // List of configuration profiles applied to the computer.
+    ContentCaching        ContentCaching         `json:"contentCaching,omitempty"`        // Content caching details.
+    DiskEncryption        DiskEncryption         `json:"diskEncryption,omitempty"`        // Disk encryption details.
+    Fonts                 []Font                 `json:"fonts,omitempty"`                 // List of fonts installed on the computer.
+    General               General                `json:"general,omitempty"`               // General information about the computer.
+    GroupMemberships      []GroupMembership      `json:"groupMemberships,omitempty"`      // List of group memberships.
+    Hardware              Hardware               `json:"hardware,omitempty"`              // Hardware details of the computer.
+    IBeacons              []IBeacon              `json:"ibeacons,omitempty"`              // iBeacons associated with the computer.
+    ID                    string                 `json:"id"`                              // Unique identifier for the computer.
+    LicensedSoftware      []LicensedSoftware     `json:"licensedSoftware,omitempty"`      // List of licensed software.
+    LocalUserAccounts     []LocalUserAccount     `json:"localUserAccounts,omitempty"`     // List of local user accounts on the computer.
+    OperatingSystem       OperatingSystem        `json:"operatingSystem,omitempty"`       // Operating system details.
+    PackageReceipts       PackageReceipts        `json:"packageReceipts,omitempty"`       // Information about package receipts.
+    Plugins               []Plugin               `json:"plugins,omitempty"`               // List of plugins installed on the computer.
+    Printers              []Printer              `json:"printers,omitempty"`              // List of printers configured on the computer.
+    Purchasing            Purchasing             `json:"purchasing,omitempty"`            // Purchasing information.
+    Security              Security               `json:"security,omitempty"`              // Security settings and information.
+    Services              []Service              `json:"services,omitempty"`              // List of services on the computer.
+    SoftwareUpdates       []SoftwareUpdate       `json:"softwareUpdates,omitempty"`       // List of software updates.
+    Storage               Storage                `json:"storage,omitempty"`               // Storage details.
+    UDID                  string                 `json:"udid"`                            // Unique Device Identifier.
+    UserAndLocation       UserAndLocation        `json:"userAndLocation,omitempty"`       // User and location information.
+}
+```
+
+<a name="Computers"></a>
+## type [Computers](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L43-L46>)
+
+Response structure for the Jamf Pro API for computers
+
+```go
+type Computers struct {
+    Results    []Computer `json:"results"`    // List of mobile devices.
+    TotalCount int        `json:"totalCount"` // Total number of mobile devices.
+}
+```
+
+<a name="ConfigurationProfile"></a>
+## type [ConfigurationProfile](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L131-L138>)
+
+
+
+```go
+type ConfigurationProfile struct {
+    DisplayName       string `json:"displayName,omitempty"`       // Display name of the configuration profile.
+    ID                string `json:"id,omitempty"`                // Identifier of the configuration profile.
+    LastInstalled     string `json:"lastInstalled,omitempty"`     // Last installed date of the configuration profile.
+    ProfileIdentifier string `json:"profileIdentifier,omitempty"` // Profile identifier of the configuration profile.
+    Removable         bool   `json:"removable,omitempty"`         // Indicates if the profile is removable.
+    Username          string `json:"username,omitempty"`          // Username associated with the configuration profile.
+}
+```
+
+<a name="ContentCaching"></a>
+## type [ContentCaching](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L141-L185>)
+
+ContentCaching represents content caching information of a computer.
+
+```go
+type ContentCaching struct {
+    Activated                           bool               `json:"activated,omitempty"`                           // Indicates if caching is activated.
+    Active                              bool               `json:"active,omitempty"`                              // Indicates if caching is currently active.
+    ActualCacheBytesUsed                int64              `json:"actualCacheBytesUsed,omitempty"`                // Actual bytes used by the cache.
+    Address                             string             `json:"address,omitempty"`                             // Address of the caching server.
+    Addresses                           []string           `json:"addresses,omitempty"`                           // List of addresses related to the caching server.
+    Alerts                              []CacheAlert       `json:"alerts,omitempty"`                              // Alerts related to caching.
+    CacheBytesFree                      int64              `json:"cacheBytesFree,omitempty"`                      // Free bytes in the cache.
+    CacheBytesLimit                     int64              `json:"cacheBytesLimit,omitempty"`                     // Limit of cache bytes.
+    CacheBytesUsed                      int64              `json:"cacheBytesUsed,omitempty"`                      // Bytes used in the cache.
+    CacheDetails                        []CacheDetail      `json:"cacheDetails,omitempty"`                        // Details about the cache.
+    CacheStatus                         string             `json:"cacheStatus,omitempty"`                         // Status of the cache.
+    ComputerContentCachingInformationID string             `json:"computerContentCachingInformationId,omitempty"` // Information ID for content caching.
+    DataMigrationCompleted              bool               `json:"dataMigrationCompleted,omitempty"`              // Indicates if data migration is completed.
+    DataMigrationError                  DataMigrationError `json:"dataMigrationError,omitempty"`                  // Data migration error details.
+    DataMigrationProgressPercentage     int                `json:"dataMigrationProgressPercentage,omitempty"`     // Progress percentage of data migration.
+    Details                             []CacheDetail      `json:"details,omitempty"`                             // Details of the content caching. Seems redundant, but it helps with struct recursion.
+    GUID                                string             `json:"guid,omitempty"`                                // GUID of the caching server.
+    Healthy                             bool               `json:"healthy,omitempty"`                             // Indicates if the caching server is healthy.
+    MaxCachePressureLast1HourPercentage int                `json:"maxCachePressureLast1HourPercentage,omitempty"` // Max cache pressure in the last hour.
+    Parents                             []ContentCaching   `json:"parents,omitempty"`                             // Parent caching servers, recursively using the same structure.
+    PersonalCacheBytesFree              int64              `json:"personalCacheBytesFree,omitempty"`              // Free bytes in the personal cache.
+    PersonalCacheBytesLimit             int64              `json:"personalCacheBytesLimit,omitempty"`             // Limit of personal cache bytes.
+    PersonalCacheBytesUsed              int64              `json:"personalCacheBytesUsed,omitempty"`              // Used bytes in the personal cache.
+    Port                                int                `json:"port,omitempty"`                                // Port number for caching.
+    PublicAddress                       string             `json:"publicAddress,omitempty"`                       // Public address for caching.
+    RegistrationError                   string             `json:"registrationError,omitempty"`                   // Registration error message.
+    RegistrationResponseCode            int                `json:"registrationResponseCode,omitempty"`            // Response code for registration.
+    RegistrationStarted                 string             `json:"registrationStarted,omitempty"`                 // Start time of registration.
+    RegistrationStatus                  string             `json:"registrationStatus,omitempty"`                  // Status of registration.
+    RestrictedMedia                     bool               `json:"restrictedMedia,omitempty"`                     // Indicates if media is restricted.
+    ServerGuid                          string             `json:"serverGuid,omitempty"`                          // GUID of the server.
+    StartupStatus                       string             `json:"startupStatus,omitempty"`                       // Startup status of the caching.
+    TetheratorStatus                    string             `json:"tetheratorStatus,omitempty"`                    // Tetherator status.
+    TotalBytesAreSince                  string             `json:"totalBytesAreSince,omitempty"`                  // Total bytes are calculated since this time.
+    TotalBytesDropped                   int64              `json:"totalBytesDropped,omitempty"`                   // Total bytes dropped.
+    TotalBytesImported                  int64              `json:"totalBytesImported,omitempty"`                  // Total bytes imported.
+    TotalBytesReturnedToChildren        int64              `json:"totalBytesReturnedToChildren,omitempty"`        // Total bytes returned to children.
+    TotalBytesReturnedToClients         int64              `json:"totalBytesReturnedToClients,omitempty"`         // Total bytes returned to clients.
+    TotalBytesReturnedToPeers           int64              `json:"totalBytesReturnedToPeers,omitempty"`           // Total bytes returned to peers.
+    TotalBytesStoredFromOrigin          int64              `json:"totalBytesStoredFromOrigin,omitempty"`          // Total bytes stored from origin.
+    TotalBytesStoredFromParents         int64              `json:"totalBytesStoredFromParents,omitempty"`         // Total bytes stored from parents.
+    TotalBytesStoredFromPeers           int64              `json:"totalBytesStoredFromPeers,omitempty"`           // Total bytes stored from peers.
+    Version                             string             `json:"version,omitempty"`                             // Version of the caching server.
+}
+```
+
+<a name="Credentials"></a>
+## type [Credentials](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L14-L18>)
+
+\#\#\# Jamf Client Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- Credentials for Jamf Pro
 
 ```go
 type Credentials struct {
@@ -93,8 +464,262 @@ type Credentials struct {
 }
 ```
 
+<a name="DataMigrationError"></a>
+## type [DataMigrationError](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L205-L209>)
+
+DataMigrationError represents details of a data migration error.
+
+```go
+type DataMigrationError struct {
+    Code     int        `json:"code,omitempty"`     // Error code.
+    Domain   string     `json:"domain,omitempty"`   // Error domain.
+    UserInfo []KeyValue `json:"userInfo,omitempty"` // Additional user info.
+}
+```
+
+<a name="DataMigrationInfo"></a>
+## type [DataMigrationInfo](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L218-L221>)
+
+DataMigrationInfo represents additional information for a data migration error.
+
+```go
+type DataMigrationInfo struct {
+    Key   string `json:"key"`   // Key of the additional information.
+    Value string `json:"value"` // Value of the additional information.
+}
+```
+
+<a name="DeviceQuery"></a>
+## type [DeviceQuery](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L45-L51>)
+
+\- Query parameters for Computer Details
+
+- Example: Fetch details from GENERAL and HARDWARE sections section=GENERAL&section=HARDWARE
+  
+  Fetch the second page of results with 50 items per page page=1&page\-size=50
+  
+  Sort by the unique device identifier in descending order and then by name in ascending order sort=udid:desc,general.name:asc
+  
+  Filter results where the general name is "Orchard" filter=general.name=="Orchard"
+
+```go
+type DeviceQuery struct {
+    Sections []string `json:"section,omitempty"`   // Sections of computer details to return. If not specified, the General section data is returned. Multiple sections can be specified, e.g., section=GENERAL&section=HARDWARE.
+    Page     int      `json:"page,omitempty"`      // The pagination index (starting from 0) for the query results.
+    PageSize int      `json:"page-size,omitempty"` // The number of records per page. Default is 100.
+    Sort     []string `json:"sort,omitempty"`      // Sorting criteria in the format: property:asc/desc. Default sort is general.name:asc. Multiple criteria can be specified and separated by a comma.
+    Filter   string   `json:"filter,omitempty"`    // RSQL query string used for filtering the computer inventory collection. The default filter is an empty query, returning all results for the requested page.
+}
+```
+
+<a name="DeviceQuery.IsEmpty"></a>
+### func \(\*DeviceQuery\) [IsEmpty](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L56>)
+
+```go
+func (d *DeviceQuery) IsEmpty() bool
+```
+
+\* Check if the DeviceQuery is empty
+
+<a name="DeviceQuery.ValidateQuery"></a>
+### func \(\*DeviceQuery\) [ValidateQuery](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L67>)
+
+```go
+func (d *DeviceQuery) ValidateQuery() error
+```
+
+\* Validate the query parameters for the Files resource
+
+<a name="Disk"></a>
+## type [Disk](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L469-L479>)
+
+Disk represents a disk in a computer.
+
+```go
+type Disk struct {
+    Device        string      `json:"device"`        // Identifier of the disk device.
+    ID            string      `json:"id"`            // Unique identifier for the disk.
+    Model         string      `json:"model"`         // Model of the disk.
+    Partitions    []Partition `json:"partitions"`    // Partitions on the disk.
+    Revision      string      `json:"revision"`      // Revision number of the disk.
+    SerialNumber  string      `json:"serialNumber"`  // Serial number of the disk.
+    SizeMegabytes int         `json:"sizeMegabytes"` // Total size of the disk in megabytes.
+    SmartStatus   string      `json:"smartStatus"`   // S.M.A.R.T status of the disk.
+    Type          string      `json:"type"`          // Type of the disk (e.g., SSD, HDD).
+}
+```
+
+<a name="DiskEncryption"></a>
+## type [DiskEncryption](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L224-L231>)
+
+DiskEncryption represents details of disk encryption on the computer.
+
+```go
+type DiskEncryption struct {
+    BootPartitionEncryptionDetails      BootPartitionDetails `json:"bootPartitionEncryptionDetails"`      // Details of the boot partition encryption.
+    IndividualRecoveryKeyValidityStatus string               `json:"individualRecoveryKeyValidityStatus"` // Validity status of the individual recovery key.
+    InstitutionalRecoveryKeyPresent     bool                 `json:"institutionalRecoveryKeyPresent"`     // Indicates if institutional recovery key is present.
+    DiskEncryptionConfigurationName     string               `json:"diskEncryptionConfigurationName"`     // Name of the disk encryption configuration.
+    FileVault2EnabledUserNames          []string             `json:"fileVault2EnabledUserNames"`          // List of usernames with FileVault 2 enabled.
+    FileVault2EligibilityMessage        string               `json:"fileVault2EligibilityMessage"`        // Eligibility message for FileVault 2.
+}
+```
+
+<a name="EnrollmentMethod"></a>
+## type [EnrollmentMethod](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L284-L288>)
+
+EnrollmentMethod represents the method of enrollment of a computer.
+
+```go
+type EnrollmentMethod struct {
+    ID         string `json:"id"`         // Identifier of the enrollment method.
+    ObjectName string `json:"objectName"` // Name of the object associated with the enrollment.
+    ObjectType string `json:"objectType"` // Type of the object associated with the enrollment.
+}
+```
+
+<a name="ExtensionAttribute"></a>
+## type [ExtensionAttribute](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L291-L301>)
+
+ExtensionAttribute represents the extension attributes in UserAndLocation and Purchasing.
+
+```go
+type ExtensionAttribute struct {
+    DefinitionID string   `json:"definitionId"` // Unique identifier of the definition.
+    Name         string   `json:"name"`         // Name of the attribute.
+    Description  string   `json:"description"`  // Description of the attribute.
+    Enabled      bool     `json:"enabled"`      // Indicates if the attribute is enabled.
+    MultiValue   bool     `json:"multiValue"`   // Indicates if the attribute has multiple values.
+    Values       []string `json:"values"`       // List of values for the attribute.
+    DataType     string   `json:"dataType"`     // Data type of the attribute.
+    Options      []string `json:"options"`      // List of options for the attribute.
+    InputType    string   `json:"inputType"`    // Input type of the attribute.
+}
+```
+
+<a name="Font"></a>
+## type [Font](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L240-L244>)
+
+Font represents details of a font installed on the computer.
+
+```go
+type Font struct {
+    Name    string `json:"name,omitempty"`    // Name of the font.
+    Path    string `json:"path,omitempty"`    // Path to the font.
+    Version string `json:"version,omitempty"` // Version of the font.
+}
+```
+
+<a name="General"></a>
+## type [General](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L247-L274>)
+
+General information about the computer.
+
+```go
+type General struct {
+    AssetTag                             string               `json:"assetTag"`                             // Asset tag of the computer.
+    Barcode1                             string               `json:"barcode1"`                             // First barcode value.
+    Barcode2                             string               `json:"barcode2"`                             // Second barcode value.
+    DistributionPoint                    string               `json:"distributionPoint"`                    // Name of the distribution point.
+    EnrolledViaAutomatedDeviceEnrollment bool                 `json:"enrolledViaAutomatedDeviceEnrollment"` // Indicates if enrolled via automated device enrollment.
+    EnrollmentMethod                     EnrollmentMethod     `json:"enrollmentMethod"`                     // Method of enrollment.
+    ExtensionAttributes                  []ExtensionAttribute `json:"extensionAttributes"`                  // List of extension attributes.
+    InitialEntryDate                     string               `json:"initialEntryDate"`                     // Date of initial entry.
+    ItunesStoreAccountActive             bool                 `json:"itunesStoreAccountActive"`             // Indicates if iTunes Store account is active.
+    JamfBinaryVersion                    string               `json:"jamfBinaryVersion"`                    // Version of the Jamf binary.
+    LastContactTime                      string               `json:"lastContactTime"`                      // Time of last contact.
+    LastEnrolledDate                     string               `json:"lastEnrolledDate"`                     // Date of last enrollment.
+    LastIpAddress                        string               `json:"lastIpAddress"`                        // Last known IP address.
+    LastReportedIp                       string               `json:"lastReportedIp"`                       // Last reported IP address.
+    LastCloudBackupDate                  string               `json:"lastCloudBackupDate"`                  // Date of last cloud backup.
+    ManagementID                         string               `json:"managementId"`                         // Management ID.
+    MdmCapable                           MdmCapable           `json:"mdmCapable"`                           // MDM capability information.
+    MdmProfileExpiration                 string               `json:"mdmProfileExpiration"`                 // Expiration of the MDM profile.
+    Name                                 string               `json:"name"`                                 // Name of the computer.
+    Platform                             string               `json:"platform"`                             // Platform of the computer (e.g., Mac).
+    RemoteManagement                     RemoteManagement     `json:"remoteManagement"`                     // Remote management information.
+    ReportDate                           string               `json:"reportDate"`                           // Date of report.
+    Site                                 Site                 `json:"site"`                                 // Site information.
+    Supervised                           bool                 `json:"supervised"`                           // Indicates if the device is supervised.
+    UserApprovedMdm                      bool                 `json:"userApprovedMdm"`                      // Indicates if MDM is user-approved.
+    DeclarativeDeviceManagementEnabled   bool                 `json:"declarativeDeviceManagementEnabled"`   // Indicates if declarative device management is enabled.
+}
+```
+
+<a name="GroupMembership"></a>
+## type [GroupMembership](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L277-L281>)
+
+GroupMembership represents the membership details of a computer in a group.
+
+```go
+type GroupMembership struct {
+    GroupId    string `json:"groupId,omitempty"`    // Unique identifier of the group.
+    GroupName  string `json:"groupName,omitempty"`  // Name of the group.
+    SmartGroup bool   `json:"smartGroup,omitempty"` // Indicates if the group is a smart group.
+}
+```
+
+<a name="Hardware"></a>
+## type [Hardware](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L322-L349>)
+
+Hardware represents the hardware details of a computer in the inventory.
+
+```go
+type Hardware struct {
+    Make                   string               `json:"make"`                   // Manufacturer of the hardware.
+    Model                  string               `json:"model"`                  // Model of the hardware.
+    ModelIdentifier        string               `json:"modelIdentifier"`        // Identifier for the model.
+    SerialNumber           string               `json:"serialNumber"`           // Serial number of the hardware.
+    ProcessorSpeedMhz      int                  `json:"processorSpeedMhz"`      // Processor speed in MHz.
+    ProcessorCount         int                  `json:"processorCount"`         // Number of processors.
+    CoreCount              int                  `json:"coreCount"`              // Number of cores.
+    ProcessorType          string               `json:"processorType"`          // Type of processor.
+    ProcessorArchitecture  string               `json:"processorArchitecture"`  // Processor architecture.
+    BusSpeedMhz            int                  `json:"busSpeedMhz"`            // Bus speed in MHz.
+    CacheSizeKilobytes     int                  `json:"cacheSizeKilobytes"`     // Cache size in Kilobytes.
+    NetworkAdapterType     string               `json:"networkAdapterType"`     // Primary network adapter type.
+    MacAddress             string               `json:"macAddress"`             // MAC address.
+    AltNetworkAdapterType  string               `json:"altNetworkAdapterType"`  // Alternate network adapter type.
+    AltMacAddress          string               `json:"altMacAddress"`          // Alternate MAC address.
+    TotalRamMegabytes      int                  `json:"totalRamMegabytes"`      // Total RAM in Megabytes.
+    OpenRamSlots           int                  `json:"openRamSlots"`           // Number of open RAM slots.
+    BatteryCapacityPercent int                  `json:"batteryCapacityPercent"` // Battery capacity as a percentage.
+    SmcVersion             string               `json:"smcVersion"`             // SMC version.
+    NicSpeed               string               `json:"nicSpeed"`               // Network interface card speed.
+    OpticalDrive           string               `json:"opticalDrive"`           // Optical drive type.
+    BootRom                string               `json:"bootRom"`                // Boot ROM version.
+    BleCapable             bool                 `json:"bleCapable"`             // Indicates if Bluetooth Low Energy is supported.
+    SupportsIosAppInstalls bool                 `json:"supportsIosAppInstalls"` // Indicates if iOS app installs are supported.
+    AppleSilicon           bool                 `json:"appleSilicon"`           // Indicates if the device has Apple Silicon.
+    ExtensionAttributes    []ExtensionAttribute `json:"extensionAttributes"`    // List of extension attributes.
+}
+```
+
+<a name="IBeacon"></a>
+## type [IBeacon](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L352-L354>)
+
+IBeacon represents an iBeacon associated with the computer.
+
+```go
+type IBeacon struct {
+    Name string `json:"name,omitempty"` // Name of the iBeacon.
+}
+```
+
+<a name="Inventory"></a>
+## type [Inventory](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L37-L40>)
+
+\#\#\# Jamf Device Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+
+```go
+type Inventory struct {
+    Computers     Computers     `json:"computers"`
+    MobileDevices MobileDevices `json:"mobile_devices"`
+}
+```
+
 <a name="JamfToken"></a>
-## type [JamfToken](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L43-L46>)
+## type [JamfToken](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L20-L23>)
 
 
 
@@ -106,7 +731,7 @@ type JamfToken struct {
 ```
 
 <a name="GetToken"></a>
-### func [GetToken](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L69>)
+### func [GetToken](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L50>)
 
 ```go
 func GetToken(baseURL string) (*JamfToken, error)
@@ -116,5 +741,326 @@ func GetToken(baseURL string) (*JamfToken, error)
 
 - /api/v1/auth/token
 - \- https://developer.jamf.com/jamf-pro/reference/post_v1-auth-token
+
+<a name="KeyValue"></a>
+## type [KeyValue](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L212-L215>)
+
+KeyValue represents a key\-value pair.
+
+```go
+type KeyValue struct {
+    Key   string `json:"key,omitempty"`   // Key of the user info.
+    Value string `json:"value,omitempty"` // Value of the user info.
+}
+```
+
+<a name="LicensedSoftware"></a>
+## type [LicensedSoftware](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L357-L360>)
+
+LicensedSoftware represents licensed software installed on the computer.
+
+```go
+type LicensedSoftware struct {
+    Id   string `json:"id,omitempty"`   // ID of the licensed software.
+    Name string `json:"name,omitempty"` // Name of the licensed software.
+}
+```
+
+<a name="LocalUserAccount"></a>
+## type [LocalUserAccount](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L363-L381>)
+
+LocalUserAccount represents a local user account on the computer.
+
+```go
+type LocalUserAccount struct {
+    Admin                          bool   `json:"admin,omitempty"`                          // Indicates if the user is an admin.
+    AzureActiveDirectoryId         string `json:"azureActiveDirectoryId,omitempty"`         // Azure Active Directory ID.
+    ComputerAzureActiveDirectoryId string `json:"computerAzureActiveDirectoryId,omitempty"` // Computer's Azure Active Directory ID.
+    FileVault2Enabled              bool   `json:"fileVault2Enabled,omitempty"`              // Indicates if FileVault2 is enabled.
+    FullName                       string `json:"fullName,omitempty"`                       // Full name of the user.
+    HomeDirectory                  string `json:"homeDirectory,omitempty"`                  // Path to the home directory.
+    HomeDirectorySizeMb            int    `json:"homeDirectorySizeMb,omitempty"`            // Size of the home directory in MB.
+    PasswordHistoryDepth           int    `json:"passwordHistoryDepth,omitempty"`           // Depth of password history.
+    PasswordMaxAge                 int    `json:"passwordMaxAge,omitempty"`                 // Maximum age of the password.
+    PasswordMinComplexCharacters   int    `json:"passwordMinComplexCharacters,omitempty"`   // Minimum number of complex characters in password.
+    PasswordMinLength              int    `json:"passwordMinLength,omitempty"`              // Minimum length of the password.
+    PasswordRequireAlphanumeric    bool   `json:"passwordRequireAlphanumeric,omitempty"`    // Indicates if password requires alphanumeric characters.
+    Uid                            string `json:"uid,omitempty"`                            // User ID.
+    UserAccountType                string `json:"userAccountType,omitempty"`                // Type of the user account.
+    UserAzureActiveDirectoryId     string `json:"userAzureActiveDirectoryId,omitempty"`     // User's Azure Active Directory ID.
+    UserGuid                       string `json:"userGuid,omitempty"`                       // User GUID.
+    Username                       string `json:"username,omitempty"`                       // Username.
+}
+```
+
+<a name="ManagementResponse"></a>
+## type [ManagementResponse](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L512-L516>)
+
+\#\#\# Jamf Management Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- ManagementResponse represents a generic response for device management operations.
+
+```go
+type ManagementResponse struct {
+    DeviceID         string             `json:"deviceId,omitempty"`          // The unique identifier of the device.
+    CommandUUID      string             `json:"commandUuid,omitempty"`       // The UUID of the command issued to the device.
+    UnprocessedUDIDs *UDIDsNotProcessed `json:"udidsNotProcessed,omitempty"` // UDIDs that were not processed, if any.
+}
+```
+
+<a name="MdmCapable"></a>
+## type [MdmCapable](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L304-L307>)
+
+MdmCapable represents MDM capability information of a computer.
+
+```go
+type MdmCapable struct {
+    Capable      bool     `json:"capable"`      // Indicates if the computer is MDM capable.
+    CapableUsers []string `json:"capableUsers"` // List of users capable of MDM.
+}
+```
+
+<a name="MobileDevice"></a>
+## type [MobileDevice](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L55-L68>)
+
+MobileDevice represents the details of a mobile device.
+
+```go
+type MobileDevice struct {
+    ID                     string `json:"id"`                     // Unique identifier for the mobile device.
+    ManagementID           string `json:"managementId"`           // Management identifier for the mobile device.
+    Model                  string `json:"model"`                  // Model of the mobile device.
+    ModelIdentifier        string `json:"modelIdentifier"`        // Model identifier for the mobile device.
+    Name                   string `json:"name"`                   // Name of the mobile device.
+    PhoneNumber            string `json:"phoneNumber"`            // Phone number associated with the mobile device.
+    SerialNumber           string `json:"serialNumber"`           // Serial number of the mobile device.
+    SoftwareUpdateDeviceID string `json:"softwareUpdateDeviceId"` // Software update device ID.
+    Type                   string `json:"type"`                   // Type of the mobile device (e.g., iOS).
+    UDID                   string `json:"udid"`                   // Unique Device Identifier.
+    Username               string `json:"username"`               // Username associated with the mobile device.
+    WifiMacAddress         string `json:"wifiMacAddress"`         // WiFi MAC address of the mobile device.
+}
+```
+
+<a name="MobileDevices"></a>
+## type [MobileDevices](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L49-L52>)
+
+Response structure for the Jamf Pro API for mobile devices
+
+```go
+type MobileDevices struct {
+    Results    []MobileDevice `json:"results"`    // List of mobile devices.
+    TotalCount int            `json:"totalCount"` // Total number of mobile devices.
+}
+```
+
+<a name="OperatingSystem"></a>
+## type [OperatingSystem](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L384-L394>)
+
+OperatingSystem represents information about the operating system of the computer.
+
+```go
+type OperatingSystem struct {
+    ActiveDirectoryStatus    string               `json:"activeDirectoryStatus,omitempty"`    // Status of Active Directory binding.
+    Build                    string               `json:"build,omitempty"`                    // Build version of the operating system.
+    FileVault2Status         string               `json:"fileVault2Status,omitempty"`         // Status of FileVault2 encryption.
+    Name                     string               `json:"name,omitempty"`                     // Name of the operating system.
+    RapidSecurityResponse    string               `json:"rapidSecurityResponse,omitempty"`    // Rapid Security Response status.
+    SoftwareUpdateDeviceId   string               `json:"softwareUpdateDeviceId,omitempty"`   // Software Update Device ID.
+    SupplementalBuildVersion string               `json:"supplementalBuildVersion,omitempty"` // Supplemental build version of the operating system.
+    Version                  string               `json:"version,omitempty"`                  // Version of the operating system.
+    ExtensionAttributes      []ExtensionAttribute `json:"extensionAttributes,omitempty"`      // List of extension attributes.
+}
+```
+
+<a name="PackageReceipts"></a>
+## type [PackageReceipts](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L397-L401>)
+
+PackageReceipts represents the package receipts on the computer.
+
+```go
+type PackageReceipts struct {
+    Cached                  []string `json:"cached,omitempty"`                  // List of packages cached.
+    InstalledByInstallerSwu []string `json:"installedByInstallerSwu,omitempty"` // List of packages installed by InstallerSwu.
+    InstalledByJamfPro      []string `json:"installedByJamfPro,omitempty"`      // List of packages installed by Jamf Pro.
+}
+```
+
+<a name="Partition"></a>
+## type [Partition](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L482-L491>)
+
+Partition represents a partition on a disk.
+
+```go
+type Partition struct {
+    AvailableMegabytes        int    `json:"availableMegabytes"`        // Available space in megabytes on the partition.
+    FileVault2ProgressPercent int    `json:"fileVault2ProgressPercent"` // Progress percentage of FileVault2 encryption.
+    FileVault2State           string `json:"fileVault2State"`           // State of FileVault2 encryption on the partition.
+    LvmManaged                bool   `json:"lvmManaged"`                // Indicates if the partition is managed by Logical Volume Management.
+    Name                      string `json:"name"`                      // Name of the partition.
+    PartitionType             string `json:"partitionType"`             // Type of the partition (e.g., BOOT, DATA).
+    PercentUsed               int    `json:"percentUsed"`               // Percentage of space used on the partition.
+    SizeMegabytes             int    `json:"sizeMegabytes"`             // Total size of the partition in megabytes.
+}
+```
+
+<a name="Plugin"></a>
+## type [Plugin](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L404-L408>)
+
+Plugin represents a plugin installed on the computer.
+
+```go
+type Plugin struct {
+    Name    string `json:"name,omitempty"`    // Name of the plugin.
+    Path    string `json:"path,omitempty"`    // Path to the plugin.
+    Version string `json:"version,omitempty"` // Version of the plugin.
+}
+```
+
+<a name="Printer"></a>
+## type [Printer](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L411-L416>)
+
+Printer represents a printer in the inventory.
+
+```go
+type Printer struct {
+    Name     string `json:"name"`     // Name of the printer.
+    Type     string `json:"type"`     // Type/model of the printer.
+    URI      string `json:"uri"`      // URI for the printer.
+    Location string `json:"location"` // Physical location of the printer.
+}
+```
+
+<a name="Purchasing"></a>
+## type [Purchasing](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L419-L433>)
+
+Purchasing represents the purchasing information of a computer.
+
+```go
+type Purchasing struct {
+    AppleCareID         string               `json:"appleCareId"`         // AppleCare ID.
+    ExtensionAttributes []ExtensionAttribute `json:"extensionAttributes"` // List of extension attributes.
+    LeaseDate           string               `json:"leaseDate"`           // Date of the lease.
+    Leased              bool                 `json:"leased"`              // Indicates if the computer is leased.
+    LifeExpectancy      int                  `json:"lifeExpectancy"`      // Expected life expectancy in years.
+    PoDate              string               `json:"poDate"`              // Purchase order date.
+    PoNumber            string               `json:"poNumber"`            // Purchase order number.
+    PurchasePrice       string               `json:"purchasePrice"`       // Purchase price.
+    Purchased           bool                 `json:"purchased"`           // Indicates if the computer is purchased.
+    PurchasingAccount   string               `json:"purchasingAccount"`   // Account used for purchasing.
+    PurchasingContact   string               `json:"purchasingContact"`   // Contact for purchasing.
+    Vendor              string               `json:"vendor"`              // Vendor from where the computer is purchased.
+    WarrantyDate        string               `json:"warrantyDate"`        // Date of warranty expiration.
+}
+```
+
+<a name="RemoteManagement"></a>
+## type [RemoteManagement](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L310-L313>)
+
+RemoteManagement represents remote management information of a computer.
+
+```go
+type RemoteManagement struct {
+    Managed            bool   `json:"managed"`            // Indicates if the computer is managed.
+    ManagementUsername string `json:"managementUsername"` // Username for management.
+}
+```
+
+<a name="Security"></a>
+## type [Security](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L436-L448>)
+
+Security represents the security settings of the computer.
+
+```go
+type Security struct {
+    ActivationLockEnabled bool   `json:"activationLockEnabled,omitempty"` // Indicates if activation lock is enabled.
+    AutoLoginDisabled     bool   `json:"autoLoginDisabled,omitempty"`     // Indicates if auto-login is disabled.
+    BootstrapTokenAllowed bool   `json:"bootstrapTokenAllowed,omitempty"` // Indicates if bootstrap token is allowed.
+    ExternalBootLevel     string `json:"externalBootLevel,omitempty"`     // Level of external boot allowed.
+    FirewallEnabled       bool   `json:"firewallEnabled,omitempty"`       // Indicates if the firewall is enabled.
+    GatekeeperStatus      string `json:"gatekeeperStatus,omitempty"`      // Status of Gatekeeper.
+    RecoveryLockEnabled   bool   `json:"recoveryLockEnabled,omitempty"`   // Indicates if recovery lock is enabled.
+    RemoteDesktopEnabled  bool   `json:"remoteDesktopEnabled,omitempty"`  // Indicates if remote desktop is enabled.
+    SecureBootLevel       string `json:"secureBootLevel,omitempty"`       // Level of secure boot.
+    SipStatus             string `json:"sipStatus,omitempty"`             // Status of System Integrity Protection.
+    XprotectVersion       string `json:"xprotectVersion,omitempty"`       // Version of XProtect.
+}
+```
+
+<a name="Service"></a>
+## type [Service](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L451-L453>)
+
+Service represents a service in the inventory.
+
+```go
+type Service struct {
+    Name string `json:"name"` // Name of the service.
+}
+```
+
+<a name="Site"></a>
+## type [Site](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L316-L319>)
+
+Site represents the site information of a computer.
+
+```go
+type Site struct {
+    ID   string `json:"id"`   // Identifier of the site.
+    Name string `json:"name"` // Name of the site.
+}
+```
+
+<a name="SoftwareUpdate"></a>
+## type [SoftwareUpdate](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L456-L460>)
+
+SoftwareUpdate represents a software update available for the computer.
+
+```go
+type SoftwareUpdate struct {
+    Name        string `json:"name,omitempty"`        // Name of the software update.
+    PackageName string `json:"packageName,omitempty"` // Package name of the software update.
+    Version     string `json:"version,omitempty"`     // Version of the software update.
+}
+```
+
+<a name="Storage"></a>
+## type [Storage](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L463-L466>)
+
+Storage represents the storage details of a computer.
+
+```go
+type Storage struct {
+    BootDriveAvailableSpaceMegabytes int    `json:"bootDriveAvailableSpaceMegabytes"` // Available space in megabytes on the boot drive.
+    Disks                            []Disk `json:"disks"`                            // List of disks in the computer.
+}
+```
+
+<a name="UDIDsNotProcessed"></a>
+## type [UDIDsNotProcessed](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L519-L521>)
+
+UDIDsNotProcessed represents a list of UDIDs that were not processed.
+
+```go
+type UDIDsNotProcessed struct {
+    UDIDs []string `json:"udids"` // List of UDIDs that were not processed.
+}
+```
+
+<a name="UserAndLocation"></a>
+## type [UserAndLocation](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L494-L504>)
+
+UserAndLocation represents user and location information of a computer.
+
+```go
+type UserAndLocation struct {
+    Username            string               `json:"username"`            // Username associated with the computer.
+    Realname            string               `json:"realname"`            // Real name of the user.
+    Email               string               `json:"email"`               // Email address of the user.
+    Position            string               `json:"position"`            // Position or title of the user.
+    Phone               string               `json:"phone"`               // Phone number of the user.
+    DepartmentID        string               `json:"departmentId"`        // Department ID.
+    BuildingID          string               `json:"buildingId"`          // Building ID.
+    Room                string               `json:"room"`                // Room number or name.
+    ExtensionAttributes []ExtensionAttribute `json:"extensionAttributes"` // List of extension attributes.
+}
+```
 
 Generated by [gomarkdoc](<https://github.com/princjef/gomarkdoc>)

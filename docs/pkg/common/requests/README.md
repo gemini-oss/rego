@@ -70,7 +70,7 @@ func DecodeJSON(body []byte, result interface{}) error
 - @return error
 
 <a name="SetFormURLEncodedPayload"></a>
-## func [SetFormURLEncodedPayload](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L141>)
+## func [SetFormURLEncodedPayload](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L142>)
 
 ```go
 func SetFormURLEncodedPayload(req *http.Request, data interface{}) error
@@ -133,7 +133,7 @@ func (c *Client) CreateRequest(method string, url string) (*http.Request, error)
 
 
 <a name="Client.DoRequest"></a>
-### func \(\*Client\) [DoRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L159>)
+### func \(\*Client\) [DoRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L160>)
 
 ```go
 func (c *Client) DoRequest(method string, url string, query interface{}, data interface{}) (*http.Response, []byte, error)
@@ -142,7 +142,7 @@ func (c *Client) DoRequest(method string, url string, query interface{}, data in
 
 
 <a name="Client.PaginatedRequest"></a>
-### func \(\*Client\) [PaginatedRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L216>)
+### func \(\*Client\) [PaginatedRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L217>)
 
 ```go
 func (c *Client) PaginatedRequest(method string, url string, query interface{}, payload interface{}) ([]json.RawMessage, error)
@@ -193,7 +193,7 @@ type Paginator struct {
 ```
 
 <a name="Paginator.HasNextPage"></a>
-### func \(\*Paginator\) [HasNextPage](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L279>)
+### func \(\*Paginator\) [HasNextPage](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L280>)
 
 ```go
 func (p *Paginator) HasNextPage(links []string) bool

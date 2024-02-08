@@ -19,6 +19,13 @@ import (
 	"sync"
 )
 
+var (
+	ComputersInventory       = fmt.Sprintf("%s/computers-inventory", V1)        // /api/v1/computers-inventory
+	ComputersInventoryDetail = fmt.Sprintf("%s/computers-inventory-detail", V1) // /api/v1/computers-inventory-detail
+	ComputerGroups           = fmt.Sprintf("%s/computer-groups", V1)            // /api/v1/computer-groups
+	MobileDev                = fmt.Sprintf("%s/mobile-devices", V2)             // /api/v2/mobile-devices
+)
+
 /*
 - Query parameters for Computer Details
 
@@ -36,17 +43,17 @@ import (
     filter=general.name=="Orchard"
 */
 type DeviceQuery struct {
-	Sections []string `json:"section,omitempty"` // Sections of computer details to return. If not specified, the General section data is returned. Multiple sections can be specified, e.g., section=GENERAL&section=HARDWARE.
-	Page     int      `json:"page,omitempty"` // The pagination index (starting from 0) for the query results.
+	Sections []string `json:"section,omitempty"`   // Sections of computer details to return. If not specified, the General section data is returned. Multiple sections can be specified, e.g., section=GENERAL&section=HARDWARE.
+	Page     int      `json:"page,omitempty"`      // The pagination index (starting from 0) for the query results.
 	PageSize int      `json:"page-size,omitempty"` // The number of records per page. Default is 100.
-	Sort     []string `json:"sort,omitempty"` // Sorting criteria in the format: property:asc/desc. Default sort is general.name:asc. Multiple criteria can be specified and separated by a comma.
-	Filter   string   `json:"filter,omitempty"` // RSQL query string used for filtering the computer inventory collection. The default filter is an empty query, returning all results for the requested page.
+	Sort     []string `json:"sort,omitempty"`      // Sorting criteria in the format: property:asc/desc. Default sort is general.name:asc. Multiple criteria can be specified and separated by a comma.
+	Filter   string   `json:"filter,omitempty"`    // RSQL query string used for filtering the computer inventory collection. The default filter is an empty query, returning all results for the requested page.
 }
 
 /*
  * Check if the DeviceQuery is empty
  */
- func (d *DeviceQuery) IsEmpty() bool {
+func (d *DeviceQuery) IsEmpty() bool {
 	return d.Sections == nil &&
 		d.Page == 0 &&
 		d.PageSize == 0 &&
@@ -57,7 +64,7 @@ type DeviceQuery struct {
 /*
  * Validate the query parameters for the Files resource
  */
- func (d *DeviceQuery) ValidateQuery() error {
+func (d *DeviceQuery) ValidateQuery() error {
 	if d.Sections != nil {
 		d.Sections = []string{
 			"GENERAL",
@@ -86,16 +93,15 @@ type DeviceQuery struct {
  * /api/v1/computers-inventory
  * - https://developer.jamf.com/jamf-pro/reference/get_v1-computers-inventory
  */
-func (c *Client) ListAllComputers() (*Devices, error) {
-	allDevices := &Devices{}
+func (c *Client) ListAllComputers() (*Computers, error) {
+	allDevices := &Computers{}
 
 	q := DeviceQuery{
-		Page: 0,
+		Page:     0,
 		PageSize: 100,
 	}
 
-	url := c.BuildURL("%s/computers-inventory")
-	c.Logger.Debug("url:", url)
+	url := c.BuildURL(ComputersInventory)
 	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
@@ -108,25 +114,6 @@ func (c *Client) ListAllComputers() (*Devices, error) {
 		return nil, fmt.Errorf("unmarshalling user: %w", err)
 	}
 
-	// Keep iterating through the pages in multiples of 100 until there are no more pages left
-	// for next_page := true; next_page; next_page = (len(allDevices.Results) < allDevices.TotalCount) {
-	// 	q.Page++
-	// 	newPage := &Devices{}
-
-	// 	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	c.Logger.Println("Response Status:", res.Status)
-	// 	c.Logger.Debug("Response Body:", string(body))
-
-	// 	err = json.Unmarshal(body, &newPage)
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("unmarshalling user: %w", err)
-	// 	}
-	// 	allDevices.Results = append(allDevices.Results, newPage.Results...)
-	// }
-
 	// Use a buffered channel as a semaphore to limit concurrent requests.
 	sem := make(chan struct{}, 10)
 
@@ -134,19 +121,18 @@ func (c *Client) ListAllComputers() (*Devices, error) {
 	var wg sync.WaitGroup
 
 	totalPages := allDevices.TotalCount / q.PageSize
-	if allDevices.TotalCount % q.PageSize > 0 {
+	if allDevices.TotalCount%q.PageSize > 0 {
 		totalPages++
 	}
 
 	// Buffered channel to hold device pages result from each goroutine
-	devicesCh := make(chan map[string]*Devices, totalPages)
+	devicesCh := make(chan map[string]*Computers, totalPages)
 	//devicesCh := make(chan map[string]*Devices, allDevices.TotalCount/100)
 
 	// Buffered channel to hold any errors that occur while getting device pages
 	rolesErrCh := make(chan error)
 
 	for next_page := true; next_page; next_page = (q.Page < totalPages) {
-	//for q.Page=1; q.Page <= totalPages; q.Page++ {
 
 		wg.Add(1)
 
@@ -159,7 +145,7 @@ func (c *Client) ListAllComputers() (*Devices, error) {
 			defer wg.Done()
 
 			sem <- struct{}{} // acquire one semaphore resource
-			page := &Devices{}
+			page := &Computers{}
 
 			res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 			if err != nil {
@@ -167,6 +153,7 @@ func (c *Client) ListAllComputers() (*Devices, error) {
 				return
 			}
 			c.Logger.Println("Response Status:", res.Status)
+			c.Logger.Debug("Response Body: %s", string(body))
 
 			err = json.Unmarshal(body, &page)
 			if err != nil {
@@ -174,7 +161,7 @@ func (c *Client) ListAllComputers() (*Devices, error) {
 				return
 			}
 
-			newPage := make(map[string]*Devices)
+			newPage := make(map[string]*Computers)
 			newPage[string(q.Page)] = page
 			devicesCh <- newPage
 			<-sem // release one semaphore resource
@@ -190,9 +177,8 @@ func (c *Client) ListAllComputers() (*Devices, error) {
 
 	// Collect devices from all pages
 	for deviceRecords := range devicesCh {
-		for pageNumber, results := range deviceRecords {
+		for _, results := range deviceRecords {
 			allDevices.Results = append(allDevices.Results, results.Results...)
-			c.Logger.Println("Page:", pageNumber)
 		}
 	}
 
@@ -206,7 +192,151 @@ func (c *Client) ListAllComputers() (*Devices, error) {
 }
 
 /*
+ * # Get Computer Details
+ * /api/v1/computers-inventory-detail/{id}
+ * - https://developer.jamf.com/jamf-pro/reference/get_v1-computers-inventory-detail-id
+ */
+func (c *Client) GetComputerDetails(id string) (*Computer, error) {
+	computer := &Computer{}
+
+	url := c.BuildURL(ComputersInventoryDetail, id)
+	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	c.Logger.Println("Response Status:", res.Status)
+	c.Logger.Debug("Response Body:", string(body))
+
+	err = json.Unmarshal(body, &computer)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshalling user: %w", err)
+	}
+
+	return computer, nil
+}
+
+/*
+ * # Get Computer Groups
+ * /api/v1/computer-groups
+ * - https://developer.jamf.com/jamf-pro/reference/get_v1-computers-inventory
+ */
+func (c *Client) ListAllComputerGroups() (*[]GroupMembership, error) {
+	allGroups := &[]GroupMembership{}
+
+	url := c.BuildURL(ComputerGroups)
+	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	c.Logger.Println("Response Status:", res.Status)
+	c.Logger.Debug("Response Body:", string(body))
+
+	err = json.Unmarshal(body, &allGroups)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshalling user: %w", err)
+	}
+
+	return allGroups, nil
+}
+
+/*
  * # Get Mobile Devices
  * /api/v2/mobile-devices
  * - https://developer.jamf.com/jamf-pro/reference/get_v2-mobile-devices
  */
+func (c *Client) ListAllMobileDevices() (*MobileDevices, error) {
+	allDevices := &MobileDevices{}
+
+	q := DeviceQuery{
+		Page:     0,
+		PageSize: 100,
+	}
+
+	url := c.BuildURL(MobileDev)
+	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
+	if err != nil {
+		return nil, err
+	}
+	c.Logger.Println("Response Status:", res.Status)
+	c.Logger.Debug("Response Body:", string(body))
+
+	err = json.Unmarshal(body, &allDevices)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshalling user: %w", err)
+	}
+
+	// Use a buffered channel as a semaphore to limit concurrent requests.
+	sem := make(chan struct{}, 10)
+
+	// WaitGroup to ensure all go routines complete their tasks.
+	var wg sync.WaitGroup
+
+	totalPages := allDevices.TotalCount / q.PageSize
+	if allDevices.TotalCount%q.PageSize > 0 {
+		totalPages++
+	}
+
+	// Buffered channel to hold device pages result from each goroutine
+	devicesCh := make(chan map[string]*MobileDevices, totalPages)
+
+	// Buffered channel to hold any errors that occur while getting device pages
+	rolesErrCh := make(chan error)
+
+	for next_page := true; next_page; next_page = (q.Page < totalPages) {
+
+		wg.Add(1)
+
+		q.Page++ // Increment page number
+		c.Logger.Println("Page:", q.Page)
+
+		// Start a new goroutine to get the next device page
+		go func(q DeviceQuery) {
+			// Release one semaphore resource when the goroutine completes
+			defer wg.Done()
+
+			sem <- struct{}{} // acquire one semaphore resource
+			page := &MobileDevices{}
+
+			res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
+			if err != nil {
+				rolesErrCh <- err
+				return
+			}
+			c.Logger.Println("Response Status:", res.Status)
+			c.Logger.Debug("Response Body:", string(body))
+
+			err = json.Unmarshal(body, &page)
+			if err != nil {
+				rolesErrCh <- err
+				return
+			}
+
+			newPage := make(map[string]*MobileDevices)
+			newPage[string(q.Page)] = page
+			devicesCh <- newPage
+			<-sem // release one semaphore resource
+		}(q) // Pass the query to the goroutine
+	}
+
+	// Wait for all goroutines to finish and close channels
+	go func() {
+		wg.Wait()
+		close(devicesCh)
+		close(rolesErrCh)
+	}()
+
+	// Collect devices from all pages
+	for deviceRecords := range devicesCh {
+		for _, results := range deviceRecords {
+			allDevices.Results = append(allDevices.Results, results.Results...)
+		}
+	}
+
+	// Check if there were any errors
+	if len(rolesErrCh) > 0 {
+		// Handle or return errors. For simplicity, only returning the first error here
+		return nil, <-rolesErrCh
+	}
+
+	return allDevices, nil
+}

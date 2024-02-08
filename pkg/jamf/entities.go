@@ -34,10 +34,21 @@ type Client struct {
 
 // ### Jamf Device Structs
 // ---------------------------------------------------------------------
-// Response structure for the Jamf Pro API to get devices.
-type Devices struct {
+type Inventory struct {
+	Computers     Computers     `json:"computers"`
+	MobileDevices MobileDevices `json:"mobile_devices"`
+}
+
+// Response structure for the Jamf Pro API for computers
+type Computers struct {
 	Results    []Computer `json:"results"`    // List of mobile devices.
 	TotalCount int        `json:"totalCount"` // Total number of mobile devices.
+}
+
+// Response structure for the Jamf Pro API for mobile devices
+type MobileDevices struct {
+	Results    []MobileDevice `json:"results"`    // List of mobile devices.
+	TotalCount int            `json:"totalCount"` // Total number of mobile devices.
 }
 
 // MobileDevice represents the details of a mobile device.
@@ -493,4 +504,21 @@ type UserAndLocation struct {
 }
 
 // END OF JAMF DEVICE STRUCTS
+//---------------------------------------------------------------------
+
+// ### Jamf Management Structs
+// ---------------------------------------------------------------------
+// ManagementResponse represents a generic response for device management operations.
+type ManagementResponse struct {
+	DeviceID         string             `json:"deviceId,omitempty"`          // The unique identifier of the device.
+	CommandUUID      string             `json:"commandUuid,omitempty"`       // The UUID of the command issued to the device.
+	UnprocessedUDIDs *UDIDsNotProcessed `json:"udidsNotProcessed,omitempty"` // UDIDs that were not processed, if any.
+}
+
+// UDIDsNotProcessed represents a list of UDIDs that were not processed.
+type UDIDsNotProcessed struct {
+	UDIDs []string `json:"udids"` // List of UDIDs that were not processed.
+}
+
+// END OF JAMF MANAGEMENT STRUCTS
 //---------------------------------------------------------------------
