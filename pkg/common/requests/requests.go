@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strings"
 
+	rl "github.com/gemini-oss/rego/pkg/common/ratelimit"
 	ss "github.com/gemini-oss/rego/pkg/common/starstruct"
 )
 
@@ -44,8 +45,9 @@ const (
  * @param headers Headers
  */
 type Client struct {
-	httpClient *http.Client
-	Headers    Headers
+	httpClient  *http.Client
+	Headers     Headers
+	RateLimiter *rl.RateLimiter
 }
 
 /*
@@ -53,16 +55,18 @@ type Client struct {
  * @param headers Headers
  * @return *Client
  */
-func NewClient(c *http.Client, headers Headers) *Client {
+func NewClient(c *http.Client, headers Headers, rateLimiter *rl.RateLimiter) *Client {
 	if c != nil {
 		return &Client{
-			httpClient: c,
-			Headers:    headers,
+			httpClient:  c,
+			Headers:     headers,
+			RateLimiter: rateLimiter,
 		}
 	}
 	return &Client{
-		httpClient: &http.Client{},
-		Headers:    headers,
+		httpClient:  &http.Client{},
+		Headers:     headers,
+		RateLimiter: rateLimiter,
 	}
 }
 
@@ -158,6 +162,11 @@ func SetFormURLEncodedPayload(req *http.Request, data interface{}) error {
 }
 
 func (c *Client) DoRequest(method string, url string, query interface{}, data interface{}) (*http.Response, []byte, error) {
+
+	if c.RateLimiter != nil {
+		c.RateLimiter.Wait()
+	}
+
 	req, err := c.CreateRequest(method, url)
 	if err != nil {
 		return nil, nil, err
@@ -183,6 +192,11 @@ func (c *Client) DoRequest(method string, url string, query interface{}, data in
 		return nil, nil, err
 	}
 	defer resp.Body.Close()
+
+	// Update rate limiter if headers are present
+	if c.RateLimiter != nil {
+		c.RateLimiter.UpdateFromHeaders(resp.Header)
+	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -217,6 +231,10 @@ func (c *Client) DoRequest(method string, url string, query interface{}, data in
 func (c *Client) PaginatedRequest(method string, url string, query interface{}, payload interface{}) ([]json.RawMessage, error) {
 	var results []json.RawMessage
 
+	if c.RateLimiter != nil {
+		c.RateLimiter.Wait()
+	}
+
 	// Initial request
 	resp, body, err := c.DoRequest(method, url, query, nil)
 	if err != nil {
@@ -244,6 +262,10 @@ func (c *Client) PaginatedRequest(method string, url string, query interface{}, 
 	// Pagination
 	p := &Paginator{}
 	for p.HasNextPage(resp.Header.Values("Link")) {
+		if c.RateLimiter != nil {
+			c.RateLimiter.Wait()
+		}
+
 		// Request next page
 		resp, body, err = c.DoRequest("GET", p.NextPageLink, nil, nil)
 		if err != nil {

@@ -62,7 +62,7 @@ func GetToken(baseURL string) (*JamfToken, error) {
 		"Content-Type":  "application/json",
 	}
 
-	hc := requests.NewClient(nil, headers)
+	hc := requests.NewClient(nil, headers, nil)
 	_, body, err := hc.DoRequest("POST", url, nil, nil)
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func NewClient(verbosity int) *Client {
 	return &Client{
 		BaseURL:    BaseURL,
 		ClassicURL: ClassicURL,
-		HTTP:       requests.NewClient(nil, headers),
+		HTTP:       requests.NewClient(nil, headers, nil),
 		Logger:     log.NewLogger("{jamf}", verbosity),
 	}
 }

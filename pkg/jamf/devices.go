@@ -127,7 +127,6 @@ func (c *Client) ListAllComputers() (*Computers, error) {
 
 	// Buffered channel to hold device pages result from each goroutine
 	devicesCh := make(chan map[string]*Computers, totalPages)
-	//devicesCh := make(chan map[string]*Devices, allDevices.TotalCount/100)
 
 	// Buffered channel to hold any errors that occur while getting device pages
 	rolesErrCh := make(chan error)
@@ -137,7 +136,7 @@ func (c *Client) ListAllComputers() (*Computers, error) {
 		wg.Add(1)
 
 		q.Page++ // Increment page number
-		c.Logger.Println("Page:", q.Page)
+		c.Logger.Println("Page: ", q.Page)
 
 		// Start a new goroutine to get the next device page
 		go func(q DeviceQuery) {
@@ -153,7 +152,7 @@ func (c *Client) ListAllComputers() (*Computers, error) {
 				return
 			}
 			c.Logger.Println("Response Status:", res.Status)
-			c.Logger.Debug("Response Body: %s", string(body))
+			c.Logger.Debug("Response Body: ", string(body))
 
 			err = json.Unmarshal(body, &page)
 			if err != nil {
@@ -162,7 +161,7 @@ func (c *Client) ListAllComputers() (*Computers, error) {
 			}
 
 			newPage := make(map[string]*Computers)
-			newPage[string(q.Page)] = page
+			newPage[fmt.Sprint(q.Page)] = page
 			devicesCh <- newPage
 			<-sem // release one semaphore resource
 		}(q) // Pass the query to the goroutine
@@ -312,7 +311,7 @@ func (c *Client) ListAllMobileDevices() (*MobileDevices, error) {
 			}
 
 			newPage := make(map[string]*MobileDevices)
-			newPage[string(q.Page)] = page
+			newPage[fmt.Sprint(q.Page)] = page
 			devicesCh <- newPage
 			<-sem // release one semaphore resource
 		}(q) // Pass the query to the goroutine

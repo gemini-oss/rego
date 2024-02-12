@@ -95,7 +95,7 @@ func FetchDirectoryEndpoints() (*DirectoryList, *Endpoints, error) {
 		"Content-Type": "application/json",
 	}
 
-	httpClient := requests.NewClient(nil, headers)
+	httpClient := requests.NewClient(nil, headers, nil)
 	resp, body, err := httpClient.DoRequest("GET", "https://www.googleapis.com/discovery/v1/apis/", nil, nil)
 	if err != nil {
 		return nil, nil, err
@@ -172,7 +172,7 @@ func ReadDiscoveryDirectory() (*DirectoryList, *Endpoints, error) {
 		"Accept":       "application/json",
 		"Content-Type": "application/json",
 	}
-	httpClient := requests.NewClient(nil, headers)
+	httpClient := requests.NewClient(nil, headers, nil)
 
 	Endpoints := &Endpoints{}
 

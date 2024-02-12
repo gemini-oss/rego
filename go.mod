@@ -1,14 +1,13 @@
 module github.com/gemini-oss/rego
 
-go 1.20
+go 1.21
 
-require golang.org/x/oauth2 v0.9.0
+require golang.org/x/oauth2 v0.17.0
 
 require (
-	cloud.google.com/go/compute v1.19.3 // indirect
+	cloud.google.com/go/compute v1.23.4 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	golang.org/x/net v0.11.0 // indirect
-	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/protobuf v1.31.0 // indirect
+	google.golang.org/appengine v1.6.8 // indirect
+	google.golang.org/protobuf v1.32.0 // indirect
 )

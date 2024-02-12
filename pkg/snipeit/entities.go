@@ -36,8 +36,8 @@ type Hardware struct {
 	Category         *Record           `json:"category,omitempty"`          // Category of the hardware item.
 	Manufacturer     *Record           `json:"manufacturer,omitempty"`      // Manufacturer of the hardware item.
 	Supplier         *Record           `json:"supplier,omitempty"`          // Supplier of the hardware item.
-	Notes            *Record           `json:"notes,omitempty"`             // Notes associated with the hardware item.
-	OrderNumber      *Record           `json:"order_number,omitempty"`      // Order number of the hardware item.
+	Notes            string            `json:"notes,omitempty"`             // Notes associated with the hardware item.
+	OrderNumber      string            `json:"order_number,omitempty"`      // Order number of the hardware item.
 	Company          *Record           `json:"company,omitempty"`           // Company of the hardware item.
 	Location         *Record           `json:"location,omitempty"`          // Location of the hardware item.
 	RTDLocation      *Record           `json:"rtd_location,omitempty"`      // RTD location of the hardware item.
@@ -56,7 +56,7 @@ type Hardware struct {
 	Age              string            `json:"age,omitempty"`               // Age of the hardware item.
 	LastCheckout     *DateInfo         `json:"last_checkout,omitempty"`     // Time when the hardware item was last checked out.
 	ExpectedCheckin  *DateInfo         `json:"expected_checkin,omitempty"`  // Expected check-in date of the hardware item.
-	PurchaseCost     *DateInfo         `json:"purchase_cost,omitempty"`     // Purchase cost of the hardware item.
+	PurchaseCost     string            `json:"purchase_cost,omitempty"`     // Purchase cost of the hardware item.
 	CheckinCounter   int               `json:"checkin_counter,omitempty"`   // Check-in counter of the hardware item.
 	CheckoutCounter  int               `json:"checkout_counter,omitempty"`  // Check-out counter of the hardware item.
 	RequestsCounter  int               `json:"requests_counter,omitempty"`  // Request counter of the hardware item.

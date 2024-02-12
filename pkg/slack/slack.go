@@ -69,7 +69,7 @@ func NewClient(verbosity int) *Client {
 
 	return &Client{
 		BaseURL:       BaseURL,
-		HTTPClient:    requests.NewClient(nil, headers),
+		HTTPClient:    requests.NewClient(nil, headers, nil),
 		Logger:        log.NewLogger("{slack}", verbosity),
 		Token:         token,
 		SigningSecret: signingSecret,

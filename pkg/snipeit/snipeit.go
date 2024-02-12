@@ -18,6 +18,7 @@ import (
 
 	"github.com/gemini-oss/rego/pkg/common/config"
 	"github.com/gemini-oss/rego/pkg/common/log"
+	"github.com/gemini-oss/rego/pkg/common/ratelimit"
 	"github.com/gemini-oss/rego/pkg/common/requests"
 )
 
@@ -71,9 +72,14 @@ func NewClient(verbosity int) *Client {
 		"Content-Type":  "application/json",
 	}
 
+	log := log.NewLogger("{snipeit}", verbosity)
+
+	// https://snipe-it.readme.io/reference/api-throttling
+	rl := ratelimit.NewRateLimiter(120)
+
 	return &Client{
 		BaseURL:    BaseURL,
-		HTTPClient: requests.NewClient(nil, headers),
-		Logger:     log.NewLogger("{snipeit}", verbosity),
+		HTTPClient: requests.NewClient(nil, headers, rl),
+		Logger:     log,
 	}
 }

@@ -22,6 +22,7 @@ import (
 
 	"github.com/gemini-oss/rego/pkg/common/config"
 	"github.com/gemini-oss/rego/pkg/common/log"
+	"github.com/gemini-oss/rego/pkg/common/ratelimit"
 	"github.com/gemini-oss/rego/pkg/common/requests"
 	"golang.org/x/oauth2/google"
 )
@@ -86,7 +87,11 @@ func (c *Client) GenerateJWT(data []byte) (*requests.Client, error) {
 		"Authorization": "Bearer " + t.AccessToken,
 	}
 
-	return requests.NewClient(jwtClient, headers), nil
+	// https://developers.google.com/drive/api/guides/limits
+	rl := ratelimit.NewRateLimiter(12000)
+	rl.Logger = c.Logger
+
+	return requests.NewClient(jwtClient, headers, rl), nil
 }
 
 func (c *Client) ImpersonateUser(email string) error {
@@ -112,7 +117,7 @@ func (c *Client) ImpersonateUser(email string) error {
 	}
 
 	// Update the HTTP client of the client object
-	c.HTTPClient = requests.NewClient(jwtClient, headers)
+	c.HTTPClient = requests.NewClient(jwtClient, headers, nil)
 
 	return nil
 }
@@ -172,7 +177,7 @@ func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
 		}
 	}
 	c.Auth.Scopes = scopes
-	c.Logger.Printf("Scopes Loaded: %s\n", scopes)
+	c.Logger.Debugf("Scopes Loaded: %s\n", scopes)
 
 	c.Logger.Println("Loading Credentials")
 	switch c.Auth.CICD {
