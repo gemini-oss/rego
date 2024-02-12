@@ -685,7 +685,7 @@ type Client struct {
 ```
 
 <a name="NewClient"></a>
-### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/google/google.go#L144>)
+### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/google/google.go#L149>)
 
 ```go
 func NewClient(ac AuthCredentials, verbosity int) (*Client, error)
@@ -731,7 +731,7 @@ func (c *Client) AppendSpreadsheet(spreadsheetID string, vr *ValueRange) error
 - \- https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/update
 
 <a name="Client.BuildURL"></a>
-### func \(\*Client\) [BuildURL](<https://github.com/gemini-oss/rego/blob/main/pkg/google/google.go#L46>)
+### func \(\*Client\) [BuildURL](<https://github.com/gemini-oss/rego/blob/main/pkg/google/google.go#L47>)
 
 ```go
 func (c *Client) BuildURL(endpoint string, identifiers ...string) string
@@ -794,7 +794,7 @@ func (c *Client) FormatHeaderAndAutoSize(spreadsheetId string, rows int, columns
 - \- Sets the header row to bold and green, and auto\-sizes all columns
 
 <a name="Client.GenerateJWT"></a>
-### func \(\*Client\) [GenerateJWT](<https://github.com/gemini-oss/rego/blob/main/pkg/google/google.go#L62>)
+### func \(\*Client\) [GenerateJWT](<https://github.com/gemini-oss/rego/blob/main/pkg/google/google.go#L63>)
 
 ```go
 func (c *Client) GenerateJWT(data []byte) (*requests.Client, error)
@@ -955,7 +955,7 @@ func (c *Client) GetUsersFromRoleAssignments(sem chan struct{}, roleAssignments 
 - https://developers.google.com/admin-sdk/directory/v1/reference/roleAssignments/list
 
 <a name="Client.ImpersonateUser"></a>
-### func \(\*Client\) [ImpersonateUser](<https://github.com/gemini-oss/rego/blob/main/pkg/google/google.go#L92>)
+### func \(\*Client\) [ImpersonateUser](<https://github.com/gemini-oss/rego/blob/main/pkg/google/google.go#L97>)
 
 ```go
 func (c *Client) ImpersonateUser(email string) error

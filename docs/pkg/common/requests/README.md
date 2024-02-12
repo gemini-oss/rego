@@ -16,7 +16,7 @@ pkg/common/requests/requests.go
 - [func SetJSONPayload\(req \*http.Request, data interface\{\}\) error](<#SetJSONPayload>)
 - [func SetQueryParams\(req \*http.Request, query interface\{\}\)](<#SetQueryParams>)
 - [type Client](<#Client>)
-  - [func NewClient\(c \*http.Client, headers Headers\) \*Client](<#NewClient>)
+  - [func NewClient\(c \*http.Client, headers Headers, rateLimiter \*rl.RateLimiter\) \*Client](<#NewClient>)
   - [func \(c \*Client\) CreateRequest\(method string, url string\) \(\*http.Request, error\)](<#Client.CreateRequest>)
   - [func \(c \*Client\) DoRequest\(method string, url string, query interface\{\}, data interface\{\}\) \(\*http.Response, \[\]byte, error\)](<#Client.DoRequest>)
   - [func \(c \*Client\) PaginatedRequest\(method string, url string, query interface\{\}, payload interface\{\}\) \(\[\]json.RawMessage, error\)](<#Client.PaginatedRequest>)
@@ -57,7 +57,7 @@ const (
 ```
 
 <a name="DecodeJSON"></a>
-## func [DecodeJSON](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L93>)
+## func [DecodeJSON](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L97>)
 
 ```go
 func DecodeJSON(body []byte, result interface{}) error
@@ -70,7 +70,7 @@ func DecodeJSON(body []byte, result interface{}) error
 - @return error
 
 <a name="SetFormURLEncodedPayload"></a>
-## func [SetFormURLEncodedPayload](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L142>)
+## func [SetFormURLEncodedPayload](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L146>)
 
 ```go
 func SetFormURLEncodedPayload(req *http.Request, data interface{}) error
@@ -79,7 +79,7 @@ func SetFormURLEncodedPayload(req *http.Request, data interface{}) error
 
 
 <a name="SetJSONPayload"></a>
-## func [SetJSONPayload](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L126>)
+## func [SetJSONPayload](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L130>)
 
 ```go
 func SetJSONPayload(req *http.Request, data interface{}) error
@@ -88,7 +88,7 @@ func SetJSONPayload(req *http.Request, data interface{}) error
 
 
 <a name="SetQueryParams"></a>
-## func [SetQueryParams](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L111>)
+## func [SetQueryParams](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L115>)
 
 ```go
 func SetQueryParams(req *http.Request, query interface{})
@@ -97,7 +97,7 @@ func SetQueryParams(req *http.Request, query interface{})
 
 
 <a name="Client"></a>
-## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L46-L49>)
+## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L47-L51>)
 
 \* Client
 
@@ -106,16 +106,17 @@ func SetQueryParams(req *http.Request, query interface{})
 
 ```go
 type Client struct {
-    Headers Headers
+    Headers     Headers
+    RateLimiter *rl.RateLimiter
     // contains filtered or unexported fields
 }
 ```
 
 <a name="NewClient"></a>
-### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L56>)
+### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L58>)
 
 ```go
-func NewClient(c *http.Client, headers Headers) *Client
+func NewClient(c *http.Client, headers Headers, rateLimiter *rl.RateLimiter) *Client
 ```
 
 \* NewClient
@@ -124,7 +125,7 @@ func NewClient(c *http.Client, headers Headers) *Client
 - @return \*Client
 
 <a name="Client.CreateRequest"></a>
-### func \(\*Client\) [CreateRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L97>)
+### func \(\*Client\) [CreateRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L101>)
 
 ```go
 func (c *Client) CreateRequest(method string, url string) (*http.Request, error)
@@ -133,7 +134,7 @@ func (c *Client) CreateRequest(method string, url string) (*http.Request, error)
 
 
 <a name="Client.DoRequest"></a>
-### func \(\*Client\) [DoRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L160>)
+### func \(\*Client\) [DoRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L164>)
 
 ```go
 func (c *Client) DoRequest(method string, url string, query interface{}, data interface{}) (*http.Response, []byte, error)
@@ -142,7 +143,7 @@ func (c *Client) DoRequest(method string, url string, query interface{}, data in
 
 
 <a name="Client.PaginatedRequest"></a>
-### func \(\*Client\) [PaginatedRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L217>)
+### func \(\*Client\) [PaginatedRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L231>)
 
 ```go
 func (c *Client) PaginatedRequest(method string, url string, query interface{}, payload interface{}) ([]json.RawMessage, error)
@@ -157,7 +158,7 @@ func (c *Client) PaginatedRequest(method string, url string, query interface{}, 
 - @return error
 
 <a name="Client.UpdateContentType"></a>
-### func \(\*Client\) [UpdateContentType](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L70>)
+### func \(\*Client\) [UpdateContentType](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L74>)
 
 ```go
 func (c *Client) UpdateContentType(contentType string)
@@ -166,7 +167,7 @@ func (c *Client) UpdateContentType(contentType string)
 UpdateHeaders changes the headers for the HTTP client
 
 <a name="Headers"></a>
-## type [Headers](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L15>)
+## type [Headers](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L16>)
 
 
 
@@ -175,7 +176,7 @@ type Headers map[string]string
 ```
 
 <a name="Paginator"></a>
-## type [Paginator](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L80-L85>)
+## type [Paginator](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L84-L89>)
 
 \* Paginator
 
@@ -193,7 +194,7 @@ type Paginator struct {
 ```
 
 <a name="Paginator.HasNextPage"></a>
-### func \(\*Paginator\) [HasNextPage](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L280>)
+### func \(\*Paginator\) [HasNextPage](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L302>)
 
 ```go
 func (p *Paginator) HasNextPage(links []string) bool

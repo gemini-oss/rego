@@ -246,7 +246,7 @@ type Client struct {
 ```
 
 <a name="NewClient"></a>
-### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/okta.go#L59>)
+### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/okta.go#L60>)
 
 ```go
 func NewClient(verbosity int) *Client
@@ -267,7 +267,7 @@ o := okta.NewClient(log.DEBUG)
 \`\`\`
 
 <a name="Client.BuildURL"></a>
-### func \(\*Client\) [BuildURL](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/okta.go#L39>)
+### func \(\*Client\) [BuildURL](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/okta.go#L40>)
 
 ```go
 func (c *Client) BuildURL(endpoint string, identifiers ...string) string

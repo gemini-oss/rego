@@ -252,7 +252,7 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string
 BuildURL builds a URL for a given resource and identifiers.
 
 <a name="Client.GetComputerDetails"></a>
-### func \(\*Client\) [GetComputerDetails](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L199>)
+### func \(\*Client\) [GetComputerDetails](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L198>)
 
 ```go
 func (c *Client) GetComputerDetails(id string) (*Computer, error)
@@ -276,7 +276,7 @@ func (c *Client) GetJamfVersion() (string, error)
 - \- https://developer.jamf.com/jamf-pro/reference/get_v1-jamf-pro-version
 
 <a name="Client.ListAllComputerGroups"></a>
-### func \(\*Client\) [ListAllComputerGroups](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L223>)
+### func \(\*Client\) [ListAllComputerGroups](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L222>)
 
 ```go
 func (c *Client) ListAllComputerGroups() (*[]GroupMembership, error)
@@ -300,7 +300,7 @@ func (c *Client) ListAllComputers() (*Computers, error)
 - \- https://developer.jamf.com/jamf-pro/reference/get_v1-computers-inventory
 
 <a name="Client.ListAllMobileDevices"></a>
-### func \(\*Client\) [ListAllMobileDevices](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L247>)
+### func \(\*Client\) [ListAllMobileDevices](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L246>)
 
 ```go
 func (c *Client) ListAllMobileDevices() (*MobileDevices, error)
