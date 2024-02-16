@@ -57,7 +57,7 @@ func (rl *RateLimiter) Start()
 
 
 <a name="RateLimiter.Stop"></a>
-### func \(\*RateLimiter\) [Stop](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L120>)
+### func \(\*RateLimiter\) [Stop](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L121>)
 
 ```go
 func (rl *RateLimiter) Stop()
@@ -66,7 +66,7 @@ func (rl *RateLimiter) Stop()
 
 
 <a name="RateLimiter.UpdateFromHeaders"></a>
-### func \(\*RateLimiter\) [UpdateFromHeaders](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L125>)
+### func \(\*RateLimiter\) [UpdateFromHeaders](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L126>)
 
 ```go
 func (rl *RateLimiter) UpdateFromHeaders(headers http.Header)
@@ -75,7 +75,7 @@ func (rl *RateLimiter) UpdateFromHeaders(headers http.Header)
 
 
 <a name="RateLimiter.UpdateRate"></a>
-### func \(\*RateLimiter\) [UpdateRate](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L178>)
+### func \(\*RateLimiter\) [UpdateRate](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L179>)
 
 ```go
 func (rl *RateLimiter) UpdateRate(newLimit int)
@@ -84,7 +84,7 @@ func (rl *RateLimiter) UpdateRate(newLimit int)
 UpdateRate can be used to dynamically change the rate limit
 
 <a name="RateLimiter.Wait"></a>
-### func \(\*RateLimiter\) [Wait](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L69>)
+### func \(\*RateLimiter\) [Wait](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L70>)
 
 ```go
 func (rl *RateLimiter) Wait()

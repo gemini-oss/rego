@@ -33,6 +33,7 @@ const (
 	SERVICE_ACCOUNT = "service_account"
 	BaseURL         = "https://www.googleapis.com"
 	AdminBaseURL    = "https://admin.googleapis.com"
+	ChromeBaseURL   = "https://chromepolicy.googleapis.com"
 	OAuthURL        = "https://accounts.google.com/o/oauth2/auth"
 	OAuthTokenURL   = "https://oauth2.googleapis.com/token"
 	JWTTokenURL     = "https://oauth2.googleapis.com/token"
@@ -141,6 +142,39 @@ func (c *Client) ImpersonateUser(email string) error {
 			"Google Sheets API",
 		},
 		Subject: "super.user@domain.com",
+	}
+	g, _ := google.NewClient(ac, log.DEBUG)
+
+```
+
+  - Example 2: (Some Scopes may not work with Subject)
+
+```go
+
+	// Initialize clients here
+	ac := google.AuthCredentials{
+		CICD: true,
+		Type: google.SERVICE_ACCOUNT,
+		Scopes: []string{
+			"Chrome Policy API",
+			"Chrome Management API",
+		},
+	}
+	g, _ := google.NewClient(ac, log.DEBUG)
+
+```
+
+  - Example 3: Direct URLs
+
+```go
+
+	// Initialize clients here
+	ac := google.AuthCredentials{
+		CICD: true,
+		Type: google.SERVICE_ACCOUNT,
+		Scopes: []string{
+			"https://www.googleapis.com/auth/admin.directory.user",
+		},
 	}
 	g, _ := google.NewClient(ac, log.DEBUG)
 

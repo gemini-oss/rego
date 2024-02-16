@@ -50,13 +50,15 @@ func (c *Client) GetAllAssets() (*HardwareList, error) {
 		Offset: 0,
 	}
 
+	c.HTTPClient.RateLimiter.Start()
+
 	url := fmt.Sprintf(Assets, c.BaseURL)
 	res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Debug("Response from GetAllAssets: ", res.Status)
-	c.Logger.Debug("Body from GetAllAssets: ", string(body))
+	c.Logger.Debug(res.Status)
+	c.Logger.Trace(string(body))
 
 	err = json.Unmarshal(body, &assets)
 	if err != nil {
@@ -97,8 +99,9 @@ func (c *Client) GetAllAssets() (*HardwareList, error) {
 				rolesErrCh <- err
 				return
 			}
-			c.Logger.Println("Response Status:", res.Status)
-			c.Logger.Debug("Response Body: ", string(body))
+
+			c.Logger.Debug("Response Status:", res.Status)
+			c.Logger.Trace("Response Body: ", string(body))
 
 			err = json.Unmarshal(body, &page)
 			if err != nil {
@@ -134,6 +137,8 @@ func (c *Client) GetAllAssets() (*HardwareList, error) {
 		// Handle or return errors. For simplicity, only returning the first error here
 		return nil, <-rolesErrCh
 	}
+
+	c.HTTPClient.RateLimiter.Stop()
 
 	return assets, nil
 }

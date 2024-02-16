@@ -377,8 +377,8 @@ Response structure for the Jamf Pro API for computers
 
 ```go
 type Computers struct {
-    Results    []Computer `json:"results"`    // List of mobile devices.
-    TotalCount int        `json:"totalCount"` // Total number of mobile devices.
+    Results    []Computer `json:"results"`    // List of computers.
+    TotalCount int        `json:"totalCount"` // Total number of computers.
 }
 ```
 

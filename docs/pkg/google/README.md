@@ -12,6 +12,8 @@ pkg/google/api.go
 
 pkg/google/drive.go
 
+pkg/google/drive.go
+
 pkg/google/entities.go
 
 pkg/google/google.go
@@ -33,8 +35,10 @@ pkg/google/users.go
 - [func ReadDiscoveryDirectory\(\) \(\*DirectoryList, \*Endpoints, error\)](<#ReadDiscoveryDirectory>)
 - [func SaveEndpoints\(data interface\{\}\) error](<#SaveEndpoints>)
 - [func VerifySheetValueRange\(vr \*ValueRange\) error](<#VerifySheetValueRange>)
+- [type ActiveTimeRange](<#ActiveTimeRange>)
 - [type ActivityID](<#ActivityID>)
 - [type Actor](<#Actor>)
+- [type AdditionalTargetKeyName](<#AdditionalTargetKeyName>)
 - [type AllowedScopes](<#AllowedScopes>)
 - [type AuthCredentials](<#AuthCredentials>)
 - [type AuthDetail](<#AuthDetail>)
@@ -47,10 +51,13 @@ pkg/google/users.go
 - [type BigQueryTableSpec](<#BigQueryTableSpec>)
 - [type BooleanRule](<#BooleanRule>)
 - [type Borders](<#Borders>)
+- [type CState](<#CState>)
 - [type Capabilities](<#Capabilities>)
 - [type CellData](<#CellData>)
 - [type CellFormat](<#CellFormat>)
 - [type ChartSpec](<#ChartSpec>)
+- [type ChromeOSDevice](<#ChromeOSDevice>)
+- [type ChromeOSDevices](<#ChromeOSDevices>)
 - [type Client](<#Client>)
   - [func NewClient\(ac AuthCredentials, verbosity int\) \(\*Client, error\)](<#NewClient>)
   - [func \(c \*Client\) AppendSpreadsheet\(spreadsheetID string, vr \*ValueRange\) error](<#Client.AppendSpreadsheet>)
@@ -73,10 +80,14 @@ pkg/google/users.go
   - [func \(c \*Client\) GetUser\(userKey string\) \(\*User, error\)](<#Client.GetUser>)
   - [func \(c \*Client\) GetUsersFromRoleAssignments\(sem chan struct\{\}, roleAssignments \[\]RoleAssignment\) \(\[\]\*User, error\)](<#Client.GetUsersFromRoleAssignments>)
   - [func \(c \*Client\) ImpersonateUser\(email string\) error](<#Client.ImpersonateUser>)
+  - [func \(c \*Client\) ListAllChromeOS\(customerId string\) \(\*ChromeOSDevices, error\)](<#Client.ListAllChromeOS>)
+  - [func \(c \*Client\) ListAllDevicePolicySchemas\(customerId string\) \(\*PolicySchemas, error\)](<#Client.ListAllDevicePolicySchemas>)
+  - [func \(c \*Client\) ListAllProvisionedChromeOS\(customerId string\) \(\*ChromeOSDevices, error\)](<#Client.ListAllProvisionedChromeOS>)
   - [func \(c \*Client\) ListAllRoleAssignments\(customerId string\) \(\*RoleAssignment, error\)](<#Client.ListAllRoleAssignments>)
   - [func \(c \*Client\) ListAllRoles\(customerId string\) \(\*Roles, error\)](<#Client.ListAllRoles>)
   - [func \(c \*Client\) ListAllUsers\(\) \(\*Users, error\)](<#Client.ListAllUsers>)
   - [func \(c \*Client\) MoveFileToFolder\(file \*File, folder \*File\) error](<#Client.MoveFileToFolder>)
+  - [func \(c \*Client\) ResolvePolicySchemas\(customerId string, OU string\) \(\*ResolvedPolicies, error\)](<#Client.ResolvePolicySchemas>)
   - [func \(c \*Client\) SaveFileListToSheet\(fileList \*FileList, sheetID string, headers \*\[\]string\) error](<#Client.SaveFileListToSheet>)
   - [func \(c \*Client\) SaveRoleReport\(reports \[\]\*RoleReport\) \(\*Spreadsheet, error\)](<#Client.SaveRoleReport>)
   - [func \(c \*Client\) SearchUsers\(q UserQuery\) \(\*Users, error\)](<#Client.SearchUsers>)
@@ -87,6 +98,9 @@ pkg/google/users.go
 - [type ConditionalFormatRule](<#ConditionalFormatRule>)
 - [type ContentHints](<#ContentHints>)
 - [type ContentRestriction](<#ContentRestriction>)
+- [type CpuInfo](<#CpuInfo>)
+- [type CpuStatusReport](<#CpuStatusReport>)
+- [type CpuTemperatureInfo](<#CpuTemperatureInfo>)
 - [type DataExecutionStatus](<#DataExecutionStatus>)
 - [type DataSource](<#DataSource>)
 - [type DataSourceColumn](<#DataSourceColumn>)
@@ -103,14 +117,18 @@ pkg/google/users.go
 - [type DataSourceTable](<#DataSourceTable>)
 - [type DataValidationRule](<#DataValidationRule>)
 - [type DayOfWeek](<#DayOfWeek>)
+- [type DescriptorProto](<#DescriptorProto>)
 - [type DeveloperMetadata](<#DeveloperMetadata>)
 - [type DeveloperMetadataLocation](<#DeveloperMetadataLocation>)
 - [type DeveloperMetadataLocationType](<#DeveloperMetadataLocationType>)
+- [type DeviceFile](<#DeviceFile>)
+- [type DeviceQuery](<#DeviceQuery>)
 - [type DimensionGroup](<#DimensionGroup>)
 - [type DimensionProperties](<#DimensionProperties>)
 - [type DimensionRange](<#DimensionRange>)
 - [type DirectoryItem](<#DirectoryItem>)
 - [type DirectoryList](<#DirectoryList>)
+- [type DiskVolumeReport](<#DiskVolumeReport>)
 - [type DriveFileQuery](<#DriveFileQuery>)
   - [func \(d \*DriveFileQuery\) IsEmpty\(\) bool](<#DriveFileQuery.IsEmpty>)
   - [func \(d \*DriveFileQuery\) ValidateQuery\(\) error](<#DriveFileQuery.ValidateQuery>)
@@ -130,7 +148,9 @@ pkg/google/users.go
 - [type ExtendedValue](<#ExtendedValue>)
 - [type ExternalID](<#ExternalID>)
 - [type Field](<#Field>)
+- [type FieldDescriptorProto](<#FieldDescriptorProto>)
 - [type File](<#File>)
+- [type FileDescriptorProto](<#FileDescriptorProto>)
 - [type FileList](<#FileList>)
 - [type FileUser](<#FileUser>)
 - [type FilterCriteria](<#FilterCriteria>)
@@ -151,14 +171,17 @@ pkg/google/users.go
 - [type Label](<#Label>)
 - [type LabelInfo](<#LabelInfo>)
 - [type Language](<#Language>)
+- [type LastKnownNetwork](<#LastKnownNetwork>)
 - [type LinkShareMetadata](<#LinkShareMetadata>)
 - [type Location](<#Location>)
+- [type LogicalCpu](<#LogicalCpu>)
 - [type NamedRange](<#NamedRange>)
 - [type Note](<#Note>)
 - [type NumberFormat](<#NumberFormat>)
 - [type Oauth2Scopes](<#Oauth2Scopes>)
 - [type OrderBy](<#OrderBy>)
 - [type Organization](<#Organization>)
+- [type OsUpdateStatus](<#OsUpdateStatus>)
 - [type POSIXAccount](<#POSIXAccount>)
 - [type Padding](<#Padding>)
 - [type Password](<#Password>)
@@ -178,13 +201,25 @@ pkg/google/users.go
 - [type PivotTable](<#PivotTable>)
 - [type PivotValue](<#PivotValue>)
 - [type PivotValueLayout](<#PivotValueLayout>)
+- [type PolicyApiLifecycle](<#PolicyApiLifecycle>)
+- [type PolicyQuery](<#PolicyQuery>)
+- [type PolicyRequest](<#PolicyRequest>)
+- [type PolicySchema](<#PolicySchema>)
+- [type PolicySchemaFieldDescription](<#PolicySchemaFieldDescription>)
+- [type PolicySchemaNoticeDescription](<#PolicySchemaNoticeDescription>)
+- [type PolicySchemas](<#PolicySchemas>)
+- [type PolicyTargetKey](<#PolicyTargetKey>)
+- [type PolicyValue](<#PolicyValue>)
 - [type ProtectedRange](<#ProtectedRange>)
 - [type RecalculationInterval](<#RecalculationInterval>)
+- [type RecentUser](<#RecentUser>)
 - [type Relation](<#Relation>)
 - [type RepeatCellRequest](<#RepeatCellRequest>)
 - [type Report](<#Report>)
 - [type ReportParameter](<#ReportParameter>)
 - [type ReportsQuery](<#ReportsQuery>)
+- [type ResolvedPolicies](<#ResolvedPolicies>)
+- [type ResolvedPolicy](<#ResolvedPolicy>)
 - [type Role](<#Role>)
 - [type RoleAssignment](<#RoleAssignment>)
 - [type RolePrivilege](<#RolePrivilege>)
@@ -193,6 +228,7 @@ pkg/google/users.go
 - [type RowData](<#RowData>)
 - [type SSHPublicKey](<#SSHPublicKey>)
 - [type ScopeDetail](<#ScopeDetail>)
+- [type ScreenshotFile](<#ScreenshotFile>)
 - [type ServiceAccount](<#ServiceAccount>)
 - [type SetBasicFilterRequest](<#SetBasicFilterRequest>)
 - [type Sheet](<#Sheet>)
@@ -210,12 +246,15 @@ pkg/google/users.go
 - [type Spreadsheet](<#Spreadsheet>)
 - [type SpreadsheetProperties](<#SpreadsheetProperties>)
 - [type SpreadsheetTheme](<#SpreadsheetTheme>)
+- [type SystemRamFreeReport](<#SystemRamFreeReport>)
+- [type TargetResource](<#TargetResource>)
 - [type TextFormat](<#TextFormat>)
 - [type TextFormatRun](<#TextFormatRun>)
 - [type TextRotation](<#TextRotation>)
 - [type ThemeColorPair](<#ThemeColorPair>)
 - [type Thumbnail](<#Thumbnail>)
 - [type TimeOfDay](<#TimeOfDay>)
+- [type TpmVersionInfo](<#TpmVersionInfo>)
 - [type UpdateDimensionPropertiesRequest](<#UpdateDimensionPropertiesRequest>)
 - [type User](<#User>)
 - [type UserEvent](<#UserEvent>)
@@ -230,6 +269,7 @@ pkg/google/users.go
 - [type ValueRange](<#ValueRange>)
   - [func GenerateValueRange\(data \[\]interface\{\}, headers \*\[\]string\) \*ValueRange](<#GenerateValueRange>)
 - [type VideoMediaMetadata](<#VideoMediaMetadata>)
+- [type VolumeInfo](<#VolumeInfo>)
 - [type Warning](<#Warning>)
 - [type WarningData](<#WarningData>)
 - [type Website](<#Website>)
@@ -246,6 +286,7 @@ const (
     SERVICE_ACCOUNT = "service_account"
     BaseURL         = "https://www.googleapis.com"
     AdminBaseURL    = "https://admin.googleapis.com"
+    ChromeBaseURL   = "https://chromepolicy.googleapis.com"
     OAuthURL        = "https://accounts.google.com/o/oauth2/auth"
     OAuthTokenURL   = "https://oauth2.googleapis.com/token"
     JWTTokenURL     = "https://oauth2.googleapis.com/token"
@@ -284,19 +325,29 @@ var (
 )
 ```
 
+<a name="V1_ChromeBaseURL"></a>
+
+```go
+var (
+    V1_ChromeBaseURL    = fmt.Sprintf("%s/v1/customers", ChromeBaseURL)
+    DevicePolicies      = fmt.Sprintf("%s/%s/policies", V1_ChromeBaseURL, "%s")
+    DevicePolicySchemas = fmt.Sprintf("%s/%s/policySchemas", V1_ChromeBaseURL, "%s")
+)
+```
+
 <a name="DriveBaseURL"></a>
 
 ```go
 var (
-    DriveBaseURL     = fmt.Sprintf("%s/drive/v3", BaseURL)
-    DriveAbout       = fmt.Sprintf("%s/about", DriveBaseURL)
-    DriveChanges     = fmt.Sprintf("%s/changes", DriveBaseURL)
-    DriveChannels    = fmt.Sprintf("%s/channels", DriveBaseURL)
-    DriveComments    = fmt.Sprintf("%s/comments", DriveBaseURL)
-    DriveFiles       = fmt.Sprintf("%s/files", DriveBaseURL)
-    DrivePermissions = fmt.Sprintf("%s/permissions", DriveBaseURL)
-    DriveReplies     = fmt.Sprintf("%s/replies", DriveBaseURL)
-    DriveRevisions   = fmt.Sprintf("%s/revisions", DriveBaseURL)
+    DriveBaseURL     = fmt.Sprintf("%s/drive/v3", BaseURL)         // https://developers.google.com/drive/api/v3/reference/
+    DriveAbout       = fmt.Sprintf("%s/about", DriveBaseURL)       // https://developers.google.com/drive/api/v3/reference/about
+    DriveChanges     = fmt.Sprintf("%s/changes", DriveBaseURL)     // https://developers.google.com/drive/api/v3/reference/changes
+    DriveChannels    = fmt.Sprintf("%s/channels", DriveBaseURL)    // https://developers.google.com/drive/api/v3/reference/channels
+    DriveComments    = fmt.Sprintf("%s/comments", DriveBaseURL)    // https://developers.google.com/drive/api/v3/reference/comments
+    DriveFiles       = fmt.Sprintf("%s/files", DriveBaseURL)       // https://developers.google.com/drive/api/v3/reference/files
+    DrivePermissions = fmt.Sprintf("%s/permissions", DriveBaseURL) // https://developers.google.com/drive/api/v3/reference/permissions
+    DriveReplies     = fmt.Sprintf("%s/replies", DriveBaseURL)     // https://developers.google.com/drive/api/v3/reference/replies
+    DriveRevisions   = fmt.Sprintf("%s/revisions", DriveBaseURL)   // https://developers.google.com/drive/api/v3/reference/revisions
 )
 ```
 
@@ -315,7 +366,7 @@ var (
 ```
 
 <a name="DedupeScopes"></a>
-## func [DedupeScopes](<https://github.com/gemini-oss/rego/blob/main/pkg/google/api.go#L298>)
+## func [DedupeScopes](<https://github.com/gemini-oss/rego/blob/main/pkg/google/api.go#L302>)
 
 ```go
 func DedupeScopes(slice []string) []string
@@ -337,7 +388,7 @@ func FetchDirectoryEndpoints() (*DirectoryList, *Endpoints, error)
 ### FetchGoogleAPIScopes
 
 <a name="LoadScopes"></a>
-## func [LoadScopes](<https://github.com/gemini-oss/rego/blob/main/pkg/google/api.go#L317>)
+## func [LoadScopes](<https://github.com/gemini-oss/rego/blob/main/pkg/google/api.go#L321>)
 
 ```go
 func LoadScopes(service string) ([]string, error)
@@ -350,7 +401,7 @@ Loads scopes from a JSON file
 ```
 
 <a name="OrganizeScopes"></a>
-## func [OrganizeScopes](<https://github.com/gemini-oss/rego/blob/main/pkg/google/api.go#L244>)
+## func [OrganizeScopes](<https://github.com/gemini-oss/rego/blob/main/pkg/google/api.go#L248>)
 
 ```go
 func OrganizeScopes() error
@@ -363,7 +414,7 @@ Organizes the scopes from the Google API endpoints into a map of scopes by servi
 ```
 
 <a name="ReadDiscoveryDirectory"></a>
-## func [ReadDiscoveryDirectory](<https://github.com/gemini-oss/rego/blob/main/pkg/google/api.go#L147>)
+## func [ReadDiscoveryDirectory](<https://github.com/gemini-oss/rego/blob/main/pkg/google/api.go#L149>)
 
 ```go
 func ReadDiscoveryDirectory() (*DirectoryList, *Endpoints, error)
@@ -376,7 +427,7 @@ Reads the Google API discovery directory from a local file
 ```
 
 <a name="SaveEndpoints"></a>
-## func [SaveEndpoints](<https://github.com/gemini-oss/rego/blob/main/pkg/google/api.go#L211>)
+## func [SaveEndpoints](<https://github.com/gemini-oss/rego/blob/main/pkg/google/api.go#L215>)
 
 ```go
 func SaveEndpoints(data interface{}) error
@@ -398,6 +449,18 @@ func VerifySheetValueRange(vr *ValueRange) error
 \* \# Set Sheet Value Defaults
 
 - \- Sets default values for ValueRange if they are not defined
+
+<a name="ActiveTimeRange"></a>
+## type [ActiveTimeRange](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1337-L1340>)
+
+ActiveTimeRange represents an active time range of the device.
+
+```go
+type ActiveTimeRange struct {
+    ActiveTime int    `json:"activeTime,omitempty"` // Duration of usage in milliseconds.
+    Date       string `json:"date,omitempty"`       // Date of usage.
+}
+```
 
 <a name="ActivityID"></a>
 ## type [ActivityID](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L122-L127>)
@@ -424,6 +487,18 @@ type Actor struct {
     Email      string `json:"email,omitempty"`      // The primary email address of the actor
     CallerType string `json:"callerType,omitempty"` // The type of actor
     Key        string `json:"key,omitempty"`        // Key present when callerType is KEY
+}
+```
+
+<a name="AdditionalTargetKeyName"></a>
+## type [AdditionalTargetKeyName](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1492-L1495>)
+
+AdditionalTargetKeyName represents additional key names for identifying policy value targets.
+
+```go
+type AdditionalTargetKeyName struct {
+    Key            string `json:"key,omitempty"`            // Key name.
+    KeyDescription string `json:"keyDescription,omitempty"` // Key description.
 }
 ```
 
@@ -567,6 +642,18 @@ type BooleanRule struct {
 type Borders interface{}
 ```
 
+<a name="CState"></a>
+## type [CState](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1359-L1362>)
+
+CState represents a C\-State in the CPU of a Chrome device.
+
+```go
+type CState struct {
+    DisplayName     string `json:"displayName,omitempty"`     // Name of the state.
+    SessionDuration string `json:"sessionDuration,omitempty"` // Duration in the state.
+}
+```
+
 <a name="Capabilities"></a>
 ## type [Capabilities](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L330-L368>)
 
@@ -667,6 +754,72 @@ type CellFormat struct {
 type ChartSpec interface{}
 ```
 
+<a name="ChromeOSDevice"></a>
+## type [ChromeOSDevice](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1290-L1334>)
+
+ChromeOSDevice represents a ChromeOS device resource.
+
+```go
+type ChromeOSDevice struct {
+    ActiveTimeRanges         []ActiveTimeRange     `json:"activeTimeRanges,omitempty"`         // List of active time ranges.
+    AnnotatedAssetId         string                `json:"annotatedAssetId,omitempty"`         // Asset ID of the device.
+    AnnotatedLocation        string                `json:"annotatedLocation,omitempty"`        // Location of the device.
+    AnnotatedUser            string                `json:"annotatedUser,omitempty"`            // User of the device.
+    AutoUpdateExpiration     string                `json:"autoUpdateExpiration,omitempty"`     // Auto-update expiration date.
+    BootMode                 string                `json:"bootMode,omitempty"`                 // Boot mode of the device.
+    CpuInfo                  []CpuInfo             `json:"cpuInfo,omitempty"`                  // Information about the CPU.
+    CpuStatusReports         []CpuStatusReport     `json:"cpuStatusReports,omitempty"`         // CPU status reports.
+    DeprovisionReason        string                `json:"deprovisionReason,omitempty"`        // Reason for deprovisioning.
+    DeviceFiles              []DeviceFile          `json:"deviceFiles,omitempty"`              // Files on the device.
+    DeviceId                 string                `json:"deviceId"`                           // Unique identifier of the device.
+    DeviceLicenseType        string                `json:"deviceLicenseType,omitempty"`        // License type of the device.
+    DiskVolumeReports        []DiskVolumeReport    `json:"diskVolumeReports,omitempty"`        // Disk volume reports.
+    Etag                     string                `json:"etag,omitempty"`                     // ETag of the resource.
+    EthernetMacAddress       string                `json:"ethernetMacAddress,omitempty"`       // Ethernet MAC address.
+    EthernetMacAddress0      string                `json:"ethernetMacAddress0,omitempty"`      // Secondary Ethernet MAC address.
+    FirmwareVersion          string                `json:"firmwareVersion,omitempty"`          // Firmware version.
+    FirstEnrollmentTime      string                `json:"firstEnrollmentTime,omitempty"`      // First enrollment time.
+    Kind                     string                `json:"kind,omitempty"`                     // Kind of the resource.
+    LastDeprovisionTimestamp string                `json:"lastDeprovisionTimestamp,omitempty"` // Last deprovision timestamp.
+    LastEnrollmentTime       string                `json:"lastEnrollmentTime,omitempty"`       // Last enrollment time.
+    LastKnownNetwork         []LastKnownNetwork    `json:"lastKnownNetwork,omitempty"`         // Last known network.
+    LastSync                 string                `json:"lastSync,omitempty"`                 // Last synchronization time.
+    MacAddress               string                `json:"macAddress,omitempty"`               // MAC address.
+    ManufactureDate          string                `json:"manufactureDate,omitempty"`          // Manufacture date of the device.
+    Meid                     string                `json:"meid,omitempty"`                     // MEID or IMEI of the mobile card.
+    Model                    string                `json:"model,omitempty"`                    // Model of the device.
+    Notes                    string                `json:"notes,omitempty"`                    // Notes about the device.
+    OrderNumber              string                `json:"orderNumber,omitempty"`              // Order number.
+    OrgUnitId                string                `json:"orgUnitId,omitempty"`                // Organizational unit ID.
+    OrgUnitPath              string                `json:"orgUnitPath,omitempty"`              // Organizational unit path.
+    OsUpdateStatus           *OsUpdateStatus       `json:"osUpdateStatus,omitempty"`           // OS update status.
+    OsVersion                string                `json:"osVersion,omitempty"`                // OS version.
+    PlatformVersion          string                `json:"platformVersion,omitempty"`          // Platform version.
+    RecentUsers              []RecentUser          `json:"recentUsers,omitempty"`              // Recent users.
+    ScreenshotFiles          []ScreenshotFile      `json:"screenshotFiles,omitempty"`          // Screenshot files.
+    SerialNumber             string                `json:"serialNumber"`                       // Serial number.
+    Status                   string                `json:"status,omitempty"`                   // Status of the device.
+    SupportEndDate           string                `json:"supportEndDate,omitempty"`           // Support end date.
+    SystemRamFreeReports     []SystemRamFreeReport `json:"systemRamFreeReports,omitempty"`     // System RAM free reports.
+    SystemRamTotal           string                `json:"systemRamTotal,omitempty"`           // Total system RAM.
+    TPMVersionInfo           *TpmVersionInfo       `json:"tpmVersionInfo,omitempty"`           // TPM version information.
+    WillAutoRenew            bool                  `json:"willAutoRenew,omitempty"`            // Auto-renewal status.
+}
+```
+
+<a name="ChromeOSDevices"></a>
+## type [ChromeOSDevices](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1283-L1287>)
+
+\#\#\# Device Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- https://developers.google.com/admin-sdk/directory/v1/guides/manage-chrome-devices
+
+```go
+type ChromeOSDevices struct {
+    Kind            string            `json:"kind,omitempty"`            // The kind of the response
+    ChromeOSDevices []*ChromeOSDevice `json:"chromeosdevices,omitempty"` // List of ChromeOS devices
+    NextPageToken   string            `json:"nextPageToken,omitempty"`   // Token for the next page of results
+}
+```
+
 <a name="Client"></a>
 ## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L36-L44>)
 
@@ -685,7 +838,7 @@ type Client struct {
 ```
 
 <a name="NewClient"></a>
-### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/google/google.go#L149>)
+### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/google/google.go#L183>)
 
 ```go
 func NewClient(ac AuthCredentials, verbosity int) (*Client, error)
@@ -717,6 +870,43 @@ g, _ := google.NewClient(ac, log.DEBUG)
 
 \`\`\`
 
+- Example 2: \(Some Scopes may not work with Subject\)
+
+\`\`\`go
+
+```
+// Initialize clients here
+ac := google.AuthCredentials{
+	CICD: true,
+	Type: google.SERVICE_ACCOUNT,
+	Scopes: []string{
+		"Chrome Policy API",
+		"Chrome Management API",
+	},
+}
+g, _ := google.NewClient(ac, log.DEBUG)
+```
+
+\`\`\`
+
+- Example 3: Direct URLs
+
+\`\`\`go
+
+```
+// Initialize clients here
+ac := google.AuthCredentials{
+	CICD: true,
+	Type: google.SERVICE_ACCOUNT,
+	Scopes: []string{
+		"https://www.googleapis.com/auth/admin.directory.user",
+	},
+}
+g, _ := google.NewClient(ac, log.DEBUG)
+```
+
+\`\`\`
+
 <a name="Client.AppendSpreadsheet"></a>
 ### func \(\*Client\) [AppendSpreadsheet](<https://github.com/gemini-oss/rego/blob/main/pkg/google/sheets.go#L146>)
 
@@ -731,7 +921,7 @@ func (c *Client) AppendSpreadsheet(spreadsheetID string, vr *ValueRange) error
 - \- https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/update
 
 <a name="Client.BuildURL"></a>
-### func \(\*Client\) [BuildURL](<https://github.com/gemini-oss/rego/blob/main/pkg/google/google.go#L47>)
+### func \(\*Client\) [BuildURL](<https://github.com/gemini-oss/rego/blob/main/pkg/google/google.go#L48>)
 
 ```go
 func (c *Client) BuildURL(endpoint string, identifiers ...string) string
@@ -794,7 +984,7 @@ func (c *Client) FormatHeaderAndAutoSize(spreadsheetId string, rows int, columns
 - \- Sets the header row to bold and green, and auto\-sizes all columns
 
 <a name="Client.GenerateJWT"></a>
-### func \(\*Client\) [GenerateJWT](<https://github.com/gemini-oss/rego/blob/main/pkg/google/google.go#L63>)
+### func \(\*Client\) [GenerateJWT](<https://github.com/gemini-oss/rego/blob/main/pkg/google/google.go#L64>)
 
 ```go
 func (c *Client) GenerateJWT(data []byte) (*requests.Client, error)
@@ -955,13 +1145,49 @@ func (c *Client) GetUsersFromRoleAssignments(sem chan struct{}, roleAssignments 
 - https://developers.google.com/admin-sdk/directory/v1/reference/roleAssignments/list
 
 <a name="Client.ImpersonateUser"></a>
-### func \(\*Client\) [ImpersonateUser](<https://github.com/gemini-oss/rego/blob/main/pkg/google/google.go#L97>)
+### func \(\*Client\) [ImpersonateUser](<https://github.com/gemini-oss/rego/blob/main/pkg/google/google.go#L98>)
 
 ```go
 func (c *Client) ImpersonateUser(email string) error
 ```
 
 
+
+<a name="Client.ListAllChromeOS"></a>
+### func \(\*Client\) [ListAllChromeOS](<https://github.com/gemini-oss/rego/blob/main/pkg/google/devices.go#L72>)
+
+```go
+func (c *Client) ListAllChromeOS(customerId string) (*ChromeOSDevices, error)
+```
+
+\* List all ChromeOS Devices in the domain with pagination support
+
+- admin/directory/v1/customer/\{customerId\}/devices/chromeos
+- https://developers.google.com/admin-sdk/directory/reference/rest/v1/chromeosdevices/list
+
+<a name="Client.ListAllDevicePolicySchemas"></a>
+### func \(\*Client\) [ListAllDevicePolicySchemas](<https://github.com/gemini-oss/rego/blob/main/pkg/google/devices.go#L159>)
+
+```go
+func (c *Client) ListAllDevicePolicySchemas(customerId string) (*PolicySchemas, error)
+```
+
+\* Gets a list of policy schemas that match a specified filter value for a given customer
+
+- chromepolicy.googleapis.com/v1/\{customerId\}/policySchemas
+- https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas/list
+
+<a name="Client.ListAllProvisionedChromeOS"></a>
+### func \(\*Client\) [ListAllProvisionedChromeOS](<https://github.com/gemini-oss/rego/blob/main/pkg/google/devices.go#L115>)
+
+```go
+func (c *Client) ListAllProvisionedChromeOS(customerId string) (*ChromeOSDevices, error)
+```
+
+\* List all Provisioned ChromeOS Devices in the domain with pagination support
+
+- admin/directory/v1/customer/\{customerId\}/devices/chromeos
+- https://developers.google.com/admin-sdk/directory/reference/rest/v1/chromeosdevices/list
 
 <a name="Client.ListAllRoleAssignments"></a>
 ### func \(\*Client\) [ListAllRoleAssignments](<https://github.com/gemini-oss/rego/blob/main/pkg/google/admin.go#L137>)
@@ -1012,6 +1238,18 @@ func (c *Client) MoveFileToFolder(file *File, folder *File) error
 - @param \{File\} file \- The file to move
 - @param \{File\} folder \- The folder to move the file to
 - https://developers.google.com/drive/api/v3/reference/files/update
+
+<a name="Client.ResolvePolicySchemas"></a>
+### func \(\*Client\) [ResolvePolicySchemas](<https://github.com/gemini-oss/rego/blob/main/pkg/google/devices.go#L202>)
+
+```go
+func (c *Client) ResolvePolicySchemas(customerId string, OU string) (*ResolvedPolicies, error)
+```
+
+\* Gets the resolved policy values for a list of policies that match a search query.
+
+- chromepolicy.googleapis.com/v1/\{customerId\}/policies:resolve
+- https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies/resolve
 
 <a name="Client.SaveFileListToSheet"></a>
 ### func \(\*Client\) [SaveFileListToSheet](<https://github.com/gemini-oss/rego/blob/main/pkg/google/drive.go#L357>)
@@ -1138,6 +1376,45 @@ type ContentRestriction struct {
     RestrictingUser *User  `json:"restrictingUser,omitempty"` // The user who set the content restriction.
     RestrictionTime string `json:"restrictionTime,omitempty"` // The time at which the content restriction was set.
     Type            string `json:"type,omitempty"`            // The type of the content restriction.
+}
+```
+
+<a name="CpuInfo"></a>
+## type [CpuInfo](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1343-L1348>)
+
+CpuInfo represents information about the CPU of the Chrome device.
+
+```go
+type CpuInfo struct {
+    Architecture     string       `json:"architecture,omitempty"`     // CPU architecture.
+    LogicalCpus      []LogicalCpu `json:"logicalCpus,omitempty"`      // Information about logical CPUs.
+    MaxClockSpeedKhz int          `json:"maxClockSpeedKhz,omitempty"` // Max CPU clock speed in kHz.
+    Model            string       `json:"model,omitempty"`            // CPU model name.
+}
+```
+
+<a name="CpuStatusReport"></a>
+## type [CpuStatusReport](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1366-L1370>)
+
+CpuStatusReport represents a CPU status report of a Chrome device. CpuStatusReport represents a CPU status report of a Chrome device.
+
+```go
+type CpuStatusReport struct {
+    ReportTime                   string               `json:"reportTime,omitempty"`                   // Date and time the report was received.
+    CpuUtilizationPercentageInfo []int                `json:"cpuUtilizationPercentageInfo,omitempty"` // CPU utilization percentages.
+    CpuTemperatureInfo           []CpuTemperatureInfo `json:"cpuTemperatureInfo,omitempty"`           // Information about CPU temperature.
+}
+```
+
+<a name="CpuTemperatureInfo"></a>
+## type [CpuTemperatureInfo](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1373-L1376>)
+
+CpuTemperatureInfo represents information about CPU temperature in a Chrome device.
+
+```go
+type CpuTemperatureInfo struct {
+    Temperature int    `json:"temperature,omitempty"` // Temperature in Celsius degrees.
+    Label       string `json:"label,omitempty"`       // Label of the CPU.
 }
 ```
 
@@ -1329,6 +1606,22 @@ DayOfWeek represents a day of the week.
 type DayOfWeek int
 ```
 
+<a name="DescriptorProto"></a>
+## type [DescriptorProto](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1507-L1514>)
+
+DescriptorProto describes a message type.
+
+```go
+type DescriptorProto struct {
+    Name       string                 `json:"name,omitempty"`       // Message type name.
+    Field      []FieldDescriptorProto `json:"field,omitempty"`      // Fields within this message type.
+    NestedType []DescriptorProto      `json:"nestedType,omitempty"` // Nested message types.
+    EnumType   []interface{}          `json:"enumType,omitempty"`   // Enum types within this message.
+    OneofDecl  []interface{}          `json:"oneofDecl,omitempty"`  // Oneof declarations.
+
+}
+```
+
 <a name="DeveloperMetadata"></a>
 ## type [DeveloperMetadata](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L581-L587>)
 
@@ -1360,6 +1653,40 @@ DeveloperMetadataLocationType represents the type of location on which developer
 
 ```go
 type DeveloperMetadataLocationType int
+```
+
+<a name="DeviceFile"></a>
+## type [DeviceFile](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1391-L1396>)
+
+DeviceFile represents a file on a Chrome device.
+
+```go
+type DeviceFile struct {
+    CreateTime  string `json:"createTime,omitempty"`  // Date and time the file was created.
+    DownloadUrl string `json:"downloadUrl,omitempty"` // File download URL.
+    Name        string `json:"name,omitempty"`        // File name.
+    Type        string `json:"type,omitempty"`        // File type.
+}
+```
+
+<a name="DeviceQuery"></a>
+## type [DeviceQuery](<https://github.com/gemini-oss/rego/blob/main/pkg/google/devices.go#L30-L39>)
+
+\* Query Parameters for ChromeOS Devices
+
+- https://developers.google.com/admin-sdk/directory/reference/rest/v1/chromeosdevices/list#query-parameters
+
+```go
+type DeviceQuery struct {
+    IncludeChildOrgunits bool   `url:"includeChildOrgunits,omitempty"` // If true, return devices from all child org units as well as the specified org unit.
+    MaxResults           int    `url:"maxResults,omitempty"`           // Maximum number of results to return. Default is 100
+    OrderBy              string `url:"orderBy,omitempty"`              // Device property to use for sorting results. Should be one of the defined OrderBy enums.
+    OrgUnitPath          string `url:"orgUnitPath,omitempty"`          // Full path of the organizational unit (minus the leading /) or its unique ID.
+    PageToken            string `url:"pageToken,omitempty"`            // Token for requesting the next page of query results.
+    Projection           string `url:"projection,omitempty"`           // Restrict information returned to a set of selected fields. Should be one of the defined Projection enums.
+    Query                string `url:"query,omitempty"`                // https://developers.google.com/admin-sdk/directory/v1/list-query-operators
+    SortOrder            string `url:"sortOrder,omitempty"`            // Whether to return results in ascending or descending order. Should be one of the defined SortOrder enums.
+}
 ```
 
 <a name="DimensionGroup"></a>
@@ -1411,9 +1738,9 @@ type DimensionRange struct {
 
 ```go
 type DirectoryItem struct {
-    Description       string `json:"description,omitempty"`       // "Lets you access information about other Google Workspace services"
-    DiscoveryRestUrl  string `json:"discoveryRestUrl,omitempty"`  // "https://www.googleapis.com/discovery/v1/apis/admin/directory_v1/rest"
-    DocumentationLink string `json:"documentationLink,omitempty"` // "https://developers.google.com/admin-sdk/directory/"
+    Description       string `json:"description,omitempty"`       // Lets you access information about other Google Workspace services"
+    DiscoveryRestUrl  string `json:"discoveryRestUrl,omitempty"`  // https://www.googleapis.com/discovery/v1/apis/admin/directory_v1/rest
+    DocumentationLink string `json:"documentationLink,omitempty"` // https://developers.google.com/admin-sdk/directory/
     ID                string `json:"id,omitempty"`                // "admin:directory_v1"
     Icons             Icon   `json:"icons,omitempty"`             // Icons for the API
     Kind              string `json:"kind,omitempty"`              // "discovery#directoryItem"
@@ -1434,6 +1761,17 @@ type DirectoryList struct {
     DiscoveryVersion string          `json:"discoveryVersion,omitempty"` // "v1"
     Items            []DirectoryItem `json:"items,omitempty"`            // List of Google API's
     Kind             string          `json:"kind,omitempty"`             // "discovery#directoryList"
+}
+```
+
+<a name="DiskVolumeReport"></a>
+## type [DiskVolumeReport](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1379-L1381>)
+
+DiskVolumeReport represents a disk volume report of a Chrome device.
+
+```go
+type DiskVolumeReport struct {
+    VolumeInfo []VolumeInfo `json:"volumeInfo,omitempty"` // Information about disk volumes.
 }
 ```
 
@@ -1694,6 +2032,25 @@ type Field struct {
 }
 ```
 
+<a name="FieldDescriptorProto"></a>
+## type [FieldDescriptorProto](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1517-L1527>)
+
+FieldDescriptorProto describes a field within a message.
+
+```go
+type FieldDescriptorProto struct {
+    Name           string `json:"name,omitempty"`           // Field name.
+    Number         int    `json:"number,omitempty"`         // Field number.
+    Label          string `json:"label,omitempty"`          // Field label. (enum)
+    Type           string `json:"type,omitempty"`           // Field type. (enum)
+    TypeName       string `json:"typeName,omitempty"`       // For message and enum types, this is the name of the type.
+    DefaultValue   string `json:"defaultValue,omitempty"`   // Default value for the field.
+    OneofIndex     int    `json:"oneofIndex,omitempty"`     // Index of a oneof in the containing type's oneofDecl list.
+    JsonName       string `json:"jsonName,omitempty"`       // JSON name of this field.
+    Proto3Optional bool   `json:"proto3Optional,omitempty"` // Indicates if this is a proto3 "optional".
+}
+```
+
 <a name="File"></a>
 ## type [File](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L210-L274>)
 
@@ -1764,6 +2121,21 @@ type File struct {
     SHA1Checksum                 string               `json:"sha1Checksum,omitempty"`                 // The SHA1 checksum for the content of the file. It is computed by Drive and guaranteed to be up-to-date at all times. A change in the content of the file will cause a change in its SHA256 checksum.
     SHA256Checksum               string               `json:"sha256Checksum,omitempty"`               // The SHA256 checksum for the content of the file. It is computed by Drive and guaranteed to be up-to-date at all times. A change in the content of the file will cause a change in its SHA256 checksum.
     Path                         string               `json:"path,omitempty"`                         // The path of this file. Google Drive doesn't have path concept internally, but we construct a slash-separated path for UX
+}
+```
+
+<a name="FileDescriptorProto"></a>
+## type [FileDescriptorProto](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1498-L1504>)
+
+FileDescriptorProto describes a complete .proto file.
+
+```go
+type FileDescriptorProto struct {
+    Name        string            `json:"name,omitempty"`        // File name, relative to root of source tree.
+    Package     string            `json:"package,omitempty"`     // e.g. "foo", "foo.bar", etc.
+    MessageType []DescriptorProto `json:"messageType,omitempty"` // All top-level definitions in this file.
+    EnumType    []interface{}     `json:"enumType,omitempty"`    // Enum types defined in this file.
+    Syntax      string            `json:"syntax,omitempty"`      // The syntax of the proto file. "proto2", "proto3", or "editions".
 }
 ```
 
@@ -2048,6 +2420,18 @@ type Language struct {
 }
 ```
 
+<a name="LastKnownNetwork"></a>
+## type [LastKnownNetwork](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1415-L1418>)
+
+LastKnownNetwork represents the last known network of a Chrome device.
+
+```go
+type LastKnownNetwork struct {
+    IpAddress    string `json:"ipAddress,omitempty"`    // IP address.
+    WanIpAddress string `json:"wanIpAddress,omitempty"` // WAN IP address.
+}
+```
+
 <a name="LinkShareMetadata"></a>
 ## type [LinkShareMetadata](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L422-L425>)
 
@@ -2070,6 +2454,20 @@ type Location struct {
     Latitude  float64 `json:"latitude,omitempty"`  // The latitude stored in the image.
     Longitude float64 `json:"longitude,omitempty"` // The longitude stored in the image.
     Altitude  float64 `json:"altitude,omitempty"`  // The altitude stored in the image.
+}
+```
+
+<a name="LogicalCpu"></a>
+## type [LogicalCpu](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1351-L1356>)
+
+LogicalCpu represents a logical CPU in the Chrome device.
+
+```go
+type LogicalCpu struct {
+    CStates                    []CState `json:"cStates,omitempty"`                    // C-States of the CPU.
+    CurrentScalingFrequencyKhz int      `json:"currentScalingFrequencyKhz,omitempty"` // Current scaling frequency in kHz.
+    IdleDuration               string   `json:"idleDuration,omitempty"`               // Idle duration since last boot.
+    MaxScalingFrequencyKhz     int      `json:"maxScalingFrequencyKhz,omitempty"`     // Max scaling frequency allowed by policy.
 }
 ```
 
@@ -2119,7 +2517,7 @@ type Oauth2Scopes struct {
 ```
 
 <a name="OrderBy"></a>
-## type [OrderBy](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1294>)
+## type [OrderBy](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1564>)
 
 https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#orderby
 
@@ -2156,6 +2554,22 @@ type Organization struct {
     Symbol             string `json:"symbol,omitempty"`             // Text string symbol of the organization
     Title              string `json:"title,omitempty"`              // The user's title within the organization
     Type               string `json:"type,omitempty"`               // The type of organization
+}
+```
+
+<a name="OsUpdateStatus"></a>
+## type [OsUpdateStatus](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1421-L1428>)
+
+https://developers.google.com/admin-sdk/directory/reference/rest/v1/chromeosdevices#OsUpdateStatus
+
+```go
+type OsUpdateStatus struct {
+    State                 string `json:"state,omitempty"`                 // The state of the update.
+    TargetOsVersion       string `json:"targetOsVersion,omitempty"`       // The target version of the update.
+    TargetKioskAppVersion string `json:"targetKioskAppVersion,omitempty"` // The target version of the kiosk app.
+    UpdateTime            string `json:"updateTime,omitempty"`            // The time the update was applied.
+    UpdateCheckTime       string `json:"updateCheckTime,omitempty"`       // The time the update was checked.
+    RebootTime            string `json:"rebootTime,omitempty"`            // The time the device will reboot.
 }
 ```
 
@@ -2406,6 +2820,125 @@ type PivotValue interface{}
 type PivotValueLayout interface{}
 ```
 
+<a name="PolicyApiLifecycle"></a>
+## type [PolicyApiLifecycle](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1543-L1545>)
+
+PolicyApiLifecycle represents current lifecycle information of the policy API.
+
+```go
+type PolicyApiLifecycle struct {
+}
+```
+
+<a name="PolicyQuery"></a>
+## type [PolicyQuery](<https://github.com/gemini-oss/rego/blob/main/pkg/google/devices.go#L45-L49>)
+
+\* Query Parameters for Device Policy Schemas
+
+- https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas/list#query-parameters
+
+```go
+type PolicyQuery struct {
+    Filter    string `url:"filter,omitempty"`    // https://developers.google.com/chrome/policy/guides/list-policy-schemas#filter_syntax
+    PageSize  int    `url:"pageSize,omitempty"`  // The maximum number of policy schemas to return, defaults to 100 and has a maximum of 1000.
+    PageToken string `url:"pageToken,omitempty"` // Token for requesting the next page of query results.
+}
+```
+
+<a name="PolicyRequest"></a>
+## type [PolicyRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/google/devices.go#L55-L60>)
+
+\* Request Parameters for Device Policies
+
+- https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies/resolve#PolicyRequest
+
+```go
+type PolicyRequest struct {
+    PolicySchemaFilter string          `json:"policySchemaFilter,omitempty"` // https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies/resolve#PolicyRequest
+    PolicyTargetKey    PolicyTargetKey `json:"policyTargetKey,omitempty"`    // https://developers.google.com/chrome/policy/reference/rest/v1/PolicyTargetKey
+    PageSize           int             `json:"pageSize,omitempty"`           // The maximum number of resolved policies to return, defaults to 100 and has a maximum of 1000.
+    PageToken          string          `json:"pageToken,omitempty"`          // Token for requesting the next page of query results.
+}
+```
+
+<a name="PolicySchema"></a>
+## type [PolicySchema](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1476-L1489>)
+
+PolicySchema represents the schema of a policy.
+
+```go
+type PolicySchema struct {
+    Name                     string                          `json:"name,omitempty"`                     // Format: name=customers/{customer}/policySchemas/{schema_namespace}
+    PolicyDescription        string                          `json:"policyDescription,omitempty"`        // Output only. Description about the policy schema for user consumption.
+    AdditionalTargetKeyNames []AdditionalTargetKeyName       `json:"additionalTargetKeyNames,omitempty"` // Output only. Additional key names for identifying the target of the policy value.
+    Definition               FileDescriptorProto             `json:"definition,omitempty"`               // Schema definition using proto descriptor.
+    FieldDescriptions        []PolicySchemaFieldDescription  `json:"fieldDescriptions,omitempty"`        // Output only. Detailed description of each field in the schema.
+    AccessRestrictions       []string                        `json:"accessRestrictions,omitempty"`       // Output only. Specific access restrictions related to this policy.
+    Notices                  []PolicySchemaNoticeDescription `json:"notices,omitempty"`                  // Output only. Special notice messages related to setting values in certain fields.
+    SupportUri               string                          `json:"supportUri,omitempty"`               // Output only. URI to related support article for this schema.
+    SchemaName               string                          `json:"schemaName,omitempty"`               // Output only. Fully qualified name of the policy schema.
+    ValidTargetResources     []TargetResource                `json:"validTargetResources,omitempty"`     // Output only. Information about applicable target resources for the policy.
+    PolicyApiLifecycle       PolicyApiLifecycle              `json:"policyApiLifecycle,omitempty"`       // Output only. Current lifecycle information.
+    CategoryTitle            string                          `json:"categoryTitle,omitempty"`            // Title of the category in which a setting belongs.
+}
+```
+
+<a name="PolicySchemaFieldDescription"></a>
+## type [PolicySchemaFieldDescription](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1530-L1532>)
+
+PolicySchemaFieldDescription represents a detailed description of a schema field.
+
+```go
+type PolicySchemaFieldDescription struct {
+}
+```
+
+<a name="PolicySchemaNoticeDescription"></a>
+## type [PolicySchemaNoticeDescription](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1535-L1537>)
+
+PolicySchemaNoticeDescription represents special notice messages related to schema fields.
+
+```go
+type PolicySchemaNoticeDescription struct {
+}
+```
+
+<a name="PolicySchemas"></a>
+## type [PolicySchemas](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1470-L1473>)
+
+https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas
+
+```go
+type PolicySchemas struct {
+    PolicySchemas []*PolicySchema `json:"policySchemas,omitempty"` // List of policy schemas.
+    NextPageToken string          `json:"nextPageToken,omitempty"` // Token for the next page of results.
+}
+```
+
+<a name="PolicyTargetKey"></a>
+## type [PolicyTargetKey](<https://github.com/gemini-oss/rego/blob/main/pkg/google/devices.go#L62-L65>)
+
+
+
+```go
+type PolicyTargetKey struct {
+    TargetResource       string   `json:"targetResource,omitempty"`       // The target resource name for the policy target key.
+    AdditionalTargetKeys []string `json:"additionalTargetKeys,omitempty"` // The additional target keys for the policy target key.
+}
+```
+
+<a name="PolicyValue"></a>
+## type [PolicyValue](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1464-L1467>)
+
+https://developers.google.com/chrome/policy/reference/rest/v1/PolicyValue
+
+```go
+type PolicyValue struct {
+    PolicySchema string      `json:"policySchema,omitempty"` // The fully qualified name of the policy schema associated with this policy.
+    Value        interface{} `json:"value,omitempty"`        // The value of the policy that is compatible with the schema that it is associated with.
+}
+```
+
 <a name="ProtectedRange"></a>
 ## type [ProtectedRange](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L905-L914>)
 
@@ -2431,6 +2964,18 @@ type ProtectedRange struct {
 
 ```go
 type RecalculationInterval interface{}
+```
+
+<a name="RecentUser"></a>
+## type [RecentUser](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1431-L1434>)
+
+RecentUser represents a recent user of a Chrome device.
+
+```go
+type RecentUser struct {
+    Type  string `json:"type,omitempty"`  // Type of the user
+    Email string `json:"email,omitempty"` // Email of the user
+}
 ```
 
 <a name="Relation"></a>
@@ -2524,6 +3069,32 @@ type ReportsQuery struct {
     RoleId                         string `url:"roleId,omitempty"`                         // ID of the role to report on.
     UserKey                        string `url:"userKey,omitempty"`                        // Represents the profile id or the user email for which the data should be filtered.
     IncludeIndirectRoleAssignments bool   `url:"includeIndirectRoleAssignments,omitempty"` // Whether to include indirect role assignments.
+}
+```
+
+<a name="ResolvedPolicies"></a>
+## type [ResolvedPolicies](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1450-L1453>)
+
+\#\#\# Chrome Policy Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- ResolvedPolicies represents a list of resolved policies found by the resolve request.
+
+```go
+type ResolvedPolicies struct {
+    ResolvedPolicies []ResolvedPolicy `json:"resolvedPolicies,omitempty"` // The list of resolved policies found by the resolve request.
+    NextPageToken    string           `json:"nextPageToken,omitempty"`    // The page token used to get the next set of resolved policies found by the request.
+}
+```
+
+<a name="ResolvedPolicy"></a>
+## type [ResolvedPolicy](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1456-L1461>)
+
+https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies/resolve#ResolvedPolicy
+
+```go
+type ResolvedPolicy struct {
+    TargetKey      PolicyTargetKey `json:"targetKey,omitempty"`      // The target resource for which the resolved policy value applies.
+    Value          PolicyValue     `json:"value,omitempty"`          // The resolved value of the policy.
+    SourceKey      PolicyTargetKey `json:"sourceKey,omitempty"`      // The source resource from which this policy value is obtained.
+    AddedSourceKey PolicyTargetKey `json:"addedSourceKey,omitempty"` // The added source key for management level.
 }
 ```
 
@@ -2636,6 +3207,20 @@ type SSHPublicKey struct {
 type ScopeDetail struct {
     Description string   `json:"description,omitempty"`
     Scopes      []string `json:"scopes,omitempty"`
+}
+```
+
+<a name="ScreenshotFile"></a>
+## type [ScreenshotFile](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1437-L1442>)
+
+ScreenshotFile represents a screenshot file on a Chrome device.
+
+```go
+type ScreenshotFile struct {
+    CreateTime  string `json:"createTime,omitempty"`  // Date and time the file was created.
+    DownloadUrl string `json:"downloadUrl,omitempty"` // File download URL.
+    Name        string `json:"name,omitempty"`        // File name.
+    Type        string `json:"type,omitempty"`        // File type.
 }
 ```
 
@@ -2877,7 +3462,7 @@ type SlicerSpec struct {
 ```
 
 <a name="SortOrder"></a>
-## type [SortOrder](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1312>)
+## type [SortOrder](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1582>)
 
 https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#sortorder
 
@@ -2949,6 +3534,27 @@ type SpreadsheetTheme struct {
     PrimaryFontFamily string           `json:"primaryFontFamily,omitempty"` // Primary font family of the theme
     ThemeColors       []ThemeColorPair `json:"themeColors,omitempty"`       // Theme color pairs
 }
+```
+
+<a name="SystemRamFreeReport"></a>
+## type [SystemRamFreeReport](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1399-L1402>)
+
+SystemRamFreeReport represents a report of free RAM on a Chrome device.
+
+```go
+type SystemRamFreeReport struct {
+    ReportTime        string   `json:"reportTime,omitempty"`        // Date and time the report was received.
+    SystemRamFreeInfo []string `json:"systemRamFreeInfo,omitempty"` // Free RAM information.
+}
+```
+
+<a name="TargetResource"></a>
+## type [TargetResource](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1540>)
+
+TargetResource represents applicable target resources for the policy.
+
+```go
+type TargetResource string // This is an enum, define enum values as constants.
 ```
 
 <a name="TextFormat"></a>
@@ -3024,6 +3630,22 @@ type TimeOfDay struct {
 }
 ```
 
+<a name="TpmVersionInfo"></a>
+## type [TpmVersionInfo](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1405-L1412>)
+
+TpmVersionInfo represents TPM version information of a Chrome device.
+
+```go
+type TpmVersionInfo struct {
+    Family          string `json:"family,omitempty"`          // TPM family.
+    FirmwareVersion string `json:"firmwareVersion,omitempty"` // TPM firmware version.
+    Manufacturer    string `json:"manufacturer,omitempty"`    // TPM manufacturer code.
+    SpecLevel       string `json:"specLevel,omitempty"`       // TPM specification level.
+    TpmModel        string `json:"tpmModel,omitempty"`        // TPM model number.
+    VendorSpecific  string `json:"vendorSpecific,omitempty"`  // Vendor-specific information.
+}
+```
+
 <a name="UpdateDimensionPropertiesRequest"></a>
 ## type [UpdateDimensionPropertiesRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1093-L1098>)
 
@@ -3093,7 +3715,7 @@ type User struct {
 ```
 
 <a name="UserEvent"></a>
-## type [UserEvent](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1283>)
+## type [UserEvent](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1553>)
 
 \#\#\# Enums \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#event
 
@@ -3145,7 +3767,7 @@ type UserName struct {
 ```
 
 <a name="UserProjection"></a>
-## type [UserProjection](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1303>)
+## type [UserProjection](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1573>)
 
 https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#projection
 
@@ -3206,7 +3828,7 @@ func (u *UserQuery) ValidateQuery() error
 \* Validate the query parameters for the Users resource
 
 <a name="UserViewType"></a>
-## type [UserViewType](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1320>)
+## type [UserViewType](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1590>)
 
 https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#viewtype
 
@@ -3270,6 +3892,19 @@ type VideoMediaMetadata struct {
     Width          int    `json:"width,omitempty"`          // The width of the video in pixels.
     Height         int    `json:"height,omitempty"`         // The height of the video in pixels.
     DurationMillis string `json:"durationMillis,omitempty"` // The duration of the video in milliseconds.
+}
+```
+
+<a name="VolumeInfo"></a>
+## type [VolumeInfo](<https://github.com/gemini-oss/rego/blob/main/pkg/google/entities.go#L1384-L1388>)
+
+VolumeInfo represents information about a disk volume on a Chrome device.
+
+```go
+type VolumeInfo struct {
+    StorageFree  string `json:"storageFree,omitempty"`  // Free disk space in bytes.
+    StorageTotal string `json:"storageTotal,omitempty"` // Total disk space in bytes.
+    VolumeId     string `json:"volumeId,omitempty"`     // Volume ID.
 }
 ```
 

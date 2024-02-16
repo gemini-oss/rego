@@ -1277,6 +1277,276 @@ type Website struct {
 // END OF USER STRUCTS
 //-----------------------------------------------------------------------------
 
+// ### Device Structs
+// ----------------------------------------------------------------------------
+// https://developers.google.com/admin-sdk/directory/v1/guides/manage-chrome-devices
+type ChromeOSDevices struct {
+	Kind            string            `json:"kind,omitempty"`            // The kind of the response
+	ChromeOSDevices []*ChromeOSDevice `json:"chromeosdevices,omitempty"` // List of ChromeOS devices
+	NextPageToken   string            `json:"nextPageToken,omitempty"`   // Token for the next page of results
+}
+
+// ChromeOSDevice represents a ChromeOS device resource.
+type ChromeOSDevice struct {
+	ActiveTimeRanges         []ActiveTimeRange     `json:"activeTimeRanges,omitempty"`         // List of active time ranges.
+	AnnotatedAssetId         string                `json:"annotatedAssetId,omitempty"`         // Asset ID of the device.
+	AnnotatedLocation        string                `json:"annotatedLocation,omitempty"`        // Location of the device.
+	AnnotatedUser            string                `json:"annotatedUser,omitempty"`            // User of the device.
+	AutoUpdateExpiration     string                `json:"autoUpdateExpiration,omitempty"`     // Auto-update expiration date.
+	BootMode                 string                `json:"bootMode,omitempty"`                 // Boot mode of the device.
+	CpuInfo                  []CpuInfo             `json:"cpuInfo,omitempty"`                  // Information about the CPU.
+	CpuStatusReports         []CpuStatusReport     `json:"cpuStatusReports,omitempty"`         // CPU status reports.
+	DeprovisionReason        string                `json:"deprovisionReason,omitempty"`        // Reason for deprovisioning.
+	DeviceFiles              []DeviceFile          `json:"deviceFiles,omitempty"`              // Files on the device.
+	DeviceId                 string                `json:"deviceId"`                           // Unique identifier of the device.
+	DeviceLicenseType        string                `json:"deviceLicenseType,omitempty"`        // License type of the device.
+	DiskVolumeReports        []DiskVolumeReport    `json:"diskVolumeReports,omitempty"`        // Disk volume reports.
+	Etag                     string                `json:"etag,omitempty"`                     // ETag of the resource.
+	EthernetMacAddress       string                `json:"ethernetMacAddress,omitempty"`       // Ethernet MAC address.
+	EthernetMacAddress0      string                `json:"ethernetMacAddress0,omitempty"`      // Secondary Ethernet MAC address.
+	FirmwareVersion          string                `json:"firmwareVersion,omitempty"`          // Firmware version.
+	FirstEnrollmentTime      string                `json:"firstEnrollmentTime,omitempty"`      // First enrollment time.
+	Kind                     string                `json:"kind,omitempty"`                     // Kind of the resource.
+	LastDeprovisionTimestamp string                `json:"lastDeprovisionTimestamp,omitempty"` // Last deprovision timestamp.
+	LastEnrollmentTime       string                `json:"lastEnrollmentTime,omitempty"`       // Last enrollment time.
+	LastKnownNetwork         []LastKnownNetwork    `json:"lastKnownNetwork,omitempty"`         // Last known network.
+	LastSync                 string                `json:"lastSync,omitempty"`                 // Last synchronization time.
+	MacAddress               string                `json:"macAddress,omitempty"`               // MAC address.
+	ManufactureDate          string                `json:"manufactureDate,omitempty"`          // Manufacture date of the device.
+	Meid                     string                `json:"meid,omitempty"`                     // MEID or IMEI of the mobile card.
+	Model                    string                `json:"model,omitempty"`                    // Model of the device.
+	Notes                    string                `json:"notes,omitempty"`                    // Notes about the device.
+	OrderNumber              string                `json:"orderNumber,omitempty"`              // Order number.
+	OrgUnitId                string                `json:"orgUnitId,omitempty"`                // Organizational unit ID.
+	OrgUnitPath              string                `json:"orgUnitPath,omitempty"`              // Organizational unit path.
+	OsUpdateStatus           *OsUpdateStatus       `json:"osUpdateStatus,omitempty"`           // OS update status.
+	OsVersion                string                `json:"osVersion,omitempty"`                // OS version.
+	PlatformVersion          string                `json:"platformVersion,omitempty"`          // Platform version.
+	RecentUsers              []RecentUser          `json:"recentUsers,omitempty"`              // Recent users.
+	ScreenshotFiles          []ScreenshotFile      `json:"screenshotFiles,omitempty"`          // Screenshot files.
+	SerialNumber             string                `json:"serialNumber"`                       // Serial number.
+	Status                   string                `json:"status,omitempty"`                   // Status of the device.
+	SupportEndDate           string                `json:"supportEndDate,omitempty"`           // Support end date.
+	SystemRamFreeReports     []SystemRamFreeReport `json:"systemRamFreeReports,omitempty"`     // System RAM free reports.
+	SystemRamTotal           string                `json:"systemRamTotal,omitempty"`           // Total system RAM.
+	TPMVersionInfo           *TpmVersionInfo       `json:"tpmVersionInfo,omitempty"`           // TPM version information.
+	WillAutoRenew            bool                  `json:"willAutoRenew,omitempty"`            // Auto-renewal status.
+}
+
+// ActiveTimeRange represents an active time range of the device.
+type ActiveTimeRange struct {
+	ActiveTime int    `json:"activeTime,omitempty"` // Duration of usage in milliseconds.
+	Date       string `json:"date,omitempty"`       // Date of usage.
+}
+
+// CpuInfo represents information about the CPU of the Chrome device.
+type CpuInfo struct {
+	Architecture     string       `json:"architecture,omitempty"`     // CPU architecture.
+	LogicalCpus      []LogicalCpu `json:"logicalCpus,omitempty"`      // Information about logical CPUs.
+	MaxClockSpeedKhz int          `json:"maxClockSpeedKhz,omitempty"` // Max CPU clock speed in kHz.
+	Model            string       `json:"model,omitempty"`            // CPU model name.
+}
+
+// LogicalCpu represents a logical CPU in the Chrome device.
+type LogicalCpu struct {
+	CStates                    []CState `json:"cStates,omitempty"`                    // C-States of the CPU.
+	CurrentScalingFrequencyKhz int      `json:"currentScalingFrequencyKhz,omitempty"` // Current scaling frequency in kHz.
+	IdleDuration               string   `json:"idleDuration,omitempty"`               // Idle duration since last boot.
+	MaxScalingFrequencyKhz     int      `json:"maxScalingFrequencyKhz,omitempty"`     // Max scaling frequency allowed by policy.
+}
+
+// CState represents a C-State in the CPU of a Chrome device.
+type CState struct {
+	DisplayName     string `json:"displayName,omitempty"`     // Name of the state.
+	SessionDuration string `json:"sessionDuration,omitempty"` // Duration in the state.
+}
+
+// CpuStatusReport represents a CPU status report of a Chrome device.
+// CpuStatusReport represents a CPU status report of a Chrome device.
+type CpuStatusReport struct {
+	ReportTime                   string               `json:"reportTime,omitempty"`                   // Date and time the report was received.
+	CpuUtilizationPercentageInfo []int                `json:"cpuUtilizationPercentageInfo,omitempty"` // CPU utilization percentages.
+	CpuTemperatureInfo           []CpuTemperatureInfo `json:"cpuTemperatureInfo,omitempty"`           // Information about CPU temperature.
+}
+
+// CpuTemperatureInfo represents information about CPU temperature in a Chrome device.
+type CpuTemperatureInfo struct {
+	Temperature int    `json:"temperature,omitempty"` // Temperature in Celsius degrees.
+	Label       string `json:"label,omitempty"`       // Label of the CPU.
+}
+
+// DiskVolumeReport represents a disk volume report of a Chrome device.
+type DiskVolumeReport struct {
+	VolumeInfo []VolumeInfo `json:"volumeInfo,omitempty"` // Information about disk volumes.
+}
+
+// VolumeInfo represents information about a disk volume on a Chrome device.
+type VolumeInfo struct {
+	StorageFree  string `json:"storageFree,omitempty"`  // Free disk space in bytes.
+	StorageTotal string `json:"storageTotal,omitempty"` // Total disk space in bytes.
+	VolumeId     string `json:"volumeId,omitempty"`     // Volume ID.
+}
+
+// DeviceFile represents a file on a Chrome device.
+type DeviceFile struct {
+	CreateTime  string `json:"createTime,omitempty"`  // Date and time the file was created.
+	DownloadUrl string `json:"downloadUrl,omitempty"` // File download URL.
+	Name        string `json:"name,omitempty"`        // File name.
+	Type        string `json:"type,omitempty"`        // File type.
+}
+
+// SystemRamFreeReport represents a report of free RAM on a Chrome device.
+type SystemRamFreeReport struct {
+	ReportTime        string   `json:"reportTime,omitempty"`        // Date and time the report was received.
+	SystemRamFreeInfo []string `json:"systemRamFreeInfo,omitempty"` // Free RAM information.
+}
+
+// TpmVersionInfo represents TPM version information of a Chrome device.
+type TpmVersionInfo struct {
+	Family          string `json:"family,omitempty"`          // TPM family.
+	FirmwareVersion string `json:"firmwareVersion,omitempty"` // TPM firmware version.
+	Manufacturer    string `json:"manufacturer,omitempty"`    // TPM manufacturer code.
+	SpecLevel       string `json:"specLevel,omitempty"`       // TPM specification level.
+	TpmModel        string `json:"tpmModel,omitempty"`        // TPM model number.
+	VendorSpecific  string `json:"vendorSpecific,omitempty"`  // Vendor-specific information.
+}
+
+// LastKnownNetwork represents the last known network of a Chrome device.
+type LastKnownNetwork struct {
+	IpAddress    string `json:"ipAddress,omitempty"`    // IP address.
+	WanIpAddress string `json:"wanIpAddress,omitempty"` // WAN IP address.
+}
+
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/chromeosdevices#OsUpdateStatus
+type OsUpdateStatus struct {
+	State                 string `json:"state,omitempty"`                 // The state of the update.
+	TargetOsVersion       string `json:"targetOsVersion,omitempty"`       // The target version of the update.
+	TargetKioskAppVersion string `json:"targetKioskAppVersion,omitempty"` // The target version of the kiosk app.
+	UpdateTime            string `json:"updateTime,omitempty"`            // The time the update was applied.
+	UpdateCheckTime       string `json:"updateCheckTime,omitempty"`       // The time the update was checked.
+	RebootTime            string `json:"rebootTime,omitempty"`            // The time the device will reboot.
+}
+
+// RecentUser represents a recent user of a Chrome device.
+type RecentUser struct {
+	Type  string `json:"type,omitempty"`  // Type of the user
+	Email string `json:"email,omitempty"` // Email of the user
+}
+
+// ScreenshotFile represents a screenshot file on a Chrome device.
+type ScreenshotFile struct {
+	CreateTime  string `json:"createTime,omitempty"`  // Date and time the file was created.
+	DownloadUrl string `json:"downloadUrl,omitempty"` // File download URL.
+	Name        string `json:"name,omitempty"`        // File name.
+	Type        string `json:"type,omitempty"`        // File type.
+}
+
+// END OF DEVICE STRUCTS
+//----------------------------------------------------------------------
+
+// ### Chrome Policy Structs
+// ----------------------------------------------------------------------------
+// ResolvedPolicies represents a list of resolved policies found by the resolve request.
+type ResolvedPolicies struct {
+	ResolvedPolicies []ResolvedPolicy `json:"resolvedPolicies,omitempty"` // The list of resolved policies found by the resolve request.
+	NextPageToken    string           `json:"nextPageToken,omitempty"`    // The page token used to get the next set of resolved policies found by the request.
+}
+
+// https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies/resolve#ResolvedPolicy
+type ResolvedPolicy struct {
+	TargetKey      PolicyTargetKey `json:"targetKey,omitempty"`      // The target resource for which the resolved policy value applies.
+	Value          PolicyValue     `json:"value,omitempty"`          // The resolved value of the policy.
+	SourceKey      PolicyTargetKey `json:"sourceKey,omitempty"`      // The source resource from which this policy value is obtained.
+	AddedSourceKey PolicyTargetKey `json:"addedSourceKey,omitempty"` // The added source key for management level.
+}
+
+// https://developers.google.com/chrome/policy/reference/rest/v1/PolicyValue
+type PolicyValue struct {
+	PolicySchema string      `json:"policySchema,omitempty"` // The fully qualified name of the policy schema associated with this policy.
+	Value        interface{} `json:"value,omitempty"`        // The value of the policy that is compatible with the schema that it is associated with.
+}
+
+// https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas
+type PolicySchemas struct {
+	PolicySchemas []*PolicySchema `json:"policySchemas,omitempty"` // List of policy schemas.
+	NextPageToken string          `json:"nextPageToken,omitempty"` // Token for the next page of results.
+}
+
+// PolicySchema represents the schema of a policy.
+type PolicySchema struct {
+	Name                     string                          `json:"name,omitempty"`                     // Format: name=customers/{customer}/policySchemas/{schema_namespace}
+	PolicyDescription        string                          `json:"policyDescription,omitempty"`        // Output only. Description about the policy schema for user consumption.
+	AdditionalTargetKeyNames []AdditionalTargetKeyName       `json:"additionalTargetKeyNames,omitempty"` // Output only. Additional key names for identifying the target of the policy value.
+	Definition               FileDescriptorProto             `json:"definition,omitempty"`               // Schema definition using proto descriptor.
+	FieldDescriptions        []PolicySchemaFieldDescription  `json:"fieldDescriptions,omitempty"`        // Output only. Detailed description of each field in the schema.
+	AccessRestrictions       []string                        `json:"accessRestrictions,omitempty"`       // Output only. Specific access restrictions related to this policy.
+	Notices                  []PolicySchemaNoticeDescription `json:"notices,omitempty"`                  // Output only. Special notice messages related to setting values in certain fields.
+	SupportUri               string                          `json:"supportUri,omitempty"`               // Output only. URI to related support article for this schema.
+	SchemaName               string                          `json:"schemaName,omitempty"`               // Output only. Fully qualified name of the policy schema.
+	ValidTargetResources     []TargetResource                `json:"validTargetResources,omitempty"`     // Output only. Information about applicable target resources for the policy.
+	PolicyApiLifecycle       PolicyApiLifecycle              `json:"policyApiLifecycle,omitempty"`       // Output only. Current lifecycle information.
+	CategoryTitle            string                          `json:"categoryTitle,omitempty"`            // Title of the category in which a setting belongs.
+}
+
+// AdditionalTargetKeyName represents additional key names for identifying policy value targets.
+type AdditionalTargetKeyName struct {
+	Key            string `json:"key,omitempty"`            // Key name.
+	KeyDescription string `json:"keyDescription,omitempty"` // Key description.
+}
+
+// FileDescriptorProto describes a complete .proto file.
+type FileDescriptorProto struct {
+	Name        string            `json:"name,omitempty"`        // File name, relative to root of source tree.
+	Package     string            `json:"package,omitempty"`     // e.g. "foo", "foo.bar", etc.
+	MessageType []DescriptorProto `json:"messageType,omitempty"` // All top-level definitions in this file.
+	EnumType    []interface{}     `json:"enumType,omitempty"`    // Enum types defined in this file.
+	Syntax      string            `json:"syntax,omitempty"`      // The syntax of the proto file. "proto2", "proto3", or "editions".
+}
+
+// DescriptorProto describes a message type.
+type DescriptorProto struct {
+	Name       string                 `json:"name,omitempty"`       // Message type name.
+	Field      []FieldDescriptorProto `json:"field,omitempty"`      // Fields within this message type.
+	NestedType []DescriptorProto      `json:"nestedType,omitempty"` // Nested message types.
+	EnumType   []interface{}          `json:"enumType,omitempty"`   // Enum types within this message.
+	OneofDecl  []interface{}          `json:"oneofDecl,omitempty"`  // Oneof declarations.
+	// ... other fields as needed ...
+}
+
+// FieldDescriptorProto describes a field within a message.
+type FieldDescriptorProto struct {
+	Name           string `json:"name,omitempty"`           // Field name.
+	Number         int    `json:"number,omitempty"`         // Field number.
+	Label          string `json:"label,omitempty"`          // Field label. (enum)
+	Type           string `json:"type,omitempty"`           // Field type. (enum)
+	TypeName       string `json:"typeName,omitempty"`       // For message and enum types, this is the name of the type.
+	DefaultValue   string `json:"defaultValue,omitempty"`   // Default value for the field.
+	OneofIndex     int    `json:"oneofIndex,omitempty"`     // Index of a oneof in the containing type's oneofDecl list.
+	JsonName       string `json:"jsonName,omitempty"`       // JSON name of this field.
+	Proto3Optional bool   `json:"proto3Optional,omitempty"` // Indicates if this is a proto3 "optional".
+}
+
+// PolicySchemaFieldDescription represents a detailed description of a schema field.
+type PolicySchemaFieldDescription struct {
+	// Revisit this field: interface{} // https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas#PolicySchemaFieldDescription
+}
+
+// PolicySchemaNoticeDescription represents special notice messages related to schema fields.
+type PolicySchemaNoticeDescription struct {
+	// Revisit this field: interface{} // https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas#policyschemanoticedescription
+}
+
+// TargetResource represents applicable target resources for the policy.
+type TargetResource string // This is an enum, define enum values as constants.
+
+// PolicyApiLifecycle represents current lifecycle information of the policy API.
+type PolicyApiLifecycle struct {
+	// Revisit this field: interface{} https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas#policyapilifecycle
+}
+
+// END OF CHROME POLICY STRUCTS
+//----------------------------------------------------------------------
+
 // ### Enums
 // ---------------------------------------------------------------------
 // https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#event

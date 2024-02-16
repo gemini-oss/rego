@@ -32,8 +32,9 @@ func StructToMap(item interface{}) map[string]string {
 	out := make(map[string]string)
 
 	v := reflect.ValueOf(item)
-	if v.Kind() != reflect.Struct {
-		return nil
+	// Dereference pointer if necessary
+	for v.Kind() == reflect.Ptr && !v.IsNil() {
+		v = v.Elem()
 	}
 	typeOfItem := v.Type()
 

@@ -19,15 +19,15 @@ import (
 )
 
 var (
-	DriveBaseURL     = fmt.Sprintf("%s/drive/v3", BaseURL)
-	DriveAbout       = fmt.Sprintf("%s/about", DriveBaseURL)
-	DriveChanges     = fmt.Sprintf("%s/changes", DriveBaseURL)
-	DriveChannels    = fmt.Sprintf("%s/channels", DriveBaseURL)
-	DriveComments    = fmt.Sprintf("%s/comments", DriveBaseURL)
-	DriveFiles       = fmt.Sprintf("%s/files", DriveBaseURL)
-	DrivePermissions = fmt.Sprintf("%s/permissions", DriveBaseURL)
-	DriveReplies     = fmt.Sprintf("%s/replies", DriveBaseURL)
-	DriveRevisions   = fmt.Sprintf("%s/revisions", DriveBaseURL)
+	DriveBaseURL     = fmt.Sprintf("%s/drive/v3", BaseURL)         // https://developers.google.com/drive/api/v3/reference/
+	DriveAbout       = fmt.Sprintf("%s/about", DriveBaseURL)       // https://developers.google.com/drive/api/v3/reference/about
+	DriveChanges     = fmt.Sprintf("%s/changes", DriveBaseURL)     // https://developers.google.com/drive/api/v3/reference/changes
+	DriveChannels    = fmt.Sprintf("%s/channels", DriveBaseURL)    // https://developers.google.com/drive/api/v3/reference/channels
+	DriveComments    = fmt.Sprintf("%s/comments", DriveBaseURL)    // https://developers.google.com/drive/api/v3/reference/comments
+	DriveFiles       = fmt.Sprintf("%s/files", DriveBaseURL)       // https://developers.google.com/drive/api/v3/reference/files
+	DrivePermissions = fmt.Sprintf("%s/permissions", DriveBaseURL) // https://developers.google.com/drive/api/v3/reference/permissions
+	DriveReplies     = fmt.Sprintf("%s/replies", DriveBaseURL)     // https://developers.google.com/drive/api/v3/reference/replies
+	DriveRevisions   = fmt.Sprintf("%s/revisions", DriveBaseURL)   // https://developers.google.com/drive/api/v3/reference/revisions
 )
 
 /*

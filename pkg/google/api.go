@@ -2,7 +2,7 @@
 # Google Discovery API - Tests
 
 This package contains all of the allowed scopes for the Google Workspace API:
-https://developer.okta.com/docs/api/
+https://developers.google.com/
 
 :Copyright: (c) 2023 by Gemini Space Station, LLC, see AUTHORS for more info
 :License: See the LICENSE file for details
@@ -41,9 +41,9 @@ type DirectoryList struct {
 }
 
 type DirectoryItem struct {
-	Description       string `json:"description,omitempty"`       // "Lets you access information about other Google Workspace services"
-	DiscoveryRestUrl  string `json:"discoveryRestUrl,omitempty"`  // "https://www.googleapis.com/discovery/v1/apis/admin/directory_v1/rest"
-	DocumentationLink string `json:"documentationLink,omitempty"` // "https://developers.google.com/admin-sdk/directory/"
+	Description       string `json:"description,omitempty"`       // Lets you access information about other Google Workspace services"
+	DiscoveryRestUrl  string `json:"discoveryRestUrl,omitempty"`  // https://www.googleapis.com/discovery/v1/apis/admin/directory_v1/rest
+	DocumentationLink string `json:"documentationLink,omitempty"` // https://developers.google.com/admin-sdk/directory/
 	ID                string `json:"id,omitempty"`                // "admin:directory_v1"
 	Icons             Icon   `json:"icons,omitempty"`             // Icons for the API
 	Kind              string `json:"kind,omitempty"`              // "discovery#directoryItem"
@@ -114,8 +114,10 @@ func FetchDirectoryEndpoints() (*DirectoryList, *Endpoints, error) {
 	Endpoints := &Endpoints{}
 
 	for _, item := range googleAPIs.Items {
+		fmt.Println(item.DiscoveryRestUrl)
 		switch item.DiscoveryRestUrl {
 		case "https://realtimebidding.googleapis.com/$discovery/rest?version=v1alpha":
+		case "https://poly.googleapis.com/$discovery/rest?version=v1":
 		default:
 			resp, body, err := httpClient.DoRequest("GET", item.DiscoveryRestUrl, nil, nil)
 			if err != nil {
@@ -177,9 +179,11 @@ func ReadDiscoveryDirectory() (*DirectoryList, *Endpoints, error) {
 	Endpoints := &Endpoints{}
 
 	for _, item := range googleAPIs.Items {
+		fmt.Println(item.DiscoveryRestUrl)
 		switch item.DiscoveryRestUrl {
 		// Skip this API as it's not available
 		case "https://realtimebidding.googleapis.com/$discovery/rest?version=v1alpha":
+		case "https://poly.googleapis.com/$discovery/rest?version=v1":
 		default:
 			resp, body, err := httpClient.DoRequest("GET", item.DiscoveryRestUrl, nil, nil)
 			if err != nil {

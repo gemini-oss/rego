@@ -41,8 +41,8 @@ type Inventory struct {
 
 // Response structure for the Jamf Pro API for computers
 type Computers struct {
-	Results    []Computer `json:"results"`    // List of mobile devices.
-	TotalCount int        `json:"totalCount"` // Total number of mobile devices.
+	Results    []Computer `json:"results"`    // List of computers.
+	TotalCount int        `json:"totalCount"` // Total number of computers.
 }
 
 // Response structure for the Jamf Pro API for mobile devices

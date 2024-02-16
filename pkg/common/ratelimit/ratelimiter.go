@@ -46,6 +46,7 @@ func (rl *RateLimiter) Start() {
 	rl.Logger.Debug("Starting Rate Limiter")
 	go func() {
 		ticker := time.NewTicker(1 * time.Minute)
+		rl.ResetTimestamp = time.Now().Unix() + int64(time.Minute)
 		defer ticker.Stop()
 
 		for {
@@ -109,8 +110,8 @@ func (rl *RateLimiter) Wait() {
 
 		rl.mu.Unlock()
 
-		rl.Logger.Debugf("Waiting for %v (scaled wait) + %v (random increment)\n", scaledWait, randomIncrement)
-		rl.Logger.Println("Time left until reset: ", timeUntilReset, " Available: ", rl.Available, " Limit: ", rl.Limit, " ResetTimestamp: ", rl.ResetTimestamp, " RetryAfter: ", rl.RetryAfter, " UsesReset: ", rl.UsesReset, " UsesRetryAfter: ", rl.UsesRetryAfter)
+		rl.Logger.Tracef("Waiting for %v (scaled wait) + %v (random increment)\n", scaledWait, randomIncrement)
+		rl.Logger.Debug("Time left until reset: ", timeUntilReset, " Available: ", rl.Available)
 
 		// Sleep for the calculated duration.
 		time.Sleep(scaledWait + randomIncrement)
@@ -124,7 +125,7 @@ func (rl *RateLimiter) Stop() {
 
 func (rl *RateLimiter) UpdateFromHeaders(headers http.Header) {
 	// Log the start of the update process.
-	rl.Logger.Debug("Updating Rate Limiter from headers")
+	rl.Logger.Trace("Updating Rate Limiter from headers")
 
 	// Lock the RateLimiter to ensure thread-safe access to its fields.
 	rl.mu.Lock()
