@@ -32,32 +32,33 @@ pkg/common/requests/requests.go
 
 ```go
 const (
-    Atom              = "application/atom+xml"
-    CSS               = "text/css"
-    Excel             = "application/vnd.ms-excel"
-    FormURLEncoded    = "application/x-www-form-urlencoded"
-    GIF               = "image/gif"
-    HTML              = "text/html"
-    JPEG              = "image/jpeg"
-    JavaScript        = "text/javascript"
-    JSON              = "application/json"
-    MP3               = "audio/mpeg"
-    MP4               = "video/mp4"
-    MPEG              = "video/mpeg"
-    MultipartFormData = "multipart/form-data"
-    OctetStream       = "application/octet-stream"
-    PDF               = "application/pdf"
-    PNG               = "image/png"
-    Plain             = "text/plain"
-    RSS               = "application/rss+xml"
-    WAV               = "audio/wav"
-    XML               = "application/xml"
-    ZIP               = "application/zip"
+    Atom              = "application/atom+xml"              // RFC-4287 (https://www.rfc-editor.org/rfc/rfc4287.html)
+    CSS               = "text/css"                          // RFC-2318 (https://www.rfc-editor.org/rfc/rfc2318.html)
+    Excel             = "application/vnd.ms-excel"          // Proprietary
+    FormURLEncoded    = "application/x-www-form-urlencoded" // RFC-1866 (https://www.rfc-editor.org/rfc/rfc1866.html)
+    GIF               = "image/gif"                         // RFC-2046 (https://www.rfc-editor.org/rfc/rfc2046.html)
+    HTML              = "text/html"                         // RFC-2854 (https://www.rfc-editor.org/rfc/rfc2854.html)
+    JPEG              = "image/jpeg"                        // RFC-2045 (https://www.rfc-editor.org/rfc/rfc2045.html)
+    JavaScript        = "text/javascript"                   // RFC-9239 (https://www.rfc-editor.org/rfc/rfc9239.html)
+    JSON              = "application/json"                  // RFC-8259 (https://www.rfc-editor.org/rfc/rfc8259.html)
+    MP3               = "audio/mpeg"                        // RFC-3003 (https://www.rfc-editor.org/rfc/rfc3003.html)
+    MP4               = "video/mp4"                         // RFC-4337 (https://www.rfc-editor.org/rfc/rfc4337.html)
+    MPEG              = "video/mpeg"                        // RFC-4337 (https://www.rfc-editor.org/rfc/rfc4337.html)
+    MultipartFormData = "multipart/form-data"               // RFC-7578 (https://www.rfc-editor.org/rfc/rfc7578.html)
+    OctetStream       = "application/octet-stream"          // RFC-2046 (https://www.rfc-editor.org/rfc/rfc2046.html)
+    PDF               = "application/pdf"                   // RFC-3778 (https://www.rfc-editor.org/rfc/rfc3778.html)
+    PNG               = "image/png"                         // RFC-2083 (https://www.rfc-editor.org/rfc/rfc2083.html)
+    Plain             = "text/plain"                        // RFC-2046 (https://www.rfc-editor.org/rfc/rfc2046.html)
+    RSS               = "application/rss+xml"               // RFC-7303 (https://www.rfc-editor.org/rfc/rfc4287.html)
+    WAV               = "audio/wav"                         // RFC-2361 (https://www.rfc-editor.org/rfc/rfc2361.html)
+    XML               = "application/xml"                   // RFC-7303 (https://www.rfc-editor.org/rfc/rfc7303.html)
+    YAML              = "application/yaml"                  // RFC-9512 (https://www.rfc-editor.org/rfc/rfc9512.html)
+    ZIP               = "application/zip"                   // RFC-1951 (https://www.rfc-editor.org/rfc/rfc1951.html)
 )
 ```
 
 <a name="DecodeJSON"></a>
-## func [DecodeJSON](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L97>)
+## func [DecodeJSON](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L98>)
 
 ```go
 func DecodeJSON(body []byte, result interface{}) error
@@ -70,7 +71,7 @@ func DecodeJSON(body []byte, result interface{}) error
 - @return error
 
 <a name="SetFormURLEncodedPayload"></a>
-## func [SetFormURLEncodedPayload](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L146>)
+## func [SetFormURLEncodedPayload](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L156>)
 
 ```go
 func SetFormURLEncodedPayload(req *http.Request, data interface{}) error
@@ -79,7 +80,7 @@ func SetFormURLEncodedPayload(req *http.Request, data interface{}) error
 
 
 <a name="SetJSONPayload"></a>
-## func [SetJSONPayload](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L130>)
+## func [SetJSONPayload](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L140>)
 
 ```go
 func SetJSONPayload(req *http.Request, data interface{}) error
@@ -88,7 +89,7 @@ func SetJSONPayload(req *http.Request, data interface{}) error
 
 
 <a name="SetQueryParams"></a>
-## func [SetQueryParams](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L115>)
+## func [SetQueryParams](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L116>)
 
 ```go
 func SetQueryParams(req *http.Request, query interface{})
@@ -97,7 +98,7 @@ func SetQueryParams(req *http.Request, query interface{})
 
 
 <a name="Client"></a>
-## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L47-L51>)
+## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L48-L52>)
 
 \* Client
 
@@ -113,7 +114,7 @@ type Client struct {
 ```
 
 <a name="NewClient"></a>
-### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L58>)
+### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L59>)
 
 ```go
 func NewClient(c *http.Client, headers Headers, rateLimiter *rl.RateLimiter) *Client
@@ -125,7 +126,7 @@ func NewClient(c *http.Client, headers Headers, rateLimiter *rl.RateLimiter) *Cl
 - @return \*Client
 
 <a name="Client.CreateRequest"></a>
-### func \(\*Client\) [CreateRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L101>)
+### func \(\*Client\) [CreateRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L102>)
 
 ```go
 func (c *Client) CreateRequest(method string, url string) (*http.Request, error)
@@ -134,7 +135,7 @@ func (c *Client) CreateRequest(method string, url string) (*http.Request, error)
 
 
 <a name="Client.DoRequest"></a>
-### func \(\*Client\) [DoRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L164>)
+### func \(\*Client\) [DoRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L174>)
 
 ```go
 func (c *Client) DoRequest(method string, url string, query interface{}, data interface{}) (*http.Response, []byte, error)
@@ -143,7 +144,7 @@ func (c *Client) DoRequest(method string, url string, query interface{}, data in
 
 
 <a name="Client.PaginatedRequest"></a>
-### func \(\*Client\) [PaginatedRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L231>)
+### func \(\*Client\) [PaginatedRequest](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L249>)
 
 ```go
 func (c *Client) PaginatedRequest(method string, url string, query interface{}, payload interface{}) ([]json.RawMessage, error)
@@ -158,7 +159,7 @@ func (c *Client) PaginatedRequest(method string, url string, query interface{}, 
 - @return error
 
 <a name="Client.UpdateContentType"></a>
-### func \(\*Client\) [UpdateContentType](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L74>)
+### func \(\*Client\) [UpdateContentType](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L75>)
 
 ```go
 func (c *Client) UpdateContentType(contentType string)
@@ -176,7 +177,7 @@ type Headers map[string]string
 ```
 
 <a name="Paginator"></a>
-## type [Paginator](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L84-L89>)
+## type [Paginator](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L85-L90>)
 
 \* Paginator
 
@@ -194,7 +195,7 @@ type Paginator struct {
 ```
 
 <a name="Paginator.HasNextPage"></a>
-### func \(\*Paginator\) [HasNextPage](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L302>)
+### func \(\*Paginator\) [HasNextPage](<https://github.com/gemini-oss/rego/blob/main/pkg/common/requests/requests.go#L320>)
 
 ```go
 func (p *Paginator) HasNextPage(links []string) bool

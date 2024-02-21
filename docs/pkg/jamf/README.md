@@ -73,10 +73,12 @@ pkg/jamf/version.go
 - [type Printer](<#Printer>)
 - [type Purchasing](<#Purchasing>)
 - [type RemoteManagement](<#RemoteManagement>)
+- [type Sections](<#Sections>)
 - [type Security](<#Security>)
 - [type Service](<#Service>)
 - [type Site](<#Site>)
 - [type SoftwareUpdate](<#SoftwareUpdate>)
+- [type SortOptions](<#SortOptions>)
 - [type Storage](<#Storage>)
 - [type UDIDsNotProcessed](<#UDIDsNotProcessed>)
 - [type UserAndLocation](<#UserAndLocation>)
@@ -124,6 +126,66 @@ var (
 var (
     JamfProVersion = fmt.Sprintf("%s/jamf-pro-version", V1) // /api/v1/jamf-pro-version
 )
+```
+
+<a name="Section"></a>Section is an instance of the Sections struct, where we assign the constants.
+
+```go
+var Section = Sections{
+    General:               "GENERAL",
+    DiskEncryption:        "DISK_ENCRYPTION",
+    Purchasing:            "PURCHASING",
+    Applications:          "APPLICATIONS",
+    Storage:               "STORAGE",
+    UserAndLocation:       "USER_AND_LOCATION",
+    ConfigurationProfiles: "CONFIGURATION_PROFILES",
+    Printers:              "PRINTERS",
+    Services:              "SERVICES",
+    Hardware:              "HARDWARE",
+    LocalUserAccounts:     "LOCAL_USER_ACCOUNTS",
+    Certificates:          "CERTIFICATES",
+    Attachments:           "ATTACHMENTS",
+    Plugins:               "PLUGINS",
+    PackageReceipts:       "PACKAGE_RECEIPTS",
+    Fonts:                 "FONTS",
+    Security:              "SECURITY",
+    OperatingSystem:       "OPERATING_SYSTEM",
+    LicensedSoftware:      "LICENSED_SOFTWARE",
+    IBeacons:              "IBEACONS",
+    SoftwareUpdates:       "SOFTWARE_UPDATES",
+    ExtensionAttributes:   "EXTENSION_ATTRIBUTES",
+    ContentCaching:        "CONTENT_CACHING",
+    GroupMemberships:      "GROUP_MEMBERSHIPS",
+}
+```
+
+<a name="Sort"></a>Sort is an instance of the SortOptions struct, where we assign the constants.
+
+```go
+var Sort = SortOptions{
+    GeneralName:                          "general.name",
+    UDID:                                 "udid",
+    ID:                                   "id",
+    GeneralAssetTag:                      "general.assetTag",
+    GeneralJamfBinaryVersion:             "general.jamfBinaryVersion",
+    GeneralLastContactTime:               "general.lastContactTime",
+    GeneralLastEnrolledDate:              "general.lastEnrolledDate",
+    GeneralLastCloudBackupDate:           "general.lastCloudBackupDate",
+    GeneralReportDate:                    "general.reportDate",
+    GeneralRemoteManagementUsername:      "general.remoteManagement.managementUsername",
+    GeneralMDMCertificateExpiration:      "general.mdmCertificateExpiration",
+    GeneralPlatform:                      "general.platform",
+    HardwareMake:                         "hardware.make",
+    HardwareModel:                        "hardware.model",
+    OperatingSystemBuild:                 "operatingSystem.build",
+    OperatingSystemSupplementalBuild:     "operatingSystem.supplementalBuildVersion",
+    OperatingSystemRapidSecurityResponse: "operatingSystem.rapidSecurityResponse",
+    OperatingSystemName:                  "operatingSystem.name",
+    OperatingSystemVersion:               "operatingSystem.version",
+    UserAndLocationRealname:              "userAndLocation.realname",
+    PurchasingLifeExpectancy:             "purchasing.lifeExpectancy",
+    PurchasingWarrantyDate:               "purchasing.warrantyDate",
+}
 ```
 
 <a name="Application"></a>
@@ -252,7 +314,7 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string
 BuildURL builds a URL for a given resource and identifiers.
 
 <a name="Client.GetComputerDetails"></a>
-### func \(\*Client\) [GetComputerDetails](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L198>)
+### func \(\*Client\) [GetComputerDetails](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L203>)
 
 ```go
 func (c *Client) GetComputerDetails(id string) (*Computer, error)
@@ -276,7 +338,7 @@ func (c *Client) GetJamfVersion() (string, error)
 - \- https://developer.jamf.com/jamf-pro/reference/get_v1-jamf-pro-version
 
 <a name="Client.ListAllComputerGroups"></a>
-### func \(\*Client\) [ListAllComputerGroups](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L222>)
+### func \(\*Client\) [ListAllComputerGroups](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L227>)
 
 ```go
 func (c *Client) ListAllComputerGroups() (*[]GroupMembership, error)
@@ -300,7 +362,7 @@ func (c *Client) ListAllComputers() (*Computers, error)
 - \- https://developer.jamf.com/jamf-pro/reference/get_v1-computers-inventory
 
 <a name="Client.ListAllMobileDevices"></a>
-### func \(\*Client\) [ListAllMobileDevices](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L246>)
+### func \(\*Client\) [ListAllMobileDevices](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L251>)
 
 ```go
 func (c *Client) ListAllMobileDevices() (*MobileDevices, error)
@@ -342,31 +404,31 @@ Computer represents the details of a computer.
 
 ```go
 type Computer struct {
-    Applications          []Application          `json:"applications,omitempty"`          // List of applications installed on the computer.
-    Attachments           []Attachment           `json:"attachments,omitempty"`           // List of attachments.
-    Certificates          []Certificate          `json:"certificates,omitempty"`          // List of certificates installed on the computer.
-    ConfigurationProfiles []ConfigurationProfile `json:"configurationProfiles,omitempty"` // List of configuration profiles applied to the computer.
-    ContentCaching        ContentCaching         `json:"contentCaching,omitempty"`        // Content caching details.
-    DiskEncryption        DiskEncryption         `json:"diskEncryption,omitempty"`        // Disk encryption details.
-    Fonts                 []Font                 `json:"fonts,omitempty"`                 // List of fonts installed on the computer.
-    General               General                `json:"general,omitempty"`               // General information about the computer.
-    GroupMemberships      []GroupMembership      `json:"groupMemberships,omitempty"`      // List of group memberships.
-    Hardware              Hardware               `json:"hardware,omitempty"`              // Hardware details of the computer.
-    IBeacons              []IBeacon              `json:"ibeacons,omitempty"`              // iBeacons associated with the computer.
-    ID                    string                 `json:"id"`                              // Unique identifier for the computer.
-    LicensedSoftware      []LicensedSoftware     `json:"licensedSoftware,omitempty"`      // List of licensed software.
-    LocalUserAccounts     []LocalUserAccount     `json:"localUserAccounts,omitempty"`     // List of local user accounts on the computer.
-    OperatingSystem       OperatingSystem        `json:"operatingSystem,omitempty"`       // Operating system details.
-    PackageReceipts       PackageReceipts        `json:"packageReceipts,omitempty"`       // Information about package receipts.
-    Plugins               []Plugin               `json:"plugins,omitempty"`               // List of plugins installed on the computer.
-    Printers              []Printer              `json:"printers,omitempty"`              // List of printers configured on the computer.
-    Purchasing            Purchasing             `json:"purchasing,omitempty"`            // Purchasing information.
-    Security              Security               `json:"security,omitempty"`              // Security settings and information.
-    Services              []Service              `json:"services,omitempty"`              // List of services on the computer.
-    SoftwareUpdates       []SoftwareUpdate       `json:"softwareUpdates,omitempty"`       // List of software updates.
-    Storage               Storage                `json:"storage,omitempty"`               // Storage details.
-    UDID                  string                 `json:"udid"`                            // Unique Device Identifier.
-    UserAndLocation       UserAndLocation        `json:"userAndLocation,omitempty"`       // User and location information.
+    Applications          *[]*Application          `json:"applications,omitempty"`          // List of applications installed on the computer.
+    Attachments           *[]*Attachment           `json:"attachments,omitempty"`           // List of attachments.
+    Certificates          *[]*Certificate          `json:"certificates,omitempty"`          // List of certificates installed on the computer.
+    ConfigurationProfiles *[]*ConfigurationProfile `json:"configurationProfiles,omitempty"` // List of configuration profiles applied to the computer.
+    ContentCaching        *ContentCaching          `json:"contentCaching,omitempty"`        // Content caching details.
+    DiskEncryption        *DiskEncryption          `json:"diskEncryption,omitempty"`        // Disk encryption details.
+    Fonts                 *[]*Font                 `json:"fonts,omitempty"`                 // List of fonts installed on the computer.
+    General               *General                 `json:"general,omitempty"`               // General information about the computer.
+    GroupMemberships      *[]*GroupMembership      `json:"groupMemberships,omitempty"`      // List of group memberships.
+    Hardware              *Hardware                `json:"hardware,omitempty"`              // Hardware details of the computer.
+    IBeacons              *[]*IBeacon              `json:"ibeacons,omitempty"`              // iBeacons associated with the computer.
+    ID                    string                   `json:"id"`                              // Unique identifier for the computer.
+    LicensedSoftware      *[]*LicensedSoftware     `json:"licensedSoftware,omitempty"`      // List of licensed software.
+    LocalUserAccounts     *[]*LocalUserAccount     `json:"localUserAccounts,omitempty"`     // List of local user accounts on the computer.
+    OperatingSystem       *OperatingSystem         `json:"operatingSystem,omitempty"`       // Operating system details.
+    PackageReceipts       *PackageReceipts         `json:"packageReceipts,omitempty"`       // Information about package receipts.
+    Plugins               *[]*Plugin               `json:"plugins,omitempty"`               // List of plugins installed on the computer.
+    Printers              *[]*Printer              `json:"printers,omitempty"`              // List of printers configured on the computer.
+    Purchasing            *Purchasing              `json:"purchasing,omitempty"`            // Purchasing information.
+    Security              *Security                `json:"security,omitempty"`              // Security settings and information.
+    Services              *[]*Service              `json:"services,omitempty"`              // List of services on the computer.
+    SoftwareUpdates       *[]*SoftwareUpdate       `json:"softwareUpdates,omitempty"`       // List of software updates.
+    Storage               *Storage                 `json:"storage,omitempty"`               // Storage details.
+    UDID                  string                   `json:"udid"`                            // Unique Device Identifier.
+    UserAndLocation       *UserAndLocation         `json:"userAndLocation,omitempty"`       // User and location information.
 }
 ```
 
@@ -377,8 +439,8 @@ Response structure for the Jamf Pro API for computers
 
 ```go
 type Computers struct {
-    Results    []Computer `json:"results"`    // List of computers.
-    TotalCount int        `json:"totalCount"` // Total number of computers.
+    Results    *[]*Computer `json:"results"`    // List of computers.
+    TotalCount int          `json:"totalCount"` // Total number of computers.
 }
 ```
 
@@ -500,15 +562,15 @@ type DataMigrationInfo struct {
   
   Sort by the unique device identifier in descending order and then by name in ascending order sort=udid:desc,general.name:asc
   
-  Filter results where the general name is "Orchard" filter=general.name=="Orchard"
+  RSQL Filter results where the general name is "Orchard" filter=general.name=="Orchard"
 
 ```go
 type DeviceQuery struct {
-    Sections []string `json:"section,omitempty"`   // Sections of computer details to return. If not specified, the General section data is returned. Multiple sections can be specified, e.g., section=GENERAL&section=HARDWARE.
-    Page     int      `json:"page,omitempty"`      // The pagination index (starting from 0) for the query results.
-    PageSize int      `json:"page-size,omitempty"` // The number of records per page. Default is 100.
-    Sort     []string `json:"sort,omitempty"`      // Sorting criteria in the format: property:asc/desc. Default sort is general.name:asc. Multiple criteria can be specified and separated by a comma.
-    Filter   string   `json:"filter,omitempty"`    // RSQL query string used for filtering the computer inventory collection. The default filter is an empty query, returning all results for the requested page.
+    Sections []string `url:"section,omitempty"`   // Sections of computer details to return. If not specified, the General section data is returned. Multiple sections can be specified, e.g., section=GENERAL&section=HARDWARE.
+    Page     int      `url:"page,omitempty"`      // The pagination index (starting from 0) for the query results.
+    PageSize int      `url:"page-size,omitempty"` // The number of records per page. Default is 100.
+    Sort     []string `url:"sort,omitempty"`      // Sorting criteria in the format: property:asc/desc. Default sort is general.name:asc. Multiple criteria can be specified and separated by a comma.
+    Filter   string   `url:"filter,omitempty"`    // RSQL query string used for filtering the computer inventory collection. The default filter is an empty query, returning all results for the requested page.
 }
 ```
 
@@ -847,8 +909,8 @@ Response structure for the Jamf Pro API for mobile devices
 
 ```go
 type MobileDevices struct {
-    Results    []MobileDevice `json:"results"`    // List of mobile devices.
-    TotalCount int            `json:"totalCount"` // Total number of mobile devices.
+    Results    *[]*MobileDevice `json:"results"`    // List of mobile devices.
+    TotalCount int              `json:"totalCount"` // Total number of mobile devices.
 }
 ```
 
@@ -964,6 +1026,40 @@ type RemoteManagement struct {
 }
 ```
 
+<a name="Sections"></a>
+## type [Sections](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L529-L554>)
+
+\#\#\# Enums \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- Inteded for Device Query parameters, \`Sections\` serves as a namespace for valid Computer Detail section constants.
+
+```go
+type Sections struct {
+    General               string
+    DiskEncryption        string
+    Purchasing            string
+    Applications          string
+    Storage               string
+    UserAndLocation       string
+    ConfigurationProfiles string
+    Printers              string
+    Services              string
+    Hardware              string
+    LocalUserAccounts     string
+    Certificates          string
+    Attachments           string
+    Plugins               string
+    PackageReceipts       string
+    Fonts                 string
+    Security              string
+    OperatingSystem       string
+    LicensedSoftware      string
+    IBeacons              string
+    SoftwareUpdates       string
+    ExtensionAttributes   string
+    ContentCaching        string
+    GroupMemberships      string
+}
+```
+
 <a name="Security"></a>
 ## type [Security](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L436-L448>)
 
@@ -1018,6 +1114,38 @@ type SoftwareUpdate struct {
     Name        string `json:"name,omitempty"`        // Name of the software update.
     PackageName string `json:"packageName,omitempty"` // Package name of the software update.
     Version     string `json:"version,omitempty"`     // Version of the software update.
+}
+```
+
+<a name="SortOptions"></a>
+## type [SortOptions](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L585-L608>)
+
+Inteded for Device Query parameters, \`SortOptions serves as a namespace for valid sort criteria constants.
+
+```go
+type SortOptions struct {
+    GeneralName                          string
+    UDID                                 string
+    ID                                   string
+    GeneralAssetTag                      string
+    GeneralJamfBinaryVersion             string
+    GeneralLastContactTime               string
+    GeneralLastEnrolledDate              string
+    GeneralLastCloudBackupDate           string
+    GeneralReportDate                    string
+    GeneralRemoteManagementUsername      string
+    GeneralMDMCertificateExpiration      string
+    GeneralPlatform                      string
+    HardwareMake                         string
+    HardwareModel                        string
+    OperatingSystemBuild                 string
+    OperatingSystemSupplementalBuild     string
+    OperatingSystemRapidSecurityResponse string
+    OperatingSystemName                  string
+    OperatingSystemVersion               string
+    UserAndLocationRealname              string
+    PurchasingLifeExpectancy             string
+    PurchasingWarrantyDate               string
 }
 ```
 

@@ -173,6 +173,14 @@ func SetFormURLEncodedPayload(req *http.Request, data interface{}) error {
 
 func (c *Client) DoRequest(method string, url string, query interface{}, data interface{}) (*http.Response, []byte, error) {
 
+	// Validate HTTP method
+	switch method {
+	case "GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "PATCH":
+		// Valid method, proceed with request
+	default:
+		return nil, nil, fmt.Errorf("invalid HTTP method: %s", method)
+	}
+
 	if c.RateLimiter != nil {
 		c.RateLimiter.Wait()
 	}
