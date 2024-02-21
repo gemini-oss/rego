@@ -39,15 +39,15 @@ var (
     Sort by the unique device identifier in descending order and then by name in ascending order
     sort=udid:desc,general.name:asc
 
-    Filter results where the general name is "Orchard"
+    RSQL Filter results where the general name is "Orchard"
     filter=general.name=="Orchard"
 */
 type DeviceQuery struct {
-	Sections []string `json:"section,omitempty"`   // Sections of computer details to return. If not specified, the General section data is returned. Multiple sections can be specified, e.g., section=GENERAL&section=HARDWARE.
-	Page     int      `json:"page,omitempty"`      // The pagination index (starting from 0) for the query results.
-	PageSize int      `json:"page-size,omitempty"` // The number of records per page. Default is 100.
-	Sort     []string `json:"sort,omitempty"`      // Sorting criteria in the format: property:asc/desc. Default sort is general.name:asc. Multiple criteria can be specified and separated by a comma.
-	Filter   string   `json:"filter,omitempty"`    // RSQL query string used for filtering the computer inventory collection. The default filter is an empty query, returning all results for the requested page.
+	Sections []string `url:"section,omitempty"`   // Sections of computer details to return. If not specified, the General section data is returned. Multiple sections can be specified, e.g., section=GENERAL&section=HARDWARE.
+	Page     int      `url:"page,omitempty"`      // The pagination index (starting from 0) for the query results.
+	PageSize int      `url:"page-size,omitempty"` // The number of records per page. Default is 100.
+	Sort     []string `url:"sort,omitempty"`      // Sorting criteria in the format: property:asc/desc. Default sort is general.name:asc. Multiple criteria can be specified and separated by a comma.
+	Filter   string   `url:"filter,omitempty"`    // RSQL query string used for filtering the computer inventory collection. The default filter is an empty query, returning all results for the requested page.
 }
 
 /*
@@ -96,7 +96,12 @@ func (d *DeviceQuery) ValidateQuery() error {
 func (c *Client) ListAllComputers() (*Computers, error) {
 	allDevices := &Computers{}
 
-	q := DeviceQuery{
+	q := &DeviceQuery{
+		Sections: []string{
+			Section.General,
+			Section.Hardware,
+			Section.UserAndLocation,
+		},
 		Page:     0,
 		PageSize: 100,
 	}
@@ -164,7 +169,7 @@ func (c *Client) ListAllComputers() (*Computers, error) {
 			newPage[fmt.Sprint(q.Page)] = page
 			devicesCh <- newPage
 			<-sem // release one semaphore resource
-		}(q) // Pass the query to the goroutine
+		}(*q) // Pass the query to the goroutine
 	}
 
 	// Wait for all goroutines to finish and close channels
@@ -177,7 +182,7 @@ func (c *Client) ListAllComputers() (*Computers, error) {
 	// Collect devices from all pages
 	for deviceRecords := range devicesCh {
 		for _, results := range deviceRecords {
-			allDevices.Results = append(allDevices.Results, results.Results...)
+			*allDevices.Results = append(*allDevices.Results, *results.Results...)
 		}
 	}
 
@@ -327,7 +332,7 @@ func (c *Client) ListAllMobileDevices() (*MobileDevices, error) {
 	// Collect devices from all pages
 	for deviceRecords := range devicesCh {
 		for _, results := range deviceRecords {
-			allDevices.Results = append(allDevices.Results, results.Results...)
+			*allDevices.Results = append(*allDevices.Results, *results.Results...)
 		}
 	}
 

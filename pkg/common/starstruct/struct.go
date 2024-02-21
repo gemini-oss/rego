@@ -45,7 +45,17 @@ func StructToMap(item interface{}) map[string]string {
 			continue
 		}
 
-		fieldStr := fmt.Sprintf("%v", field.Interface())
+		var fieldStr string
+		if field.Kind() == reflect.Slice && field.Type().Elem().Kind() == reflect.String {
+			// Handle slice of strings
+			var sliceElements []string
+			for j := 0; j < field.Len(); j++ {
+				sliceElements = append(sliceElements, field.Index(j).Interface().(string))
+			}
+			fieldStr = strings.Join(sliceElements, " ")
+		} else {
+			fieldStr = fmt.Sprintf("%v", field.Interface())
+		}
 
 		// Try getting the "json" tag, then the "url" tag, and finally the "xml" tag
 		tag := typeOfItem.Field(i).Tag.Get("json")

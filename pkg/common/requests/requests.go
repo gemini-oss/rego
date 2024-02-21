@@ -16,27 +16,28 @@ import (
 type Headers map[string]string
 
 const (
-	Atom              = "application/atom+xml"
-	CSS               = "text/css"
-	Excel             = "application/vnd.ms-excel"
-	FormURLEncoded    = "application/x-www-form-urlencoded"
-	GIF               = "image/gif"
-	HTML              = "text/html"
-	JPEG              = "image/jpeg"
-	JavaScript        = "text/javascript"
-	JSON              = "application/json"
-	MP3               = "audio/mpeg"
-	MP4               = "video/mp4"
-	MPEG              = "video/mpeg"
-	MultipartFormData = "multipart/form-data"
-	OctetStream       = "application/octet-stream"
-	PDF               = "application/pdf"
-	PNG               = "image/png"
-	Plain             = "text/plain"
-	RSS               = "application/rss+xml"
-	WAV               = "audio/wav"
-	XML               = "application/xml"
-	ZIP               = "application/zip"
+	Atom              = "application/atom+xml"              // RFC-4287 (https://www.rfc-editor.org/rfc/rfc4287.html)
+	CSS               = "text/css"                          // RFC-2318 (https://www.rfc-editor.org/rfc/rfc2318.html)
+	Excel             = "application/vnd.ms-excel"          // Proprietary
+	FormURLEncoded    = "application/x-www-form-urlencoded" // RFC-1866 (https://www.rfc-editor.org/rfc/rfc1866.html)
+	GIF               = "image/gif"                         // RFC-2046 (https://www.rfc-editor.org/rfc/rfc2046.html)
+	HTML              = "text/html"                         // RFC-2854 (https://www.rfc-editor.org/rfc/rfc2854.html)
+	JPEG              = "image/jpeg"                        // RFC-2045 (https://www.rfc-editor.org/rfc/rfc2045.html)
+	JavaScript        = "text/javascript"                   // RFC-9239 (https://www.rfc-editor.org/rfc/rfc9239.html)
+	JSON              = "application/json"                  // RFC-8259 (https://www.rfc-editor.org/rfc/rfc8259.html)
+	MP3               = "audio/mpeg"                        // RFC-3003 (https://www.rfc-editor.org/rfc/rfc3003.html)
+	MP4               = "video/mp4"                         // RFC-4337 (https://www.rfc-editor.org/rfc/rfc4337.html)
+	MPEG              = "video/mpeg"                        // RFC-4337 (https://www.rfc-editor.org/rfc/rfc4337.html)
+	MultipartFormData = "multipart/form-data"               // RFC-7578 (https://www.rfc-editor.org/rfc/rfc7578.html)
+	OctetStream       = "application/octet-stream"          // RFC-2046 (https://www.rfc-editor.org/rfc/rfc2046.html)
+	PDF               = "application/pdf"                   // RFC-3778 (https://www.rfc-editor.org/rfc/rfc3778.html)
+	PNG               = "image/png"                         // RFC-2083 (https://www.rfc-editor.org/rfc/rfc2083.html)
+	Plain             = "text/plain"                        // RFC-2046 (https://www.rfc-editor.org/rfc/rfc2046.html)
+	RSS               = "application/rss+xml"               // RFC-7303 (https://www.rfc-editor.org/rfc/rfc4287.html)
+	WAV               = "audio/wav"                         // RFC-2361 (https://www.rfc-editor.org/rfc/rfc2361.html)
+	XML               = "application/xml"                   // RFC-7303 (https://www.rfc-editor.org/rfc/rfc7303.html)
+	YAML              = "application/yaml"                  // RFC-9512 (https://www.rfc-editor.org/rfc/rfc9512.html)
+	ZIP               = "application/zip"                   // RFC-1951 (https://www.rfc-editor.org/rfc/rfc1951.html)
 )
 
 /*
@@ -121,7 +122,16 @@ func SetQueryParams(req *http.Request, query interface{}) {
 	parameters := ss.StructToMap(query)
 
 	for key, value := range parameters {
-		q.Add(key, value)
+		// Check if the value for current key contains a space -- indicating multiple query parameters for a field
+		if strings.Contains(value, " ") {
+			// Split the value into multiple parameters
+			params := strings.Split(value, " ")
+			for _, value := range params {
+				q.Add(key, value)
+			}
+		} else {
+			q.Add(key, value)
+		}
 	}
 
 	req.URL.RawQuery = q.Encode()

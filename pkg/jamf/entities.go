@@ -41,14 +41,14 @@ type Inventory struct {
 
 // Response structure for the Jamf Pro API for computers
 type Computers struct {
-	Results    []Computer `json:"results"`    // List of computers.
-	TotalCount int        `json:"totalCount"` // Total number of computers.
+	Results    *[]*Computer `json:"results"`    // List of computers.
+	TotalCount int          `json:"totalCount"` // Total number of computers.
 }
 
 // Response structure for the Jamf Pro API for mobile devices
 type MobileDevices struct {
-	Results    []MobileDevice `json:"results"`    // List of mobile devices.
-	TotalCount int            `json:"totalCount"` // Total number of mobile devices.
+	Results    *[]*MobileDevice `json:"results"`    // List of mobile devices.
+	TotalCount int              `json:"totalCount"` // Total number of mobile devices.
 }
 
 // MobileDevice represents the details of a mobile device.
@@ -69,31 +69,31 @@ type MobileDevice struct {
 
 // Computer represents the details of a computer.
 type Computer struct {
-	Applications          []Application          `json:"applications,omitempty"`          // List of applications installed on the computer.
-	Attachments           []Attachment           `json:"attachments,omitempty"`           // List of attachments.
-	Certificates          []Certificate          `json:"certificates,omitempty"`          // List of certificates installed on the computer.
-	ConfigurationProfiles []ConfigurationProfile `json:"configurationProfiles,omitempty"` // List of configuration profiles applied to the computer.
-	ContentCaching        ContentCaching         `json:"contentCaching,omitempty"`        // Content caching details.
-	DiskEncryption        DiskEncryption         `json:"diskEncryption,omitempty"`        // Disk encryption details.
-	Fonts                 []Font                 `json:"fonts,omitempty"`                 // List of fonts installed on the computer.
-	General               General                `json:"general,omitempty"`               // General information about the computer.
-	GroupMemberships      []GroupMembership      `json:"groupMemberships,omitempty"`      // List of group memberships.
-	Hardware              Hardware               `json:"hardware,omitempty"`              // Hardware details of the computer.
-	IBeacons              []IBeacon              `json:"ibeacons,omitempty"`              // iBeacons associated with the computer.
-	ID                    string                 `json:"id"`                              // Unique identifier for the computer.
-	LicensedSoftware      []LicensedSoftware     `json:"licensedSoftware,omitempty"`      // List of licensed software.
-	LocalUserAccounts     []LocalUserAccount     `json:"localUserAccounts,omitempty"`     // List of local user accounts on the computer.
-	OperatingSystem       OperatingSystem        `json:"operatingSystem,omitempty"`       // Operating system details.
-	PackageReceipts       PackageReceipts        `json:"packageReceipts,omitempty"`       // Information about package receipts.
-	Plugins               []Plugin               `json:"plugins,omitempty"`               // List of plugins installed on the computer.
-	Printers              []Printer              `json:"printers,omitempty"`              // List of printers configured on the computer.
-	Purchasing            Purchasing             `json:"purchasing,omitempty"`            // Purchasing information.
-	Security              Security               `json:"security,omitempty"`              // Security settings and information.
-	Services              []Service              `json:"services,omitempty"`              // List of services on the computer.
-	SoftwareUpdates       []SoftwareUpdate       `json:"softwareUpdates,omitempty"`       // List of software updates.
-	Storage               Storage                `json:"storage,omitempty"`               // Storage details.
-	UDID                  string                 `json:"udid"`                            // Unique Device Identifier.
-	UserAndLocation       UserAndLocation        `json:"userAndLocation,omitempty"`       // User and location information.
+	Applications          *[]*Application          `json:"applications,omitempty"`          // List of applications installed on the computer.
+	Attachments           *[]*Attachment           `json:"attachments,omitempty"`           // List of attachments.
+	Certificates          *[]*Certificate          `json:"certificates,omitempty"`          // List of certificates installed on the computer.
+	ConfigurationProfiles *[]*ConfigurationProfile `json:"configurationProfiles,omitempty"` // List of configuration profiles applied to the computer.
+	ContentCaching        *ContentCaching          `json:"contentCaching,omitempty"`        // Content caching details.
+	DiskEncryption        *DiskEncryption          `json:"diskEncryption,omitempty"`        // Disk encryption details.
+	Fonts                 *[]*Font                 `json:"fonts,omitempty"`                 // List of fonts installed on the computer.
+	General               *General                 `json:"general,omitempty"`               // General information about the computer.
+	GroupMemberships      *[]*GroupMembership      `json:"groupMemberships,omitempty"`      // List of group memberships.
+	Hardware              *Hardware                `json:"hardware,omitempty"`              // Hardware details of the computer.
+	IBeacons              *[]*IBeacon              `json:"ibeacons,omitempty"`              // iBeacons associated with the computer.
+	ID                    string                   `json:"id"`                              // Unique identifier for the computer.
+	LicensedSoftware      *[]*LicensedSoftware     `json:"licensedSoftware,omitempty"`      // List of licensed software.
+	LocalUserAccounts     *[]*LocalUserAccount     `json:"localUserAccounts,omitempty"`     // List of local user accounts on the computer.
+	OperatingSystem       *OperatingSystem         `json:"operatingSystem,omitempty"`       // Operating system details.
+	PackageReceipts       *PackageReceipts         `json:"packageReceipts,omitempty"`       // Information about package receipts.
+	Plugins               *[]*Plugin               `json:"plugins,omitempty"`               // List of plugins installed on the computer.
+	Printers              *[]*Printer              `json:"printers,omitempty"`              // List of printers configured on the computer.
+	Purchasing            *Purchasing              `json:"purchasing,omitempty"`            // Purchasing information.
+	Security              *Security                `json:"security,omitempty"`              // Security settings and information.
+	Services              *[]*Service              `json:"services,omitempty"`              // List of services on the computer.
+	SoftwareUpdates       *[]*SoftwareUpdate       `json:"softwareUpdates,omitempty"`       // List of software updates.
+	Storage               *Storage                 `json:"storage,omitempty"`               // Storage details.
+	UDID                  string                   `json:"udid"`                            // Unique Device Identifier.
+	UserAndLocation       *UserAndLocation         `json:"userAndLocation,omitempty"`       // User and location information.
 }
 
 // Application represents the details of an application installed on the computer.
@@ -522,3 +522,113 @@ type UDIDsNotProcessed struct {
 
 // END OF JAMF MANAGEMENT STRUCTS
 //---------------------------------------------------------------------
+
+// ### Enums
+// --------------------------------------------------------------------
+// Inteded for Device Query parameters, `Sections` serves as a namespace for valid Computer Detail section constants.
+type Sections struct {
+	General               string
+	DiskEncryption        string
+	Purchasing            string
+	Applications          string
+	Storage               string
+	UserAndLocation       string
+	ConfigurationProfiles string
+	Printers              string
+	Services              string
+	Hardware              string
+	LocalUserAccounts     string
+	Certificates          string
+	Attachments           string
+	Plugins               string
+	PackageReceipts       string
+	Fonts                 string
+	Security              string
+	OperatingSystem       string
+	LicensedSoftware      string
+	IBeacons              string
+	SoftwareUpdates       string
+	ExtensionAttributes   string
+	ContentCaching        string
+	GroupMemberships      string
+}
+
+// Section is an instance of the Sections struct, where we assign the constants.
+var Section = Sections{
+	General:               "GENERAL",
+	DiskEncryption:        "DISK_ENCRYPTION",
+	Purchasing:            "PURCHASING",
+	Applications:          "APPLICATIONS",
+	Storage:               "STORAGE",
+	UserAndLocation:       "USER_AND_LOCATION",
+	ConfigurationProfiles: "CONFIGURATION_PROFILES",
+	Printers:              "PRINTERS",
+	Services:              "SERVICES",
+	Hardware:              "HARDWARE",
+	LocalUserAccounts:     "LOCAL_USER_ACCOUNTS",
+	Certificates:          "CERTIFICATES",
+	Attachments:           "ATTACHMENTS",
+	Plugins:               "PLUGINS",
+	PackageReceipts:       "PACKAGE_RECEIPTS",
+	Fonts:                 "FONTS",
+	Security:              "SECURITY",
+	OperatingSystem:       "OPERATING_SYSTEM",
+	LicensedSoftware:      "LICENSED_SOFTWARE",
+	IBeacons:              "IBEACONS",
+	SoftwareUpdates:       "SOFTWARE_UPDATES",
+	ExtensionAttributes:   "EXTENSION_ATTRIBUTES",
+	ContentCaching:        "CONTENT_CACHING",
+	GroupMemberships:      "GROUP_MEMBERSHIPS",
+}
+
+// Inteded for Device Query parameters, `SortOptions serves as a namespace for valid sort criteria constants.
+type SortOptions struct {
+	GeneralName                          string
+	UDID                                 string
+	ID                                   string
+	GeneralAssetTag                      string
+	GeneralJamfBinaryVersion             string
+	GeneralLastContactTime               string
+	GeneralLastEnrolledDate              string
+	GeneralLastCloudBackupDate           string
+	GeneralReportDate                    string
+	GeneralRemoteManagementUsername      string
+	GeneralMDMCertificateExpiration      string
+	GeneralPlatform                      string
+	HardwareMake                         string
+	HardwareModel                        string
+	OperatingSystemBuild                 string
+	OperatingSystemSupplementalBuild     string
+	OperatingSystemRapidSecurityResponse string
+	OperatingSystemName                  string
+	OperatingSystemVersion               string
+	UserAndLocationRealname              string
+	PurchasingLifeExpectancy             string
+	PurchasingWarrantyDate               string
+}
+
+// Sort is an instance of the SortOptions struct, where we assign the constants.
+var Sort = SortOptions{
+	GeneralName:                          "general.name",
+	UDID:                                 "udid",
+	ID:                                   "id",
+	GeneralAssetTag:                      "general.assetTag",
+	GeneralJamfBinaryVersion:             "general.jamfBinaryVersion",
+	GeneralLastContactTime:               "general.lastContactTime",
+	GeneralLastEnrolledDate:              "general.lastEnrolledDate",
+	GeneralLastCloudBackupDate:           "general.lastCloudBackupDate",
+	GeneralReportDate:                    "general.reportDate",
+	GeneralRemoteManagementUsername:      "general.remoteManagement.managementUsername",
+	GeneralMDMCertificateExpiration:      "general.mdmCertificateExpiration",
+	GeneralPlatform:                      "general.platform",
+	HardwareMake:                         "hardware.make",
+	HardwareModel:                        "hardware.model",
+	OperatingSystemBuild:                 "operatingSystem.build",
+	OperatingSystemSupplementalBuild:     "operatingSystem.supplementalBuildVersion",
+	OperatingSystemRapidSecurityResponse: "operatingSystem.rapidSecurityResponse",
+	OperatingSystemName:                  "operatingSystem.name",
+	OperatingSystemVersion:               "operatingSystem.version",
+	UserAndLocationRealname:              "userAndLocation.realname",
+	PurchasingLifeExpectancy:             "purchasing.lifeExpectancy",
+	PurchasingWarrantyDate:               "purchasing.warrantyDate",
+}
