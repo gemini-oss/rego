@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+	"time"
 )
 
 var (
@@ -249,14 +250,25 @@ func (c *Client) ListAllComputerGroups() (*[]GroupMembership, error) {
  * - https://developer.jamf.com/jamf-pro/reference/get_v2-mobile-devices
  */
 func (c *Client) ListAllMobileDevices() (*MobileDevices, error) {
+	url := c.BuildURL(MobileDev)
+	if c.Cache.Use {
+		if data, found := c.Cache.Get(url); found {
+			var cachedDevices MobileDevices
+			if err := json.Unmarshal(data, &cachedDevices); err == nil {
+				c.Logger.Debug("Cached Body:", string(data))
+				return &cachedDevices, nil
+			}
+			// Handle or log error if unmarshalling fails
+		}
+	}
+
 	allDevices := &MobileDevices{}
 
-	q := DeviceQuery{
+	q := &DeviceQuery{
 		Page:     0,
 		PageSize: 100,
 	}
 
-	url := c.BuildURL(MobileDev)
 	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
@@ -278,6 +290,15 @@ func (c *Client) ListAllMobileDevices() (*MobileDevices, error) {
 	totalPages := allDevices.TotalCount / q.PageSize
 	if allDevices.TotalCount%q.PageSize > 0 {
 		totalPages++
+	}
+
+	if totalPages <= 1 { // If only one page, no need for further requests
+		// After successfully fetching devices, cache them:
+		if data, err := json.Marshal(allDevices); err == nil {
+			c.Cache.Set(url, data, 5*time.Minute) // Set cache with an expiration
+		}
+
+		return allDevices, nil
 	}
 
 	// Buffered channel to hold device pages result from each goroutine
@@ -319,7 +340,7 @@ func (c *Client) ListAllMobileDevices() (*MobileDevices, error) {
 			newPage[fmt.Sprint(q.Page)] = page
 			devicesCh <- newPage
 			<-sem // release one semaphore resource
-		}(q) // Pass the query to the goroutine
+		}(*q) // Pass the query to the goroutine
 	}
 
 	// Wait for all goroutines to finish and close channels
@@ -340,6 +361,11 @@ func (c *Client) ListAllMobileDevices() (*MobileDevices, error) {
 	if len(rolesErrCh) > 0 {
 		// Handle or return errors. For simplicity, only returning the first error here
 		return nil, <-rolesErrCh
+	}
+
+	// After successfully fetching devices, cache them:
+	if data, err := json.Marshal(allDevices); err == nil {
+		c.Cache.Set(url, data, 5*time.Minute) // Set cache with an expiration
 	}
 
 	return allDevices, nil

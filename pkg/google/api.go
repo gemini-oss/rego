@@ -91,8 +91,8 @@ type AllowedScopes map[string]ScopeDetail
 */
 func FetchDirectoryEndpoints() (*DirectoryList, *Endpoints, error) {
 	headers := requests.Headers{
-		"Accept":       "application/json",
-		"Content-Type": "application/json",
+		"Accept":       requests.JSON,
+		"Content-Type": requests.JSON,
 	}
 
 	httpClient := requests.NewClient(nil, headers, nil)
@@ -171,8 +171,8 @@ func ReadDiscoveryDirectory() (*DirectoryList, *Endpoints, error) {
 	}
 
 	headers := requests.Headers{
-		"Accept":       "application/json",
-		"Content-Type": "application/json",
+		"Accept":       requests.JSON,
+		"Content-Type": requests.JSON,
 	}
 	httpClient := requests.NewClient(nil, headers, nil)
 

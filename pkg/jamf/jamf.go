@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gemini-oss/rego/pkg/common/cache"
 	"github.com/gemini-oss/rego/pkg/common/config"
 	"github.com/gemini-oss/rego/pkg/common/log"
 	"github.com/gemini-oss/rego/pkg/common/requests"
@@ -42,6 +43,12 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
 	return url
 }
 
+// UseCache() enables caching for the next method call.
+func (c *Client) UseCache() *Client {
+	c.Cache.Use = true
+	return c
+}
+
 /*
  * # Create a new Jamf Token based on the credentials provided
  * /api/v1/auth/token
@@ -59,7 +66,7 @@ func GetToken(baseURL string) (*JamfToken, error) {
 
 	headers := requests.Headers{
 		"Authorization": "Basic " + base64.StdEncoding.EncodeToString([]byte(basicCreds)),
-		"Content-Type":  "application/json",
+		"Content-Type":  requests.JSON,
 	}
 
 	hc := requests.NewClient(nil, headers, nil)
@@ -97,10 +104,16 @@ func NewClient(verbosity int) *Client {
 
 	headers := requests.Headers{
 		"Authorization":             fmt.Sprintf("Bearer %s", token.Token),
-		"Accept":                    "application/json, application/xml;q=0.9",
+		"Accept":                    fmt.Sprintf("%s, %s;q=0.9", requests.JSON, requests.XML),
 		"Cache-Control":             "no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0",
 		"Strict-Transport-Security": "max-age=31536000 ; includeSubDomains",
-		"Content-Type":              "application/json",
+		"Content-Type":              requests.JSON,
+	}
+
+	encryptionKey := []byte("32-byte-long-encryption-key-1234") // Example key
+	cache, err := cache.NewCache(encryptionKey, "/tmp/rego_cache_jamf.json")
+	if err != nil {
+		panic(err)
 	}
 
 	return &Client{
@@ -108,5 +121,6 @@ func NewClient(verbosity int) *Client {
 		ClassicURL: ClassicURL,
 		HTTP:       requests.NewClient(nil, headers, nil),
 		Logger:     log.NewLogger("{jamf}", verbosity),
+		Cache:      cache,
 	}
 }

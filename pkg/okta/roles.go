@@ -48,7 +48,10 @@ func (c *Client) GenerateRoleReport() ([]*RoleReport, error) {
 	roleReports := []*RoleReport{}
 	rolesMap := make(map[string][]*User)
 
-	users, _ := c.ListActiveUsers()
+	users, err := c.ListActiveUsers()
+	if err != nil {
+		return nil, err
+	}
 
 	// Use a buffered channel as a semaphore to limit concurrent requests.
 	sem := make(chan struct{}, 10)

@@ -39,28 +39,58 @@ const (
 )
 
 // String representation for log levels
-func LogLevel(level int) string {
+func LogLevel(level int, color bool) string {
+	lvl := ""
 	switch level {
 	case TRACE:
-		return fmt.Sprintf("%sTRACE%s", Blue, Reset)
+		lvl = "TRACE"
 	case DEBUG:
-		return fmt.Sprintf("%sDEBUG%s", Cyan, Reset)
+		lvl = "DEBUG"
 	case INFO:
-		return fmt.Sprintf("%sINFO%s", Green, Reset)
+		lvl = "INFO"
 	case WARNING:
-		return fmt.Sprintf("%sWARNING%s", Yellow, Reset)
+		lvl = "WARNING"
 	case ERROR:
-		return fmt.Sprintf("%sERROR%s", Red, Reset)
+		lvl = "ERROR"
 	case FATAL:
-		return fmt.Sprintf("%sFATAL%s", Magenta, Reset)
+		lvl = "FATAL"
 	case PANIC:
-		return fmt.Sprintf("%sPANIC%s", Magenta, Reset)
+		lvl = "PANIC"
 	default:
-		return fmt.Sprintf("%sUNKNOWN%s", Red, Reset)
+		lvl = "UNKNOWN"
+	}
+
+	if color {
+		color := getColor(level)
+		return fmt.Sprintf("%s%s%s", color, lvl, Reset)
+	}
+
+	return lvl
+}
+
+func getColor(level int) string {
+	switch level {
+	case TRACE:
+		return Blue
+	case DEBUG:
+		return Cyan
+	case INFO:
+		return Green
+	case WARNING:
+		return Yellow
+	case ERROR:
+		return Red
+	case FATAL:
+		return Magenta
+	case PANIC:
+		return Magenta
+	default:
+		return Red
 	}
 }
 
 type Logger struct {
+	Color     bool           // enable/disable colorized output
 	prefix    string         // prefix to write at beginning of each log line
 	logger    *log.Logger    // standard logger
 	out       io.WriteCloser // destination for output
@@ -146,8 +176,40 @@ func (l *Logger) Debugf(format string, v ...interface{}) {
 }
 
 /*
- * # log.Info
- * - logs line at INFO level
+ * # log.Warning
+ * - logs formatted message at WARNING level
+ */
+func (l *Logger) Warning(v ...interface{}) {
+	l.log(WARNING, v...)
+}
+
+/*
+ * # log.Warningf
+ * - logs formatted message at WARNING level
+ */
+func (l *Logger) Warningf(format string, v ...interface{}) {
+	l.logf(WARNING, format, v...)
+}
+
+/*
+ * # log.Error
+ * - logs formatted message at ERROR level
+ */
+func (l *Logger) Error(v ...interface{}) {
+	l.log(ERROR, v...)
+}
+
+/*
+ * # log.Errorf
+ * - logs formatted message at ERROR level
+ */
+func (l *Logger) Errorf(format string, v ...interface{}) {
+	l.logf(ERROR, format, v...)
+}
+
+/*
+ * # log.Fatal
+ * - logs line at FATAL level
  */
 func (l *Logger) Fatal(v ...interface{}) {
 	l.log(FATAL, v...)
@@ -194,6 +256,18 @@ func (l *Logger) Close() error {
 	return nil
 }
 
+/*
+ * # log.Delete
+ * - Delete the Logger's file if it is a *os.File
+ */
+func (l *Logger) Delete() error {
+	if f, ok := l.out.(*os.File); ok {
+		f.Close()
+		return os.Remove(f.Name())
+	}
+	return nil
+}
+
 func (l *Logger) getPrefix(level int) string {
 	// Get the caller's filename and line number
 	_, path, line, _ := runtime.Caller(3)
@@ -204,9 +278,15 @@ func (l *Logger) getPrefix(level int) string {
 	// Formatted current timestamp
 	timestamp := time.Now().Format("2006/01/02 03:04:05 PM")
 
-	timestamp = fmt.Sprintf("%s%s%s", Green, timestamp, Reset)
-	file = fmt.Sprintf("%s%s%s", Blue, file, Reset)
-	lineColor := fmt.Sprintf("%s%d%s", Yellow, line, Reset)
+	var lineColor string
+	switch l.Color {
+	case true:
+		timestamp = fmt.Sprintf("%s%s%s", Green, timestamp, Reset)
+		file = fmt.Sprintf("%s%s%s", Blue, file, Reset)
+		lineColor = fmt.Sprintf("%s%d%s", Yellow, line, Reset)
+	default:
+		lineColor = fmt.Sprintf("%d", line)
+	}
 
 	/*
 		Standard Go Format
@@ -215,8 +295,25 @@ func (l *Logger) getPrefix(level int) string {
 		Python Format
 		[%s] {%s:%d} %s - ", timestamp, file, line, LogLevel(level))
 	*/
-	return fmt.Sprintf("[%s] %s {%s:%s} %s - ", timestamp, l.prefix, file, lineColor, LogLevel(level))
+	return fmt.Sprintf("[%s] %s {%s:%s} %s - ", timestamp, l.prefix, file, lineColor, LogLevel(level, l.Color))
 
+}
+
+// SetOutput sets the output destination for the logger.
+func (l *Logger) SetOutput(output io.Writer) {
+	l.logger.SetOutput(output)
+}
+
+// SetNewFile sets the output destination for the logger to a new file.
+func (l *Logger) SetNewFile(logFilePath string) {
+	LOG_FILE := logFilePath
+	logFile, err := os.OpenFile(LOG_FILE, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		log.Panic(err)
+	}
+	logOut := io.MultiWriter(os.Stdout, logFile)
+	l.logger = log.New(logOut, "", 0)
+	l.out = logFile
 }
 
 /*
@@ -239,6 +336,7 @@ func NewLogger(prefix string, verbosity int) *Logger {
 	}
 
 	return &Logger{
+		Color:     true,
 		prefix:    prefix,
 		logger:    logger,
 		out:       logFile,

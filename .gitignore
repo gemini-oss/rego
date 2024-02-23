@@ -36,3 +36,6 @@ go.work
 
 # Log files
 *.log
+
+# ReGo Cache files
+*_cache.json

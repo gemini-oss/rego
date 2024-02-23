@@ -4,6 +4,7 @@ package jamf
 import (
 	"time"
 
+	"github.com/gemini-oss/rego/pkg/common/cache"
 	"github.com/gemini-oss/rego/pkg/common/log"
 	"github.com/gemini-oss/rego/pkg/common/requests"
 )
@@ -27,6 +28,7 @@ type Client struct {
 	ClassicURL string
 	HTTP       *requests.Client
 	Logger     *log.Logger
+	Cache      *cache.Cache
 }
 
 // END OF JAMF CLIENT STRUCTS

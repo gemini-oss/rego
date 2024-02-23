@@ -122,10 +122,10 @@ func SetQueryParams(req *http.Request, query interface{}) {
 	parameters := ss.StructToMap(query)
 
 	for key, value := range parameters {
-		// Check if the value for current key contains a space -- indicating multiple query parameters for a field
-		if strings.Contains(value, " ") {
+		// Check if the value for current key contains three tildes -- indicating multiple query parameters for a field
+		if strings.Contains(value, "~~~") {
 			// Split the value into multiple parameters
-			params := strings.Split(value, " ")
+			params := strings.Split(value, "~~~")
 			for _, value := range params {
 				q.Add(key, value)
 			}
