@@ -38,18 +38,18 @@ func (c *Client) ListUsers() (*Users, error) {
 	users := &Users{}
 	url := c.BuildURL("%s/users.list")
 
-	c.HTTPClient.UpdateContentType(requests.FormURLEncoded)
+	c.HTTP.UpdateContentType(requests.FormURLEncoded)
 
 	p := UserParameters{
 		Token: c.Token,
 	}
 
-	res, body, err := c.HTTPClient.DoRequest("POST", url, nil, p)
+	res, body, err := c.HTTP.DoRequest("POST", url, nil, p)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, &users)
 	if err != nil {
@@ -63,7 +63,7 @@ func (c *Client) ListUsers() (*Users, error) {
 func (c *Client) GetUserChannels(userID string) (*UserChannels, error) {
 	user_channels := &UserChannels{}
 
-	c.HTTPClient.UpdateContentType(requests.FormURLEncoded)
+	c.HTTP.UpdateContentType(requests.FormURLEncoded)
 	url := c.BuildURL("%s/users.conversations")
 
 	q := UserParameters{
@@ -71,12 +71,12 @@ func (c *Client) GetUserChannels(userID string) (*UserChannels, error) {
 		Types: "public_channel,private_channel",
 	}
 
-	res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
+	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, &user_channels)
 	if err != nil {

@@ -60,13 +60,13 @@ func (c *Client) GetPermissionList(driveID string) (*PermissionList, error) {
 	q := PermissionsQuery{}
 
 	url := fmt.Sprintf("%s/%s/permissions", DriveFiles, driveID)
-	c.Logger.Debug("url:", url)
-	res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
+	c.Log.Debug("url:", url)
+	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, &permissions)
 	if err != nil {
@@ -87,13 +87,13 @@ func (c *Client) GetPermissionDetails(driveID string, permissionID string) (*Per
 	permission := &Permission{}
 
 	url := fmt.Sprintf("%s/%s/permissions/%s", DriveFiles, driveID, permissionID)
-	c.Logger.Debug("url:", url)
-	res, body, err := c.HTTPClient.DoRequest("GET", url, nil, nil)
+	c.Log.Debug("url:", url)
+	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, &permission)
 	if err != nil {
@@ -123,13 +123,13 @@ func (c *Client) TransferOwnership(driveID string, newOwner string) (*Permission
 	}
 
 	url := fmt.Sprintf("%s/%s/permissions", DriveFiles, driveID)
-	c.Logger.Debug("url:", url)
-	res, body, err := c.HTTPClient.DoRequest("POST", url, q, permission)
+	c.Log.Debug("url:", url)
+	res, body, err := c.HTTP.DoRequest("POST", url, q, permission)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, &permission)
 	if err != nil {

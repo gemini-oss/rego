@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gemini-oss/rego/pkg/common/cache"
 	"github.com/gemini-oss/rego/pkg/common/config"
 	"github.com/gemini-oss/rego/pkg/common/log"
 	"github.com/gemini-oss/rego/pkg/common/ratelimit"
@@ -43,6 +44,12 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
 		url = fmt.Sprintf("%s/%s", url, id)
 	}
 	return url
+}
+
+// UseCache() enables caching for the next method call.
+func (c *Client) UseCache() *Client {
+	c.Cache.Use = true
+	return c
 }
 
 /*
@@ -80,13 +87,21 @@ func NewClient(verbosity int) *Client {
 		"Content-Type":  "application/json",
 	}
 
+	// Look into `Functional Options` patterns for a better way to handle this (and othe clients while we're at it)
+	encryptionKey := []byte(config.GetEnv("REGO_ENCRYPTION_KEY", "32-byte-long-encryption-key-1234"))
+	cache, err := cache.NewCache(encryptionKey, "/tmp/rego_cache_okta.json")
+	if err != nil {
+		panic(err)
+	}
+
 	// https://developer.okta.com/docs/reference/rl-best-practices/
 	rl := ratelimit.NewRateLimiter()
 	rl.UsesReset = true
 
 	return &Client{
-		BaseURL:    BaseURL,
-		HTTPClient: requests.NewClient(nil, headers, rl),
-		Logger:     log.NewLogger("{okta}", verbosity),
+		BaseURL: BaseURL,
+		HTTP:    requests.NewClient(nil, headers, rl),
+		Log:     log.NewLogger("{okta}", verbosity),
+		Cache:   cache,
 	}
 }

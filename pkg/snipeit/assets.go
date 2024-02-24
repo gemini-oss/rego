@@ -50,15 +50,15 @@ func (c *Client) GetAllAssets() (*HardwareList, error) {
 		Offset: 0,
 	}
 
-	c.HTTPClient.RateLimiter.Start()
+	c.HTTP.RateLimiter.Start()
 
 	url := fmt.Sprintf(Assets, c.BaseURL)
-	res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
+	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Debug(res.Status)
-	c.Logger.Trace(string(body))
+	c.Log.Debug(res.Status)
+	c.Log.Trace(string(body))
 
 	err = json.Unmarshal(body, &assets)
 	if err != nil {
@@ -94,14 +94,14 @@ func (c *Client) GetAllAssets() (*HardwareList, error) {
 			sem <- struct{}{} // acquire one semaphore resource
 			page := &HardwareList{}
 
-			res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
+			res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 			if err != nil {
 				rolesErrCh <- err
 				return
 			}
 
-			c.Logger.Debug("Response Status:", res.Status)
-			c.Logger.Trace("Response Body: ", string(body))
+			c.Log.Debug("Response Status:", res.Status)
+			c.Log.Trace("Response Body: ", string(body))
 
 			err = json.Unmarshal(body, &page)
 			if err != nil {
@@ -138,7 +138,7 @@ func (c *Client) GetAllAssets() (*HardwareList, error) {
 		return nil, <-rolesErrCh
 	}
 
-	c.HTTPClient.RateLimiter.Stop()
+	c.HTTP.RateLimiter.Stop()
 
 	return assets, nil
 }

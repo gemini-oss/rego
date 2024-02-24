@@ -43,12 +43,12 @@ func (c *Client) GetAllLocations() (*LocationList, error) {
 	}
 
 	url := fmt.Sprintf(Locations, c.BaseURL)
-	res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
+	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Debug("Response from GetAllAccessories: ", res.Status)
-	c.Logger.Debug("Body from GetAllAccessories: ", string(body))
+	c.Log.Debug("Response from GetAllAccessories: ", res.Status)
+	c.Log.Debug("Body from GetAllAccessories: ", string(body))
 
 	err = json.Unmarshal(body, &locations)
 	if err != nil {

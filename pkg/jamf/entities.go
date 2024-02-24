@@ -24,11 +24,11 @@ type JamfToken struct {
 }
 
 type Client struct {
-	BaseURL    string
-	ClassicURL string
-	HTTP       *requests.Client
-	Logger     *log.Logger
-	Cache      *cache.Cache
+	BaseURL    string           // Base URL for the Jamf Pro API.
+	ClassicURL string           // Base URL for the Jamf Pro Classic API.
+	HTTP       *requests.Client // HTTP client for making requests to the Jamf Pro API.
+	Log        *log.Logger      // Logger for the Jamf Pro client.
+	Cache      *cache.Cache     // Cache for the Jamf Pro client.
 }
 
 // END OF JAMF CLIENT STRUCTS

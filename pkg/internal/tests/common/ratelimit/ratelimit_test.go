@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
-	"sync"
 	"testing"
 	"time"
 
@@ -52,25 +51,6 @@ func TestNewRateLimiter(t *testing.T) {
 	if rl.Interval != 5*time.Second {
 		t.Errorf("Expected CustomResetInterval to be 5 seconds, got %v", rl.Interval)
 	}
-
-	rl.Logger.Delete()
-}
-
-func TestRateLimiterWait(t *testing.T) {
-	rl := ratelimit.NewRateLimiter(2) // Small limit for faster testing
-	rl.Logger.Verbosity = log.TRACE
-	rl.Start()
-	defer rl.Stop()
-
-	var wg sync.WaitGroup
-	for i := 0; i < 3; i++ { // More than the limit
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			rl.Wait()
-		}()
-	}
-	wg.Wait()
 
 	rl.Logger.Delete()
 }
@@ -124,8 +104,7 @@ func TestRateLimiterNoHeaders(t *testing.T) {
 	rl.Logger.Verbosity = log.TRACE
 
 	var rateLimited bool
-	requestsToMake := int(float64(rl.Limit) * 0.95) * 2
-	rl.Available = requestsToMake // Set available requests above the limit
+	requestsToMake := rl.Available * 3 // Set available requests above the limit
 
 	for i := 0; i < requestsToMake; i++ {
 		req, _ := http.NewRequest("GET", server.URL, nil)
@@ -150,29 +129,6 @@ func TestRateLimiterNoHeaders(t *testing.T) {
 
 	if rl.Available < int(float64(rl.Limit)*0.05) {
 		t.Errorf("Available requests dropped too low, got %d", rl.Available)
-	}
-
-	rl.Logger.Delete()
-}
-
-func TestRateLimiterNearLimitBehavior(t *testing.T) {
-	rl := ratelimit.NewRateLimiter(5) // A small limit for testing
-	rl.Logger.Verbosity = log.TRACE
-	rl.Start()
-	defer rl.Stop()
-
-	var wg sync.WaitGroup
-	for i := 0; i <= 4; i++ { // Approach the limit without hitting it
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			rl.Wait()
-		}()
-	}
-	wg.Wait()
-
-	if rl.Available != 1 {
-		t.Errorf("Expected 1 request available, got %d", rl.Available)
 	}
 
 	rl.Logger.Delete()

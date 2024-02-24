@@ -56,7 +56,7 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
 /*
  * # Generate JWT Client/Tokens for Google Workspace
  * @param auth AuthCredentials
- * @param logger *log.Logger
+ * @param Log *log.Logger
  * @return *Client
  * @return error
  * https://developers.google.com/identity/protocols/oauth2/service-account#jwt-auth
@@ -64,33 +64,32 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
 func (c *Client) GenerateJWT(data []byte) (*requests.Client, error) {
 	ctx := context.Background()
 
-	c.Logger.Println("Generating JWT Config")
+	c.Log.Println("Generating JWT Config")
 	jwtConfig, err := google.JWTConfigFromJSON(data, c.Auth.Scopes...)
 	jwtConfig.Subject = c.Auth.Subject
 	if err != nil {
-		c.Logger.Printf("Unable to parse client secret file to config: %v", err)
+		c.Log.Printf("Unable to parse client secret file to config: %v", err)
 	}
-	c.Logger.Printf("JWT Config Successfully Generated")
+	c.Log.Printf("JWT Config Successfully Generated")
 
-	c.Logger.Println("Generating JWT Token")
+	c.Log.Println("Generating JWT Token")
 	t, err := jwtConfig.TokenSource(ctx).Token()
 	if err != nil {
-		c.Logger.Printf("Unable to generate token: %v", err)
+		c.Log.Printf("Unable to generate token: %v", err)
 	}
-	c.Logger.Printf("Token Successfully Generated")
+	c.Log.Printf("Token Successfully Generated")
 
-	c.Logger.Println("Reconfiguring HTTP Client")
+	c.Log.Println("Reconfiguring HTTP Client")
 	type contextKey string
 	jwtClient := jwtConfig.Client(context.WithValue(ctx, contextKey("token"), t))
 	headers := requests.Headers{
-		"Accept":        "application/json",
-		"Content-Type":  "application/json",
+		"Accept":        requests.JSON,
+		"Content-Type":  requests.JSON,
 		"Authorization": "Bearer " + t.AccessToken,
 	}
 
 	// https://developers.google.com/drive/api/guides/limits
 	rl := ratelimit.NewRateLimiter(12000)
-	rl.Logger = c.Logger
 
 	return requests.NewClient(jwtClient, headers, rl), nil
 }
@@ -112,13 +111,13 @@ func (c *Client) ImpersonateUser(email string) error {
 
 	// Update the headers to use the new token
 	headers := requests.Headers{
-		"Accept":        "application/json",
-		"Content-Type":  "application/json",
+		"Accept":        requests.JSON,
+		"Content-Type":  requests.JSON,
 		"Authorization": "Bearer " + t.AccessToken,
 	}
 
 	// Update the HTTP client of the client object
-	c.HTTPClient = requests.NewClient(jwtClient, headers, nil)
+	c.HTTP = requests.NewClient(jwtClient, headers, nil)
 
 	return nil
 }
@@ -126,7 +125,7 @@ func (c *Client) ImpersonateUser(email string) error {
 /*
   - # Generate Google Workspace Client
   - @param auth AuthCredentials
-  - @param logger *log.Logger
+  - @param log *log.Logger
   - @return *Client
   - @return error
   - Example:
@@ -185,17 +184,17 @@ func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
 	c := &Client{
 		Auth:    ac,
 		BaseURL: BaseURL,
-		Logger:  log.NewLogger("{google}", verbosity),
+		Log:     log.NewLogger("{google}", verbosity),
 	}
 
-	c.Logger.Println("Initializing Google Client")
+	c.Log.Println("Initializing Google Client")
 	headers := requests.Headers{
-		"Accept":       "application/json",
-		"Content-Type": "application/json",
+		"Accept":       requests.JSON,
+		"Content-Type": requests.JSON,
 	}
 	// httpClient := requests.NewClient(nil, headers)
 
-	c.Logger.Println("Loading Scopes")
+	c.Log.Println("Loading Scopes")
 	scopes := []string{}
 	c.Auth.Scopes = DedupeScopes(c.Auth.Scopes)
 	for service := range c.Auth.Scopes {
@@ -211,12 +210,12 @@ func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
 		}
 	}
 	c.Auth.Scopes = scopes
-	c.Logger.Debugf("Scopes Loaded: %s\n", scopes)
+	c.Log.Debugf("Scopes Loaded: %s\n", scopes)
 
-	c.Logger.Println("Loading Credentials")
+	c.Log.Println("Loading Credentials")
 	switch c.Auth.CICD {
 	case true:
-		c.Logger.Println("Detected CICD Environment: Reading Credentials from Environment Variables")
+		c.Log.Println("Detected CICD Environment: Reading Credentials from Environment Variables")
 		switch c.Auth.Type {
 		case API_KEY:
 			headers["Authorization"] = "Bearer " + config.GetEnv("GOOGLE_API_KEY", "GOOGLE_API_KEY")
@@ -241,7 +240,7 @@ func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
 				return nil, err
 			}
 
-			c.HTTPClient, err = c.GenerateJWT(decoded)
+			c.HTTP, err = c.GenerateJWT(decoded)
 			if err != nil {
 				return nil, err
 			}
@@ -249,31 +248,31 @@ func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
 			return c, nil
 		}
 	case false:
-		c.Logger.Println("Detected Local Environment: Reading Credentials from Arguments")
+		c.Log.Println("Detected Local Environment: Reading Credentials from Arguments")
 		switch c.Auth.Type {
 		case API_KEY:
 			headers["Authorization"] = "Bearer " + c.Auth.Credentials
 		case OAUTH_CLIENT:
 			file, err := os.ReadFile(c.Auth.Credentials)
 			if err != nil {
-				c.Logger.Printf("Error opening file: %s\n", err)
+				c.Log.Printf("Error opening file: %s\n", err)
 			}
 			oauth, err := google.ConfigFromJSON(file, c.Auth.Scopes...)
 			if err != nil {
-				c.Logger.Printf("Unable to parse client secret file to config: %v", err)
+				c.Log.Printf("Unable to parse client secret file to config: %v", err)
 			}
 			_ = oauth // Will return to this later
 		case SERVICE_ACCOUNT:
-			c.Logger.Println("Service Account Credentials Detected")
+			c.Log.Println("Service Account Credentials Detected")
 
-			c.Logger.Println("Loading Service Account Credentials from file")
+			c.Log.Println("Loading Service Account Credentials from file")
 			file, err := os.ReadFile(c.Auth.Credentials)
 			if err != nil {
-				c.Logger.Printf("Error opening file: %s\n", err)
+				c.Log.Printf("Error opening file: %s\n", err)
 			}
 
-			c.Logger.Println("Generating JWT Client")
-			c.HTTPClient, err = c.GenerateJWT(file)
+			c.Log.Println("Generating JWT Client")
+			c.HTTP, err = c.GenerateJWT(file)
 			if err != nil {
 				return nil, err
 			}

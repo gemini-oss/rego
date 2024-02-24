@@ -39,7 +39,7 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
 	for _, id := range identifiers {
 		url = fmt.Sprintf("%s/%s", url, id)
 	}
-	c.Logger.Debug("url:", url)
+	c.Log.Debug("url:", url)
 	return url
 }
 
@@ -110,7 +110,8 @@ func NewClient(verbosity int) *Client {
 		"Content-Type":              requests.JSON,
 	}
 
-	encryptionKey := []byte("32-byte-long-encryption-key-1234") // Example key
+	// Look into `Functional Options` patterns for a better way to handle this (and othe clients while we're at it)
+	encryptionKey := []byte(config.GetEnv("REGO_ENCRYPTION_KEY", "32-byte-long-encryption-key-1234"))
 	cache, err := cache.NewCache(encryptionKey, "/tmp/rego_cache_jamf.json")
 	if err != nil {
 		panic(err)
@@ -120,7 +121,7 @@ func NewClient(verbosity int) *Client {
 		BaseURL:    BaseURL,
 		ClassicURL: ClassicURL,
 		HTTP:       requests.NewClient(nil, headers, nil),
-		Logger:     log.NewLogger("{jamf}", verbosity),
+		Log:        log.NewLogger("{jamf}", verbosity),
 		Cache:      cache,
 	}
 }

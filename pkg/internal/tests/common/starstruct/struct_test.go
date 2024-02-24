@@ -65,7 +65,7 @@ func TestStructToMap(t *testing.T) {
 	testStruct := TestStruct{
 		Name: "Anthony Dardano",
 		Age:  0,
-		Tags: []string{"Staff_Enterprise_Infrastructure_Engineer", "DJ"},
+		Tags: []string{"Staff Enterprise Infrastructure Engineer", "DJ"},
 		Address: struct {
 			City  string "json:\"city\""
 			State string "json:\"state\""
@@ -74,7 +74,7 @@ func TestStructToMap(t *testing.T) {
 
 	expectedMap := map[string]string{
 		"name":    "Anthony Dardano",
-		"tags":    "Staff_Enterprise_Infrastructure_Engineer DJ",
+		"tags":    "Staff Enterprise Infrastructure Engineerᕙ(▀̿̿Ĺ̯̿̿▀̿ ̿)ᕗDJ",
 		"address": "{N/A FL}",
 	}
 

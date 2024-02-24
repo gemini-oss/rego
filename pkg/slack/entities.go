@@ -12,6 +12,7 @@ This package contains many structs for handling responses from the Slack Web API
 package slack
 
 import (
+	"github.com/gemini-oss/rego/pkg/common/cache"
 	"github.com/gemini-oss/rego/pkg/common/log"
 	"github.com/gemini-oss/rego/pkg/common/requests"
 )
@@ -19,13 +20,14 @@ import (
 // ### Slack Client Structs
 // ---------------------------------------------------------------------
 type Client struct {
-	BaseURL       string           // BaseURL is the base URL for Okta API requests.
+	BaseURL       string           // BaseURL is the base URL for Slack API requests.
 	BotID         string           // The ID of the bot in current workspace
-	HTTPClient    *requests.Client // HTTPClient is the client used to make HTTP requests.
+	HTTP          *requests.Client // HTTP client used to make HTTP requests.
 	Error         *Error           // Error is the error response from the last request made by the client.
-	Logger        *log.Logger      // Logger is the logger used to log messages.
-	Token         string
-	SigningSecret string
+	Log           *log.Logger      // Log is the logger used to log information about the client.
+	Token         string           // Authentication token for the Slack API.
+	SigningSecret string           // Signing secret for bots
+	Cache         *cache.Cache     // Cache is the cache used to store responses from the Slack API.
 }
 
 // Error represents the common error response from the Slack methods.

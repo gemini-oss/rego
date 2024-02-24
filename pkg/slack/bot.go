@@ -26,24 +26,24 @@ import (
 )
 
 func (c *Client) EventHandler(w http.ResponseWriter, r *http.Request) {
-	c.Logger.Printf("Received a request")
+	c.Log.Printf("Received a request")
 
 	// Parse the request body
 	body, err := io.ReadAll(r.Body)
-	c.Logger.Println(string(body))
+	c.Log.Println(string(body))
 	if err != nil {
-		c.Logger.Printf("Error reading request body: %v", err)
+		c.Log.Printf("Error reading request body: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	// Verify the request
 	if !c.VerifyRequest(r, body) {
-		c.Logger.Printf("Failed to verify request")
+		c.Log.Printf("Failed to verify request")
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	c.Logger.Printf("Request verified!")
+	c.Log.Printf("Request verified!")
 
 	// Handle the request based on its type
 	// Here, you can add the rest of your Slack-specific handling logic
@@ -51,7 +51,7 @@ func (c *Client) EventHandler(w http.ResponseWriter, r *http.Request) {
 	cb := &EventCallback{}
 	err = json.Unmarshal(body, &cb)
 	if err != nil {
-		c.Logger.Printf("Error unmarshalling request body: %v", err)
+		c.Log.Printf("Error unmarshalling request body: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -62,7 +62,7 @@ func (c *Client) EventHandler(w http.ResponseWriter, r *http.Request) {
 		challenge := &SlackChallenge{}
 		err := json.Unmarshal(body, &challenge)
 		if err != nil {
-			c.Logger.Printf("Error decoding challenge: %v", err)
+			c.Log.Printf("Error decoding challenge: %v", err)
 			http.Error(w, "Invalid request", http.StatusBadRequest)
 			return
 		}
@@ -71,36 +71,36 @@ func (c *Client) EventHandler(w http.ResponseWriter, r *http.Request) {
 
 	case "event_callback":
 		// Handle event
-		c.Logger.Printf("Received event: %+v", cb.Event)
-		c.Logger.Printf(cb.Event.Text)
+		c.Log.Printf("Received event: %+v", cb.Event)
+		c.Log.Printf(cb.Event.Text)
 
 		c.SendReply(&cb.Event, nil)
 
 	default:
-		c.Logger.Printf("Unknown request type: %s", cb.Type)
+		c.Log.Printf("Unknown request type: %s", cb.Type)
 		w.WriteHeader(http.StatusBadRequest)
 	}
 }
 
 func (c *Client) CommandHandler(w http.ResponseWriter, r *http.Request) {
-	c.Logger.Printf("Received a request")
+	c.Log.Printf("Received a request")
 
 	// Parse the request body
 	body, err := io.ReadAll(r.Body)
-	c.Logger.Println(string(body))
+	c.Log.Println(string(body))
 	if err != nil {
-		c.Logger.Printf("Error reading request body: %v", err)
+		c.Log.Printf("Error reading request body: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	// Verify the request
 	if !c.VerifyRequest(r, body) {
-		c.Logger.Printf("Failed to verify request")
+		c.Log.Printf("Failed to verify request")
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	c.Logger.Printf("Request verified!")
+	c.Log.Printf("Request verified!")
 
 	// Handle the request based on its type
 	// Here, you can add the rest of your Slack-specific handling logic
@@ -118,9 +118,9 @@ func (c *Client) CommandHandler(w http.ResponseWriter, r *http.Request) {
 		Text:        v.Get("text"),
 		ResponseURL: v.Get("response_url"),
 	}
-	c.Logger.Println(sc)
+	c.Log.Println(sc)
 	if err != nil {
-		c.Logger.Printf("Error unmarshalling request body: %v", err)
+		c.Log.Printf("Error unmarshalling request body: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -146,12 +146,12 @@ func (c *Client) GetBotID() (string, error) {
 	}
 	p.Token = c.Token
 
-	res, body, err := c.HTTPClient.DoRequest("POST", url, nil, p)
+	res, body, err := c.HTTP.DoRequest("POST", url, nil, p)
 	if err != nil {
 		return "", err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	var result struct {
 		UserID string `json:"user_id"`
@@ -162,7 +162,7 @@ func (c *Client) GetBotID() (string, error) {
 		return "", fmt.Errorf("unmarshalling user: %w", err)
 	}
 
-	c.Logger.Printf("Bot ID is: %s", result.UserID)
+	c.Log.Printf("Bot ID is: %s", result.UserID)
 	c.BotID = result.UserID
 	return result.UserID, nil
 }
@@ -176,12 +176,12 @@ func (c *Client) SendMessage(e *Event, m *SlackMessage) error {
 		Markdown: true,
 	}
 
-	res, body, err := c.HTTPClient.DoRequest("POST", url, nil, message)
+	res, body, err := c.HTTP.DoRequest("POST", url, nil, message)
 	if err != nil {
 		return err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, &m)
 	if err != nil {
@@ -200,12 +200,12 @@ func (c *Client) SendReply(e *Event, m *SlackMessage) error {
 		ThreadTS: e.EventTS,
 	}
 
-	res, body, err := c.HTTPClient.DoRequest("POST", url, nil, reply)
+	res, body, err := c.HTTP.DoRequest("POST", url, nil, reply)
 	if err != nil {
 		return err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, &m)
 	if err != nil {
@@ -216,7 +216,7 @@ func (c *Client) SendReply(e *Event, m *SlackMessage) error {
 }
 
 func (c *Client) VerifyRequest(r *http.Request, body []byte) bool {
-	c.Logger.Println("Verifying Slack Request")
+	c.Log.Println("Verifying Slack Request")
 
 	// Collect headers and signing secret
 	timestamp := r.Header.Get("X-Slack-Request-Timestamp")

@@ -58,13 +58,13 @@ func (c *Client) ListAllDevices() (*Devices, error) {
 	q := DeviceQuery{}
 
 	url := c.BuildURL(OktaDevices)
-	rawMessages, err := c.HTTPClient.PaginatedRequest("GET", url, q, nil)
+	rawMessages, err := c.HTTP.PaginatedRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, raw := range rawMessages {
-		c.Logger.Debug(string(raw))
+		c.Log.Debug(string(raw))
 		device := Device{}
 		err := json.Unmarshal(raw, &device)
 		if err != nil {
@@ -86,13 +86,13 @@ func (c *Client) ListDevices(q DeviceQuery) (*Devices, error) {
 	allDevices := Devices{}
 
 	url := c.BuildURL(OktaDevices)
-	rawMessages, err := c.HTTPClient.PaginatedRequest("GET", url, q, nil)
+	rawMessages, err := c.HTTP.PaginatedRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, raw := range rawMessages {
-		c.Logger.Debugf("Raw: %s\n", raw)
+		c.Log.Debugf("Raw: %s\n", raw)
 		device := Device{}
 		err := json.Unmarshal(raw, &device)
 		if err != nil {
@@ -113,12 +113,12 @@ func (c *Client) ListUsersForDevice(deviceID string) (*DeviceUsers, error) {
 
 	// url := fmt.Sprintf("%s/devices/%s/users", c.BaseURL, deviceID)
 	url := c.BuildURL(OktaDevices, deviceID, "users")
-	res, body, err := c.HTTPClient.DoRequest("GET", url, nil, nil)
+	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	deviceUsers := DeviceUsers{}
 	err = json.Unmarshal(body, &deviceUsers)

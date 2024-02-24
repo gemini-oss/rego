@@ -33,7 +33,7 @@ func (c *Client) GetJamfVersion() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debugf("Jamf Version Response: %s", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debugf("Jamf Version Response: %s", string(body))
 	return string(body), nil
 }

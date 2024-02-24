@@ -12,6 +12,24 @@ https://developer.okta.com/docs/api/
 // pkg/snipeit/entities.go
 package snipeit
 
+import (
+	"github.com/gemini-oss/rego/pkg/common/cache"
+	"github.com/gemini-oss/rego/pkg/common/log"
+	"github.com/gemini-oss/rego/pkg/common/requests"
+)
+
+// ### SnipeIT Client Structs
+// ---------------------------------------------------------------------
+type Client struct {
+	BaseURL string           // BaseURL is the base URL for the SnipeIT API.
+	HTTP    *requests.Client // HTTP client for the SnipeIT API.
+	Log     *log.Logger      // Log is the logger for the SnipeIT API.
+	Cache   *cache.Cache     // Cache for the SnipeIT API.
+}
+
+// END OF SNIPEIT CLIENT STRUCTS
+//---------------------------------------------------------------------
+
 // ### Assets
 // -------------------------------------------------------------------------
 // Source: https://snipe-it.readme.io/reference/hardware-list

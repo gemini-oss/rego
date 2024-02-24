@@ -14,6 +14,7 @@ package okta
 import (
 	"time"
 
+	"github.com/gemini-oss/rego/pkg/common/cache"
 	"github.com/gemini-oss/rego/pkg/common/log"
 	"github.com/gemini-oss/rego/pkg/common/requests"
 )
@@ -21,10 +22,11 @@ import (
 // ### Okta Client Structs
 // ---------------------------------------------------------------------
 type Client struct {
-	BaseURL    string           // BaseURL is the base URL for Okta API requests.
-	HTTPClient *requests.Client // HTTPClient is the client used to make HTTP requests.
-	Error      *Error           // Error is the error response from the last request made by the client.
-	Logger     *log.Logger      // Logger is the logger used to log messages.
+	BaseURL string           // BaseURL is the base URL for Okta API requests.
+	HTTP    *requests.Client // HTTPClient is the client used to make HTTP requests.
+	Error   *Error           // Error is the error response from the last request made by the client.
+	Log     *log.Logger      // Log is the logger used to log messages.
+	Cache   *cache.Cache     // Cache is the cache used to store responses from the Okta API.
 }
 
 type Error struct {

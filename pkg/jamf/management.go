@@ -43,8 +43,8 @@ func (c *Client) RenewMDMProfile(udids []string) (*ManagementResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debugf(string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debugf(string(body))
 
 	err = json.Unmarshal(body, &mr)
 	if err != nil {
@@ -66,8 +66,8 @@ func (c *Client) RepairManagementFramework(id string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debugf(string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debugf(string(body))
 
 	return string(body), nil
 }

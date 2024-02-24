@@ -112,8 +112,8 @@ func (c *Client) ListAllComputers() (*Computers, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, &allDevices)
 	if err != nil {
@@ -142,7 +142,7 @@ func (c *Client) ListAllComputers() (*Computers, error) {
 		wg.Add(1)
 
 		q.Page++ // Increment page number
-		c.Logger.Println("Page: ", q.Page)
+		c.Log.Println("Page: ", q.Page)
 
 		// Start a new goroutine to get the next device page
 		go func(q DeviceQuery) {
@@ -157,8 +157,8 @@ func (c *Client) ListAllComputers() (*Computers, error) {
 				rolesErrCh <- err
 				return
 			}
-			c.Logger.Println("Response Status:", res.Status)
-			c.Logger.Debug("Response Body: ", string(body))
+			c.Log.Println("Response Status:", res.Status)
+			c.Log.Debug("Response Body: ", string(body))
 
 			err = json.Unmarshal(body, &page)
 			if err != nil {
@@ -209,8 +209,8 @@ func (c *Client) GetComputerDetails(id string) (*Computer, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, &computer)
 	if err != nil {
@@ -233,8 +233,8 @@ func (c *Client) ListAllComputerGroups() (*[]GroupMembership, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, &allGroups)
 	if err != nil {
@@ -255,7 +255,7 @@ func (c *Client) ListAllMobileDevices() (*MobileDevices, error) {
 		if data, found := c.Cache.Get(url); found {
 			var cachedDevices MobileDevices
 			if err := json.Unmarshal(data, &cachedDevices); err == nil {
-				c.Logger.Debug("Cached Body:", string(data))
+				c.Log.Debug("Cached Body:", string(data))
 				return &cachedDevices, nil
 			}
 			// Handle or log error if unmarshalling fails
@@ -273,8 +273,8 @@ func (c *Client) ListAllMobileDevices() (*MobileDevices, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, &allDevices)
 	if err != nil {
@@ -312,7 +312,7 @@ func (c *Client) ListAllMobileDevices() (*MobileDevices, error) {
 		wg.Add(1)
 
 		q.Page++ // Increment page number
-		c.Logger.Println("Page:", q.Page)
+		c.Log.Println("Page:", q.Page)
 
 		// Start a new goroutine to get the next device page
 		go func(q DeviceQuery) {
@@ -327,8 +327,8 @@ func (c *Client) ListAllMobileDevices() (*MobileDevices, error) {
 				rolesErrCh <- err
 				return
 			}
-			c.Logger.Println("Response Status:", res.Status)
-			c.Logger.Debug("Response Body:", string(body))
+			c.Log.Println("Response Status:", res.Status)
+			c.Log.Debug("Response Body:", string(body))
 
 			err = json.Unmarshal(body, &page)
 			if err != nil {

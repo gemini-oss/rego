@@ -38,7 +38,11 @@ const (
 	Underline = "\033[4m"
 )
 
-// String representation for log levels
+/*
+ * @param {int} level - log level
+ * @param {bool} color - enable/disable colorized output
+ * @return {string} - string representation of log level
+ */
 func LogLevel(level int, color bool) string {
 	lvl := ""
 	switch level {

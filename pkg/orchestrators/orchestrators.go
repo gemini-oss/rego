@@ -20,7 +20,7 @@ import (
 )
 
 type Client struct {
-	Logger  *log.Logger
+	Log     *log.Logger
 	Google  *google.Client
 	Jamf    *jamf.Client
 	Okta    *okta.Client
@@ -70,8 +70,8 @@ func (c *Client) OktaRoleReportToGoogleSheet() error {
 		return err
 	}
 
-	c.Logger.Println("Okta role report saved to Google Sheet.")
-	c.Logger.Println("Spreadsheet URL: ", sheet.SpreadsheetURL)
+	c.Log.Println("Okta role report saved to Google Sheet.")
+	c.Log.Println("Spreadsheet URL: ", sheet.SpreadsheetURL)
 
 	return nil
 }

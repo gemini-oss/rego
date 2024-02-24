@@ -37,7 +37,7 @@ type GroupParameters struct {
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Group/#tag/Group/operation/listGroups
  */
 func (c *Client) ListAllGroups() (*Groups, error) {
-	c.Logger.Println("Getting all groups")
+	c.Log.Println("Getting all groups")
 	allGroups := Groups{}
 
 	q := GroupParameters{
@@ -45,11 +45,11 @@ func (c *Client) ListAllGroups() (*Groups, error) {
 	}
 
 	url := c.BuildURL(OktaGroups)
-	res, err := c.HTTPClient.PaginatedRequest("GET", url, q, nil)
+	res, err := c.HTTP.PaginatedRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Printf("Received response from %s", url)
+	c.Log.Printf("Received response from %s", url)
 
 	for _, r := range res {
 		group := &Group{}
@@ -69,15 +69,15 @@ func (c *Client) ListAllGroups() (*Groups, error) {
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Group/#tag/Group/operation/getGroup
  */
 func (c *Client) GetGroup(groupID string) (*Group, error) {
-	c.Logger.Printf("Getting group with ID %s", groupID)
+	c.Log.Printf("Getting group with ID %s", groupID)
 	group := &Group{}
 
 	url := c.BuildURL(OktaGroups, groupID)
-	res, body, err := c.HTTPClient.DoRequest("GET", url, nil, nil)
+	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Printf("Received response from %s. Status: %s", url, res.Status)
+	c.Log.Printf("Received response from %s. Status: %s", url, res.Status)
 
 	err = json.Unmarshal(body, &group)
 	if err != nil {
@@ -93,7 +93,7 @@ func (c *Client) GetGroup(groupID string) (*Group, error) {
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Group/#tag/Group/operation/listGroupRules
  */
 func (c *Client) ListAllGroupRules() (*GroupRules, error) {
-	c.Logger.Println("Getting all group rules")
+	c.Log.Println("Getting all group rules")
 	allGroupRules := GroupRules{}
 
 	q := GroupParameters{
@@ -101,11 +101,11 @@ func (c *Client) ListAllGroupRules() (*GroupRules, error) {
 	}
 
 	url := c.BuildURL(OktaGroupRules)
-	res, err := c.HTTPClient.PaginatedRequest("GET", url, q, nil)
+	res, err := c.HTTP.PaginatedRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Printf("Received response from %s", url)
+	c.Log.Printf("Received response from %s", url)
 
 	for _, r := range res {
 		groupRule := &GroupRule{}

@@ -101,14 +101,14 @@ func (c *Client) ListAllUsers() (*Users, error) {
 	q.Projection = Basic
 
 	url := DirectoryUsers
-	c.Logger.Debug("url:", url)
+	c.Log.Debug("url:", url)
 
-	res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
+	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status: ", res.Status)
-	c.Logger.Debug("Response Body: ", string(body))
+	c.Log.Println("Response Status: ", res.Status)
+	c.Log.Debug("Response Body: ", string(body))
 
 	err = json.Unmarshal(body, &users)
 	if err != nil {
@@ -124,12 +124,12 @@ func (c *Client) ListAllUsers() (*Users, error) {
 			PageToken:  users.NextPageToken,
 		}
 
-		res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
+		res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 		if err != nil {
 			return nil, err
 		}
-		c.Logger.Println("Response Status: ", res.Status)
-		c.Logger.Debug("Response Body: ", string(body))
+		c.Log.Println("Response Status: ", res.Status)
+		c.Log.Debug("Response Body: ", string(body))
 
 		err = json.Unmarshal(body, &usersPage)
 		if err != nil {
@@ -156,14 +156,14 @@ func (c *Client) SearchUsers(q UserQuery) (*Users, error) {
 	}
 
 	url := DirectoryUsers
-	c.Logger.Debug("url:", url)
+	c.Log.Debug("url:", url)
 
-	res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
+	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status: ", res.Status)
-	c.Logger.Debug("Response Body: ", string(body))
+	c.Log.Println("Response Status: ", res.Status)
+	c.Log.Debug("Response Body: ", string(body))
 
 	err = json.Unmarshal(body, &users)
 	if err != nil {
@@ -180,14 +180,14 @@ func (c *Client) SearchUsers(q UserQuery) (*Users, error) {
  */
 func (c *Client) GetUser(userKey string) (*User, error) {
 	url := fmt.Sprintf(DirectoryUsers+"/%s", userKey)
-	c.Logger.Debug("url:", url)
+	c.Log.Debug("url:", url)
 
-	res, body, err := c.HTTPClient.DoRequest("GET", url, nil, nil)
+	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status: ", res.Status)
-	c.Logger.Debug("Response Body: ", string(body))
+	c.Log.Println("Response Status: ", res.Status)
+	c.Log.Debug("Response Body: ", string(body))
 
 	user := &User{}
 	err = json.Unmarshal(body, &user)

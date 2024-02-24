@@ -45,7 +45,7 @@ func (c *Client) ListAllApplications() (*Applications, error) {
 	}
 
 	url := c.BuildURL(OktaApps)
-	res, err := c.HTTPClient.PaginatedRequest("GET", url, q, nil)
+	res, err := c.HTTP.PaginatedRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}

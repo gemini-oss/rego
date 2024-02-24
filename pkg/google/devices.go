@@ -70,7 +70,7 @@ type PolicyTargetKey struct {
  * https://developers.google.com/admin-sdk/directory/reference/rest/v1/chromeosdevices/list
  */
 func (c *Client) ListAllChromeOS(customerId string) (*ChromeOSDevices, error) {
-	c.Logger.Println("Getting all ChromeOS Devices...")
+	c.Log.Println("Getting all ChromeOS Devices...")
 	allDevices := &ChromeOSDevices{}
 	q := &DeviceQuery{
 		MaxResults: 500,
@@ -87,13 +87,13 @@ func (c *Client) ListAllChromeOS(customerId string) (*ChromeOSDevices, error) {
 	for next_page := true; next_page; next_page = (q.PageToken != "") {
 		devices := &ChromeOSDevices{}
 
-		res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
+		res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 
 		if err != nil {
 			return nil, err
 		}
-		c.Logger.Println("Response Status:", res.Status)
-		c.Logger.Debug("Response Body:", string(body))
+		c.Log.Println("Response Status:", res.Status)
+		c.Log.Debug("Response Body:", string(body))
 
 		err = json.Unmarshal(body, &devices)
 		if err != nil {
@@ -113,7 +113,7 @@ func (c *Client) ListAllChromeOS(customerId string) (*ChromeOSDevices, error) {
  * https://developers.google.com/admin-sdk/directory/reference/rest/v1/chromeosdevices/list
  */
 func (c *Client) ListAllProvisionedChromeOS(customerId string) (*ChromeOSDevices, error) {
-	c.Logger.Println("Getting all ChromeOS Devices...")
+	c.Log.Println("Getting all ChromeOS Devices...")
 	allDevices := &ChromeOSDevices{}
 	q := &DeviceQuery{
 		MaxResults: 500,
@@ -131,13 +131,13 @@ func (c *Client) ListAllProvisionedChromeOS(customerId string) (*ChromeOSDevices
 	for next_page := true; next_page; next_page = (q.PageToken != "") {
 		devices := &ChromeOSDevices{}
 
-		res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
+		res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 
 		if err != nil {
 			return nil, err
 		}
-		c.Logger.Println("Response Status:", res.Status)
-		c.Logger.Debug("Response Body:", string(body))
+		c.Log.Println("Response Status:", res.Status)
+		c.Log.Debug("Response Body:", string(body))
 
 		err = json.Unmarshal(body, &devices)
 		if err != nil {
@@ -157,7 +157,7 @@ func (c *Client) ListAllProvisionedChromeOS(customerId string) (*ChromeOSDevices
  * https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas/list
  */
 func (c *Client) ListAllDevicePolicySchemas(customerId string) (*PolicySchemas, error) {
-	c.Logger.Println("Getting all ChromeOS Device Policy Schemas...")
+	c.Log.Println("Getting all ChromeOS Device Policy Schemas...")
 	allPolicySchemas := &PolicySchemas{}
 	q := &PolicyQuery{
 		PageSize: 1000,
@@ -174,13 +174,13 @@ func (c *Client) ListAllDevicePolicySchemas(customerId string) (*PolicySchemas, 
 	for next_page := true; next_page; next_page = (q.PageToken != "") {
 		policySchemas := &PolicySchemas{}
 
-		res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
+		res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 
 		if err != nil {
 			return nil, err
 		}
-		c.Logger.Println("Response Status:", res.Status)
-		c.Logger.Debug("Response Body:", string(body))
+		c.Log.Println("Response Status:", res.Status)
+		c.Log.Debug("Response Body:", string(body))
 
 		err = json.Unmarshal(body, &policySchemas)
 		if err != nil {
@@ -200,7 +200,7 @@ func (c *Client) ListAllDevicePolicySchemas(customerId string) (*PolicySchemas, 
  * https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies/resolve
  */
 func (c *Client) ResolvePolicySchemas(customerId string, OU string) (*ResolvedPolicies, error) {
-	c.Logger.Println("Getting all ChromeOS Device Policies...")
+	c.Log.Println("Getting all ChromeOS Device Policies...")
 	allPolicies := &ResolvedPolicies{}
 	req := &PolicyRequest{
 		PolicySchemaFilter: "chrome.users.*",
@@ -222,13 +222,13 @@ func (c *Client) ResolvePolicySchemas(customerId string, OU string) (*ResolvedPo
 	for next_page := true; next_page; next_page = (nextPageToken != "") {
 		policies := &ResolvedPolicies{}
 
-		res, body, err := c.HTTPClient.DoRequest("POST", url, nil, req)
+		res, body, err := c.HTTP.DoRequest("POST", url, nil, req)
 
 		if err != nil {
 			return nil, err
 		}
-		c.Logger.Println("Response Status:", res.Status)
-		c.Logger.Debug("Response Body:", string(body))
+		c.Log.Println("Response Status:", res.Status)
+		c.Log.Debug("Response Body:", string(body))
 
 		err = json.Unmarshal(body, &policies)
 		if err != nil {

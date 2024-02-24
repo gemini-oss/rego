@@ -122,13 +122,13 @@ func (c *Client) GetFile(driveID string) (*File, error) {
 	}
 
 	url := fmt.Sprintf("%s/%s", DriveFiles, driveID)
-	c.Logger.Debug("url:", url)
-	res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
+	c.Log.Debug("url:", url)
+	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, &file)
 	if err != nil {
@@ -153,13 +153,13 @@ func (c *Client) CreateFile(file *File) (*File, error) {
 	}
 
 	url := DriveFiles
-	c.Logger.Debug("url:", url)
-	res, body, err := c.HTTPClient.DoRequest("POST", url, nil, &file)
+	c.Log.Debug("url:", url)
+	res, body, err := c.HTTP.DoRequest("POST", url, nil, &file)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, &file)
 	if err != nil {
@@ -178,10 +178,10 @@ func (c *Client) CreateFile(file *File) (*File, error) {
  */
 func (c *Client) MoveFileToFolder(file *File, folder *File) error {
 	url := fmt.Sprintf("%s/%s", DriveFiles, file.ID)
-	c.Logger.Debug("url:", url)
+	c.Log.Debug("url:", url)
 
 	if file.Parents == nil {
-		c.Logger.Println("File has no parents")
+		c.Log.Println("File has no parents")
 		var err error
 		file, err = c.GetFile(file.ID)
 		if err != nil {
@@ -196,12 +196,12 @@ func (c *Client) MoveFileToFolder(file *File, folder *File) error {
 		SupportsAllDrives: true,
 	}
 
-	res, body, err := c.HTTPClient.DoRequest("PATCH", url, q, nil)
+	res, body, err := c.HTTP.DoRequest("PATCH", url, q, nil)
 	if err != nil {
 		return err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	return nil
 }
@@ -215,18 +215,18 @@ func (c *Client) MoveFileToFolder(file *File, folder *File) error {
  */
 func (c *Client) CopyFileToFolder(file *File, folder *File) error {
 	url := fmt.Sprintf("%s/%s/copy", DriveFiles, file.ID)
-	c.Logger.Debug("url:", url)
+	c.Log.Debug("url:", url)
 
 	q := DriveFileQuery{
 		SupportsAllDrives: true,
 	}
 
-	res, body, err := c.HTTPClient.DoRequest("POST", url, q, nil)
+	res, body, err := c.HTTP.DoRequest("POST", url, q, nil)
 	if err != nil {
 		return err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	copy := &File{}
 	err = json.Unmarshal(body, &copy)
@@ -309,7 +309,7 @@ func (c *Client) GetFileList(file *File, q DriveFileQuery) (*FileList, error) {
 		for _, file := range filesPage.Files {
 			// Generate file's path and append it to the list
 			file.Path = parentPath + "/" + file.Name
-			c.Logger.Println("File Path:", file.Path)
+			c.Log.Println("File Path:", file.Path)
 			allFiles.Files = append(allFiles.Files, file)
 			if file.MimeType == "application/vnd.google-apps.folder" {
 				wg.Add(1)
@@ -357,8 +357,8 @@ func (c *Client) GetFileList(file *File, q DriveFileQuery) (*FileList, error) {
 func (c *Client) SaveFileListToSheet(fileList *FileList, sheetID string, headers *[]string) error {
 
 	if sheetID == "" {
-		c.Logger.Println("No sheet ID provided, creating new sheet")
-		c.Logger.Println("Creating new spreadsheet for file list")
+		c.Log.Println("No sheet ID provided, creating new sheet")
+		c.Log.Println("Creating new spreadsheet for file list")
 		sheet, err := c.CreateSpreadsheet()
 		if err != nil {
 			return err
@@ -371,7 +371,7 @@ func (c *Client) SaveFileListToSheet(fileList *FileList, sheetID string, headers
 		sheetData[i] = v
 	}
 
-	c.Logger.Println("Saving File List to spreadsheet")
+	c.Log.Println("Saving File List to spreadsheet")
 	if headers == nil {
 		headers = &[]string{"id", "name", "path", "md5Checksum", "mimeType", "originalFilename", "owners", "parents", "shortcutDetails"}
 	}
@@ -381,7 +381,7 @@ func (c *Client) SaveFileListToSheet(fileList *FileList, sheetID string, headers
 		return err
 	}
 
-	c.Logger.Println("Formatting spreadsheet")
+	c.Log.Println("Formatting spreadsheet")
 	rows := len(vr.Values)
 	columns := len(vr.Values[0])
 	c.FormatHeaderAndAutoSize(sheetID, rows, columns)
@@ -397,15 +397,15 @@ func (c *Client) SaveFileListToSheet(fileList *FileList, sheetID string, headers
  */
 func (c *Client) fetchFilesPage(q DriveFileQuery) (*FileList, error) {
 	url := DriveFiles
-	c.Logger.Debug("url:", url)
+	c.Log.Debug("url:", url)
 
-	res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
+	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 	if err != nil {
-		c.Logger.Println(err)
+		c.Log.Println(err)
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	filesPage := &FileList{}
 	err = json.Unmarshal(body, &filesPage)

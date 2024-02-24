@@ -36,7 +36,7 @@ type UserQuery struct {
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/listUsers
  */
 func (c *Client) ListAllUsers() (*Users, error) {
-	c.Logger.Println("Getting all users")
+	c.Log.Println("Getting all users")
 	allUsers := Users{}
 
 	q := UserQuery{
@@ -46,11 +46,11 @@ func (c *Client) ListAllUsers() (*Users, error) {
 
 	// url := fmt.Sprintf("%s/users", c.BaseURL)
 	url := c.BuildURL(OktaUsers)
-	res, err := c.HTTPClient.PaginatedRequest("GET", url, q, nil)
+	res, err := c.HTTP.PaginatedRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Printf("Received response from %s", url)
+	c.Log.Printf("Received response from %s", url)
 
 	for _, r := range res {
 		user := User{}
@@ -61,7 +61,7 @@ func (c *Client) ListAllUsers() (*Users, error) {
 		allUsers = append(allUsers, &user)
 	}
 
-	c.Logger.Println("Successfully listed all users.")
+	c.Log.Println("Successfully listed all users.")
 	return &allUsers, nil
 }
 
@@ -81,7 +81,7 @@ func (c *Client) ListActiveUsers() (*Users, error) {
 
 	// url := fmt.Sprintf("%s/users", c.BaseURL)
 	url := c.BuildURL(OktaUsers)
-	res, err := c.HTTPClient.PaginatedRequest("GET", url, q, nil)
+	res, err := c.HTTP.PaginatedRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -107,12 +107,12 @@ func (c *Client) GetUser(userID string) (*User, error) {
 
 	// url := fmt.Sprintf("%s/users/%s", c.BaseURL, userID)
 	url := c.BuildURL(OktaUsers, userID)
-	res, body, err := c.HTTPClient.DoRequest("GET", url, nil, nil)
+	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	user := &User{}
 	err = json.Unmarshal(body, &user)
@@ -133,12 +133,12 @@ func (c *Client) UpdateUser(userID string, u *User) (*User, error) {
 	// url := fmt.Sprintf("%s/users/%s", c.BaseURL, userID)
 	url := c.BuildURL(OktaUsers, userID)
 
-	res, body, err := c.HTTPClient.DoRequest("POST", url, nil, &u)
+	res, body, err := c.HTTP.DoRequest("POST", url, nil, &u)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	user := &User{}
 	err = json.Unmarshal(body, &user)
@@ -158,12 +158,12 @@ func (c *Client) GetUserAppLinks(userID string) (*[]AppLink, error) {
 
 	// url := fmt.Sprintf("%s/users/%s/appLinks", c.BaseURL, userID)
 	url := c.BuildURL(OktaUsers, userID, "appLinks")
-	res, body, err := c.HTTPClient.DoRequest("GET", url, nil, nil)
+	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	appLinks := &[]AppLink{}
 	err = json.Unmarshal(body, &appLinks)
@@ -183,12 +183,12 @@ func (c *Client) GetUserGroups(userID string) (*Groups, error) {
 
 	// url := fmt.Sprintf("%s/users/%s/groups", c.BaseURL, userID)
 	url := c.BuildURL(OktaUsers, userID, "groups")
-	res, body, err := c.HTTPClient.DoRequest("GET", url, nil, nil)
+	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	groups := &Groups{}
 	err = json.Unmarshal(body, &groups)

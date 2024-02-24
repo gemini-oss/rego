@@ -85,59 +85,74 @@ func (rl *RateLimiter) Wait() {
 	for {
 		rl.mu.Lock()
 
-		rl.TimeUntilReset = time.Until(time.Unix(rl.ResetTimestamp, 0))
+		// Calculate the time until the next reset.
+		timeUntilReset := time.Until(time.Unix(rl.ResetTimestamp, 0))
 
-		// If the reset time has passed, reset the available limit and return.
-		if rl.TimeUntilReset <= 0 {
-			if rl.Available < rl.Limit {
-				rl.Available = rl.Limit
-				rl.Requests = 0
-				rl.mu.Unlock()
-				return
-			}
-			rl.Requests = 0
-			rl.Update()
-			rl.ResetTimestamp = time.Now().Add(rl.Interval).Unix()
+		// Check if it's time to reset the available limit.
+		if timeUntilReset <= 0 {
+			rl.resetAvailableLimit()
 			rl.mu.Unlock()
 			return
 		}
 
-		// Allow requests without delay until 90% of the limit is used
-		if rl.Available > int(float64(rl.Limit)*0.10) && rl.Requests < int(float64(rl.Limit)*0.90) {
-			rl.Update()
+		// Determine if a wait is needed based on the available requests.
+		if rl.shouldWait() {
+			waitDuration := rl.calculateWaitDuration(timeUntilReset)
 			rl.mu.Unlock()
-			return
+			rl.performWait(waitDuration)
+			continue
 		}
 
-		// Scale the wait time based on the ratio of remaining requests.
-		// The closer we are to the rate limit, the longer the wait.
-		remainingRequestsRatio := float64(rl.Available) / float64(rl.Limit)
-		scaledWait := time.Duration(remainingRequestsRatio * 0.5 * float64(rl.TimeUntilReset))
-
-		// Apply finer control of wait time when under 7.5% of the quota.
-		// This helps in utilizing the available quota more effectively.
-		if rl.Available <= int(float64(rl.Limit)*0.075) {
-			scaledWait /= 2
-		}
-
-		// Cap the maximum wait time to 10 seconds to prevent overly long waits.
-		maxWait := 10 * time.Second
-		if scaledWait > maxWait {
-			scaledWait = maxWait
-		}
-
-		// Add a small, random increment (up to 50ms) to the wait time.
-		// This helps in avoiding synchronization issues in concurrent environments.
-		randomIncrement := time.Duration(rand.Intn(50)) * time.Millisecond
-
+		// Proceed without waiting.
+		rl.decrementAvailable()
 		rl.mu.Unlock()
-
-		rl.Logger.Tracef("Waiting for %v (scaled wait) + %v (random increment)\n", scaledWait, randomIncrement)
-		rl.Logger.Debug("Time left until reset: ", rl.TimeUntilReset, " Available: ", rl.Available)
-
-		// Sleep for the calculated duration.
-		time.Sleep(scaledWait + randomIncrement)
+		return
 	}
+}
+
+// resetAvailableLimit resets the available requests and requests count.
+func (rl *RateLimiter) resetAvailableLimit() {
+	if rl.Available < rl.Limit {
+		rl.Available = rl.Limit
+	}
+	rl.Requests = 0
+	rl.ResetTimestamp = time.Now().Add(rl.Interval).Unix()
+}
+
+// shouldWait determines if waiting is necessary based on the available requests.
+func (rl *RateLimiter) shouldWait() bool {
+	return rl.Available <= int(float64(rl.Limit)*0.10) || rl.Requests >= int(float64(rl.Limit)*0.90)
+}
+
+// calculateWaitDuration calculates the duration for which to wait.
+func (rl *RateLimiter) calculateWaitDuration(timeUntilReset time.Duration) time.Duration {
+	remainingRatio := float64(rl.Available) / float64(rl.Limit)
+	scaledWait := time.Duration(remainingRatio * 0.5 * float64(timeUntilReset))
+
+	if rl.Available <= int(float64(rl.Limit)*0.075) {
+		scaledWait /= 2
+	}
+
+	maxWait := 10 * time.Second
+	if scaledWait > maxWait {
+		scaledWait = maxWait
+	}
+
+	randomIncrement := time.Duration(rand.Intn(50)) * time.Millisecond
+	return scaledWait + randomIncrement
+}
+
+// performWait sleeps for the specified duration.
+func (rl *RateLimiter) performWait(duration time.Duration) {
+	rl.Logger.Tracef("Waiting for %v\n", duration)
+	time.Sleep(duration)
+}
+
+// decrementAvailable decrements the available requests and increments the request count.
+func (rl *RateLimiter) decrementAvailable() {
+	rl.Available--
+	rl.Requests++
+	rl.Logger.Debug("Rate limiter updated: Limit=", rl.Limit, ", Available=", rl.Available)
 }
 
 // Stop terminates the rate limiter's internal timer
@@ -195,12 +210,5 @@ func (rl *RateLimiter) UpdateFromHeaders(headers http.Header) {
 	}
 
 	// Log the updated state of the Rate Limiter.
-	rl.Logger.Debug("Rate limiter updated: Limit=", rl.Limit, ", Available=", rl.Available)
-}
-
-// Update reduces the available requests by 1
-func (rl *RateLimiter) Update() {
-	rl.Available--
-	rl.Requests++
 	rl.Logger.Debug("Rate limiter updated: Limit=", rl.Limit, ", Available=", rl.Available)
 }

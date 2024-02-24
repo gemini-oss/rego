@@ -90,11 +90,11 @@ func GenerateValueRange(data []interface{}, headers *[]string) *ValueRange {
 func (c *Client) CreateSpreadsheet() (*Spreadsheet, error) {
 	url := Sheets
 
-	_, body, err := c.HTTPClient.DoRequest("POST", url, nil, nil)
+	_, body, err := c.HTTP.DoRequest("POST", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Debugf("Request Body: %s", string(body))
+	c.Log.Debugf("Request Body: %s", string(body))
 
 	spreadsheet := &Spreadsheet{}
 	err = json.Unmarshal(body, &spreadsheet)
@@ -126,13 +126,13 @@ func (c *Client) UpdateSpreadsheet(spreadsheetID string, vr *ValueRange) error {
 	url := fmt.Sprintf("%s/%s/values/%s", Sheets, spreadsheetID, vr.Range)
 
 	// Prepare request
-	res, body, err := c.HTTPClient.DoRequest("PUT", url, q, &vr)
+	res, body, err := c.HTTP.DoRequest("PUT", url, q, &vr)
 	if err != nil {
-		c.Logger.Panic(err)
+		c.Log.Panic(err)
 		return err
 	}
-	c.Logger.Println("Response Status: ", res.Status)
-	c.Logger.Debug("Response Body: ", string(body))
+	c.Log.Println("Response Status: ", res.Status)
+	c.Log.Debug("Response Body: ", string(body))
 
 	return nil
 }
@@ -158,12 +158,12 @@ func (c *Client) AppendSpreadsheet(spreadsheetID string, vr *ValueRange) error {
 	url := fmt.Sprintf("%s/%s/values/%s:append", Sheets, spreadsheetID, vr.Range)
 
 	// Prepare request
-	res, body, err := c.HTTPClient.DoRequest("POST", url, q, vr)
+	res, body, err := c.HTTP.DoRequest("POST", url, q, vr)
 	if err != nil {
 		return err
 	}
-	c.Logger.Println("Response Status: ", res.Status)
-	c.Logger.Debug("Response Body: ", string(body))
+	c.Log.Println("Response Status: ", res.Status)
+	c.Log.Debug("Response Body: ", string(body))
 
 	return nil
 }
@@ -233,12 +233,12 @@ func (c *Client) FormatHeaderAndAutoSize(spreadsheetId string, rows int, columns
 	})
 
 	// Execute the batchUpdate request
-	resp, body, err := c.HTTPClient.DoRequest("POST", url, nil, format)
+	resp, body, err := c.HTTP.DoRequest("POST", url, nil, format)
 	if err != nil {
 		return err
 	}
-	c.Logger.Println("Response Status: ", resp.Status)
-	c.Logger.Debug("Response Body: ", string(body))
+	c.Log.Println("Response Status: ", resp.Status)
+	c.Log.Debug("Response Body: ", string(body))
 
 	return nil
 }

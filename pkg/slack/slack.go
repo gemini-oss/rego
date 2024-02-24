@@ -35,7 +35,7 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
 
 /*
   - # Generate Slack Client
-  - @param logger *log.Logger
+  - @param log *log.Logger
   - @return *Client
   - Example:
 
@@ -63,14 +63,14 @@ func NewClient(verbosity int) *Client {
 
 	headers := requests.Headers{
 		"Authorization": "Bearer " + token,
-		"Accept":        "application/json",
-		"Content-Type":  "application/json; charset=utf-8",
+		"Accept":        requests.JSON,
+		"Content-Type":  fmt.Sprintf("%s; charset=utf-8", requests.JSON),
 	}
 
 	return &Client{
 		BaseURL:       BaseURL,
-		HTTPClient:    requests.NewClient(nil, headers, nil),
-		Logger:        log.NewLogger("{slack}", verbosity),
+		HTTP:          requests.NewClient(nil, headers, nil),
+		Log:           log.NewLogger("{slack}", verbosity),
 		Token:         token,
 		SigningSecret: signingSecret,
 	}

@@ -50,12 +50,6 @@ const (
 	Reports          = "%s/reports"              // https://snipe-it.readme.io/reference#reports
 )
 
-type Client struct {
-	BaseURL    string
-	HTTPClient *requests.Client
-	Logger     *log.Logger
-}
-
 func NewClient(verbosity int) *Client {
 
 	url := config.GetEnv("SNIPEIT_URL", "snipeit_url")
@@ -68,8 +62,8 @@ func NewClient(verbosity int) *Client {
 
 	headers := requests.Headers{
 		"Authorization": "Bearer " + token,
-		"Accept":        "application/json",
-		"Content-Type":  "application/json",
+		"Accept":        requests.JSON,
+		"Content-Type":  requests.JSON,
 	}
 
 	log := log.NewLogger("{snipeit}", verbosity)
@@ -78,8 +72,8 @@ func NewClient(verbosity int) *Client {
 	rl := ratelimit.NewRateLimiter(120)
 
 	return &Client{
-		BaseURL:    BaseURL,
-		HTTPClient: requests.NewClient(nil, headers, rl),
-		Logger:     log,
+		BaseURL: BaseURL,
+		HTTP:    requests.NewClient(nil, headers, rl),
+		Log:     log,
 	}
 }

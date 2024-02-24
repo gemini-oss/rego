@@ -73,7 +73,7 @@ type ReportsQuery struct {
  * https://developers.google.com/admin-sdk/directory/v1/reference/roles/list
  */
 func (c *Client) ListAllRoles(customerId string) (*Roles, error) {
-	c.Logger.Println("Getting all roles...")
+	c.Log.Println("Getting all roles...")
 	roles := &Roles{}
 
 	var url string
@@ -84,12 +84,12 @@ func (c *Client) ListAllRoles(customerId string) (*Roles, error) {
 		url = fmt.Sprintf(DirectoryRoles, customerId)
 	}
 
-	res, body, err := c.HTTPClient.DoRequest("GET", url, nil, nil)
+	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, &roles)
 	if err != nil {
@@ -105,7 +105,7 @@ func (c *Client) ListAllRoles(customerId string) (*Roles, error) {
  * https://developers.google.com/admin-sdk/directory/v1/reference/roles/get
  */
 func (c *Client) GetRole(customerId string, roleId string) (*Role, error) {
-	c.Logger.Println("Getting role...")
+	c.Log.Println("Getting role...")
 	role := &Role{}
 
 	if customerId == "" {
@@ -114,12 +114,12 @@ func (c *Client) GetRole(customerId string, roleId string) (*Role, error) {
 
 	url := fmt.Sprintf("%s/%s", DirectoryRoles, roleId)
 
-	res, body, err := c.HTTPClient.DoRequest("GET", url, nil, nil)
+	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, role)
 	if err != nil {
@@ -135,7 +135,7 @@ func (c *Client) GetRole(customerId string, roleId string) (*Role, error) {
  * https://developers.google.com/admin-sdk/directory/v1/reference/roleAssignments/list
  */
 func (c *Client) ListAllRoleAssignments(customerId string) (*RoleAssignment, error) {
-	c.Logger.Println("Getting all role assignments...")
+	c.Log.Println("Getting all role assignments...")
 	roleAssignments := &RoleAssignment{}
 
 	var url string
@@ -146,12 +146,12 @@ func (c *Client) ListAllRoleAssignments(customerId string) (*RoleAssignment, err
 		url = fmt.Sprintf(DirectoryRoleAssignments, customerId)
 	}
 
-	res, body, err := c.HTTPClient.DoRequest("GET", url, nil, nil)
+	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, roleAssignments)
 	if err != nil {
@@ -167,7 +167,7 @@ func (c *Client) ListAllRoleAssignments(customerId string) (*RoleAssignment, err
  * https://developers.google.com/admin-sdk/directory/reference/rest/v1/roleAssignments/list#query-parameters
  */
 func (c *Client) GetAssignmentsForRole(customerId string, roleId string) (*RoleAssignment, error) {
-	c.Logger.Println("Getting role's assignment...")
+	c.Log.Println("Getting role's assignment...")
 	roleAssignment := &RoleAssignment{}
 
 	q := ReportsQuery{
@@ -182,12 +182,12 @@ func (c *Client) GetAssignmentsForRole(customerId string, roleId string) (*RoleA
 		url = fmt.Sprintf(DirectoryRoleAssignments, customerId)
 	}
 
-	res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
+	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, &roleAssignment)
 	if err != nil {
@@ -351,19 +351,19 @@ func (c *Client) SaveRoleReport(reports []*RoleReport) (*Spreadsheet, error) {
 		}
 	}
 
-	c.Logger.Println("Creating new spreadsheet for role report")
+	c.Log.Println("Creating new spreadsheet for role report")
 	spreadsheet, err := c.CreateSpreadsheet()
 	if err != nil {
 		return nil, err
 	}
 
-	c.Logger.Println("Saving role report to spreadsheet")
+	c.Log.Println("Saving role report to spreadsheet")
 	err = c.UpdateSpreadsheet(spreadsheet.SpreadsheetID, vr)
 	if err != nil {
 		return nil, err
 	}
 
-	c.Logger.Println("Formatting spreadsheet")
+	c.Log.Println("Formatting spreadsheet")
 	rows := len(vr.Values)
 	columns := len(headers)
 	c.FormatHeaderAndAutoSize(spreadsheet.SpreadsheetID, rows, columns)
@@ -375,32 +375,32 @@ func (c *Client) SaveRoleReport(reports []*RoleReport) (*Spreadsheet, error) {
  * Find the file ownership using the Reports API
  */
 func (c *Client) GetFileOwnership(fileID string) (string, error) {
-	c.Logger.Println("Getting file ownership...")
-	c.Logger.Debug("fileID:", fileID)
+	c.Log.Println("Getting file ownership...")
+	c.Log.Debug("fileID:", fileID)
 	fileReport := &Report{}
 
 	q := ReportsQuery{
 		Filters:    fmt.Sprintf("doc_id==%s", fileID),
 		MaxResults: 1,
 	}
-	c.Logger.Debug("query:", q)
+	c.Log.Debug("query:", q)
 
 	url := fmt.Sprintf(ReportsActivities, "all", "drive")
-	c.Logger.Debug("url:", url)
+	c.Log.Debug("url:", url)
 
-	c.Logger.Println("Sending request...")
-	res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
+	c.Log.Println("Sending request...")
+	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 	if err != nil {
 		return "", err
 	}
-	c.Logger.Println("Response Status:", res.Status)
-	c.Logger.Debug("Response Body:", string(body))
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, fileReport)
 	if err != nil {
 		return "", err
 	}
-	c.Logger.Println(ss.PrettyJSON(fileReport))
+	c.Log.Println(ss.PrettyJSON(fileReport))
 
 	if len(fileReport.Items) == 0 {
 		return "", fmt.Errorf("no events found for file %s", fileID)
@@ -408,8 +408,8 @@ func (c *Client) GetFileOwnership(fileID string) (string, error) {
 	for _, event := range fileReport.Items[0].Events {
 		for i, param := range event.Parameters {
 			if param.Name == "owner" {
-				c.Logger.Println("Found owner!")
-				c.Logger.Debug("owner:", event.Parameters[i].Value)
+				c.Log.Println("Found owner!")
+				c.Log.Debug("owner:", event.Parameters[i].Value)
 				return event.Parameters[i].Value, nil
 			}
 		}

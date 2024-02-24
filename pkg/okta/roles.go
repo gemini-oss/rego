@@ -28,7 +28,7 @@ func (c *Client) ListAllRoles() (*Roles, error) {
 	allRoles := &Roles{}
 
 	url := c.BuildURL(OktaRoles)
-	res, err := c.HTTPClient.PaginatedRequest("GET", url, nil, nil)
+	res, err := c.HTTP.PaginatedRequest("GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func (c *Client) GetRole(roleID string) (*Role, error) {
 
 	// url := fmt.Sprintf("%s/%s", OktaRoles, roleID)
 	url := c.BuildURL(OktaRoles, roleID)
-	res, err := c.HTTPClient.PaginatedRequest("GET", url, nil, nil)
+	res, err := c.HTTP.PaginatedRequest("GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +169,7 @@ func (c *Client) GetUserRoles(userID string) (*Roles, error) {
 
 	// url := fmt.Sprintf("%s/%s/roles", OktaUsers, userID)
 	url := c.BuildURL(OktaUsers, userID, "roles")
-	res, err := c.HTTPClient.PaginatedRequest("GET", url, nil, nil)
+	res, err := c.HTTP.PaginatedRequest("GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -201,11 +201,11 @@ func (c *Client) ListAllUsersWithRoleAssignments() (*Users, error) {
 
 	// url := fmt.Sprintf("%s/assignees/users", OktaIAM)
 	url := c.BuildURL(OktaIAM, "assignees", "users")
-	res, err := c.HTTPClient.PaginatedRequest("GET", url, nil, nil)
+	res, err := c.HTTP.PaginatedRequest("GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Printf("res: %+v", res)
+	c.Log.Printf("res: %+v", res)
 
 	return nil, nil
 }

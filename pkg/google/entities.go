@@ -13,6 +13,7 @@ package google
 
 import (
 	"github.com/gemini-oss/rego/pkg/common/auth"
+	"github.com/gemini-oss/rego/pkg/common/cache"
 	"github.com/gemini-oss/rego/pkg/common/log"
 	"github.com/gemini-oss/rego/pkg/common/requests"
 	"golang.org/x/oauth2/jwt"
@@ -34,13 +35,14 @@ type GoogleConfig struct {
 }
 
 type Client struct {
-	Auth       AuthCredentials // Credentials to use for authentication
-	BaseURL    string          // Base URL to use for API calls
-	OAuth      *auth.OAuthConfig
-	JWT        *jwt.Config      // JWT Config
-	HTTPClient *requests.Client // HTTP Client
-	Error      *ErrorResponse   // Error
-	Logger     *log.Logger      // Logger
+	Auth    AuthCredentials   // Credentials to use for authentication
+	BaseURL string            // Base URL to use for API calls
+	OAuth   *auth.OAuthConfig // OAuth Config
+	JWT     *jwt.Config       // JWT Config
+	HTTP    *requests.Client  // HTTP Client
+	Error   *ErrorResponse    // Error
+	Log     *log.Logger       // Logger
+	Cache   *cache.Cache      // Cache
 }
 
 /*

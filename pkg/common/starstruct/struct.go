@@ -52,7 +52,7 @@ func StructToMap(item interface{}) map[string]string {
 			for j := 0; j < field.Len(); j++ {
 				sliceElements = append(sliceElements, field.Index(j).Interface().(string))
 			}
-			fieldStr = strings.Join(sliceElements, "~~~")
+			fieldStr = strings.Join(sliceElements, "ᕙ(▀̿̿Ĺ̯̿̿▀̿ ̿)ᕗ") // Kaomoji to separate slice elements
 		} else {
 			fieldStr = fmt.Sprintf("%v", field.Interface())
 		}
