@@ -37,6 +37,7 @@ pkg/jamf/version.go
   - [func \(c \*Client\) ListAllMobileDevices\(\) \(\*MobileDevices, error\)](<#Client.ListAllMobileDevices>)
   - [func \(c \*Client\) RenewMDMProfile\(udids \[\]string\) \(\*ManagementResponse, error\)](<#Client.RenewMDMProfile>)
   - [func \(c \*Client\) RepairManagementFramework\(id string\) \(string, error\)](<#Client.RepairManagementFramework>)
+  - [func \(c \*Client\) UseCache\(\) \*Client](<#Client.UseCache>)
 - [type Computer](<#Computer>)
 - [type Computers](<#Computers>)
 - [type ConfigurationProfile](<#ConfigurationProfile>)
@@ -189,7 +190,7 @@ var Sort = SortOptions{
 ```
 
 <a name="Application"></a>
-## type [Application](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L100-L109>)
+## type [Application](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L102-L111>)
 
 Application represents the details of an application installed on the computer.
 
@@ -207,7 +208,7 @@ type Application struct {
 ```
 
 <a name="Attachment"></a>
-## type [Attachment](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L112-L117>)
+## type [Attachment](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L114-L119>)
 
 Attachment represents an attachment in the inventory.
 
@@ -221,7 +222,7 @@ type Attachment struct {
 ```
 
 <a name="BootPartitionDetails"></a>
-## type [BootPartitionDetails](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L233-L237>)
+## type [BootPartitionDetails](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L235-L239>)
 
 
 
@@ -234,7 +235,7 @@ type BootPartitionDetails struct {
 ```
 
 <a name="CacheAlert"></a>
-## type [CacheAlert](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L188-L195>)
+## type [CacheAlert](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L190-L197>)
 
 CacheAlert represents an alert related to caching.
 
@@ -250,7 +251,7 @@ type CacheAlert struct {
 ```
 
 <a name="CacheDetail"></a>
-## type [CacheDetail](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L198-L202>)
+## type [CacheDetail](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L200-L204>)
 
 CacheDetail represents details of the cache.
 
@@ -263,7 +264,7 @@ type CacheDetail struct {
 ```
 
 <a name="Certificate"></a>
-## type [Certificate](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L119-L129>)
+## type [Certificate](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L121-L131>)
 
 
 
@@ -282,21 +283,22 @@ type Certificate struct {
 ```
 
 <a name="Client"></a>
-## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L25-L30>)
+## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L26-L32>)
 
 
 
 ```go
 type Client struct {
-    BaseURL    string
-    ClassicURL string
-    HTTP       *requests.Client
-    Logger     *log.Logger
+    BaseURL    string           // Base URL for the Jamf Pro API.
+    ClassicURL string           // Base URL for the Jamf Pro Classic API.
+    HTTP       *requests.Client // HTTP client for making requests to the Jamf Pro API.
+    Log        *log.Logger      // Logger for the Jamf Pro client.
+    Cache      *cache.Cache     // Cache for the Jamf Pro client.
 }
 ```
 
 <a name="NewClient"></a>
-### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L83>)
+### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L90>)
 
 ```go
 func NewClient(verbosity int) *Client
@@ -305,7 +307,7 @@ func NewClient(verbosity int) *Client
 \* Create a new Jamf Client
 
 <a name="Client.BuildURL"></a>
-### func \(\*Client\) [BuildURL](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L36>)
+### func \(\*Client\) [BuildURL](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L37>)
 
 ```go
 func (c *Client) BuildURL(endpoint string, identifiers ...string) string
@@ -314,7 +316,7 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string
 BuildURL builds a URL for a given resource and identifiers.
 
 <a name="Client.GetComputerDetails"></a>
-### func \(\*Client\) [GetComputerDetails](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L203>)
+### func \(\*Client\) [GetComputerDetails](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L204>)
 
 ```go
 func (c *Client) GetComputerDetails(id string) (*Computer, error)
@@ -338,7 +340,7 @@ func (c *Client) GetJamfVersion() (string, error)
 - \- https://developer.jamf.com/jamf-pro/reference/get_v1-jamf-pro-version
 
 <a name="Client.ListAllComputerGroups"></a>
-### func \(\*Client\) [ListAllComputerGroups](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L227>)
+### func \(\*Client\) [ListAllComputerGroups](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L228>)
 
 ```go
 func (c *Client) ListAllComputerGroups() (*[]GroupMembership, error)
@@ -350,7 +352,7 @@ func (c *Client) ListAllComputerGroups() (*[]GroupMembership, error)
 - \- https://developer.jamf.com/jamf-pro/reference/get_v1-computers-inventory
 
 <a name="Client.ListAllComputers"></a>
-### func \(\*Client\) [ListAllComputers](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L96>)
+### func \(\*Client\) [ListAllComputers](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L97>)
 
 ```go
 func (c *Client) ListAllComputers() (*Computers, error)
@@ -362,7 +364,7 @@ func (c *Client) ListAllComputers() (*Computers, error)
 - \- https://developer.jamf.com/jamf-pro/reference/get_v1-computers-inventory
 
 <a name="Client.ListAllMobileDevices"></a>
-### func \(\*Client\) [ListAllMobileDevices](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L251>)
+### func \(\*Client\) [ListAllMobileDevices](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L252>)
 
 ```go
 func (c *Client) ListAllMobileDevices() (*MobileDevices, error)
@@ -397,8 +399,17 @@ func (c *Client) RepairManagementFramework(id string) (string, error)
 - /api/v1/jamf\-management\-framework/redeploy/\{id\}
 - \- https://developer.jamf.com/jamf-pro/reference/post_v1-jamf-management-framework-redeploy-id
 
+<a name="Client.UseCache"></a>
+### func \(\*Client\) [UseCache](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L47>)
+
+```go
+func (c *Client) UseCache() *Client
+```
+
+UseCache\(\) enables caching for the next method call.
+
 <a name="Computer"></a>
-## type [Computer](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L71-L97>)
+## type [Computer](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L73-L99>)
 
 Computer represents the details of a computer.
 
@@ -433,7 +444,7 @@ type Computer struct {
 ```
 
 <a name="Computers"></a>
-## type [Computers](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L43-L46>)
+## type [Computers](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L45-L48>)
 
 Response structure for the Jamf Pro API for computers
 
@@ -445,7 +456,7 @@ type Computers struct {
 ```
 
 <a name="ConfigurationProfile"></a>
-## type [ConfigurationProfile](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L131-L138>)
+## type [ConfigurationProfile](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L133-L140>)
 
 
 
@@ -461,7 +472,7 @@ type ConfigurationProfile struct {
 ```
 
 <a name="ContentCaching"></a>
-## type [ContentCaching](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L141-L185>)
+## type [ContentCaching](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L143-L187>)
 
 ContentCaching represents content caching information of a computer.
 
@@ -514,7 +525,7 @@ type ContentCaching struct {
 ```
 
 <a name="Credentials"></a>
-## type [Credentials](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L14-L18>)
+## type [Credentials](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L15-L19>)
 
 \#\#\# Jamf Client Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- Credentials for Jamf Pro
 
@@ -527,7 +538,7 @@ type Credentials struct {
 ```
 
 <a name="DataMigrationError"></a>
-## type [DataMigrationError](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L205-L209>)
+## type [DataMigrationError](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L207-L211>)
 
 DataMigrationError represents details of a data migration error.
 
@@ -540,7 +551,7 @@ type DataMigrationError struct {
 ```
 
 <a name="DataMigrationInfo"></a>
-## type [DataMigrationInfo](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L218-L221>)
+## type [DataMigrationInfo](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L220-L223>)
 
 DataMigrationInfo represents additional information for a data migration error.
 
@@ -552,7 +563,7 @@ type DataMigrationInfo struct {
 ```
 
 <a name="DeviceQuery"></a>
-## type [DeviceQuery](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L45-L51>)
+## type [DeviceQuery](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L46-L52>)
 
 \- Query parameters for Computer Details
 
@@ -575,7 +586,7 @@ type DeviceQuery struct {
 ```
 
 <a name="DeviceQuery.IsEmpty"></a>
-### func \(\*DeviceQuery\) [IsEmpty](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L56>)
+### func \(\*DeviceQuery\) [IsEmpty](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L57>)
 
 ```go
 func (d *DeviceQuery) IsEmpty() bool
@@ -584,7 +595,7 @@ func (d *DeviceQuery) IsEmpty() bool
 \* Check if the DeviceQuery is empty
 
 <a name="DeviceQuery.ValidateQuery"></a>
-### func \(\*DeviceQuery\) [ValidateQuery](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L67>)
+### func \(\*DeviceQuery\) [ValidateQuery](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/devices.go#L68>)
 
 ```go
 func (d *DeviceQuery) ValidateQuery() error
@@ -593,7 +604,7 @@ func (d *DeviceQuery) ValidateQuery() error
 \* Validate the query parameters for the Files resource
 
 <a name="Disk"></a>
-## type [Disk](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L469-L479>)
+## type [Disk](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L471-L481>)
 
 Disk represents a disk in a computer.
 
@@ -612,7 +623,7 @@ type Disk struct {
 ```
 
 <a name="DiskEncryption"></a>
-## type [DiskEncryption](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L224-L231>)
+## type [DiskEncryption](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L226-L233>)
 
 DiskEncryption represents details of disk encryption on the computer.
 
@@ -628,7 +639,7 @@ type DiskEncryption struct {
 ```
 
 <a name="EnrollmentMethod"></a>
-## type [EnrollmentMethod](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L284-L288>)
+## type [EnrollmentMethod](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L286-L290>)
 
 EnrollmentMethod represents the method of enrollment of a computer.
 
@@ -641,7 +652,7 @@ type EnrollmentMethod struct {
 ```
 
 <a name="ExtensionAttribute"></a>
-## type [ExtensionAttribute](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L291-L301>)
+## type [ExtensionAttribute](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L293-L303>)
 
 ExtensionAttribute represents the extension attributes in UserAndLocation and Purchasing.
 
@@ -660,7 +671,7 @@ type ExtensionAttribute struct {
 ```
 
 <a name="Font"></a>
-## type [Font](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L240-L244>)
+## type [Font](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L242-L246>)
 
 Font represents details of a font installed on the computer.
 
@@ -673,7 +684,7 @@ type Font struct {
 ```
 
 <a name="General"></a>
-## type [General](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L247-L274>)
+## type [General](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L249-L276>)
 
 General information about the computer.
 
@@ -709,7 +720,7 @@ type General struct {
 ```
 
 <a name="GroupMembership"></a>
-## type [GroupMembership](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L277-L281>)
+## type [GroupMembership](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L279-L283>)
 
 GroupMembership represents the membership details of a computer in a group.
 
@@ -722,7 +733,7 @@ type GroupMembership struct {
 ```
 
 <a name="Hardware"></a>
-## type [Hardware](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L322-L349>)
+## type [Hardware](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L324-L351>)
 
 Hardware represents the hardware details of a computer in the inventory.
 
@@ -758,7 +769,7 @@ type Hardware struct {
 ```
 
 <a name="IBeacon"></a>
-## type [IBeacon](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L352-L354>)
+## type [IBeacon](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L354-L356>)
 
 IBeacon represents an iBeacon associated with the computer.
 
@@ -769,7 +780,7 @@ type IBeacon struct {
 ```
 
 <a name="Inventory"></a>
-## type [Inventory](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L37-L40>)
+## type [Inventory](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L39-L42>)
 
 \#\#\# Jamf Device Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 
@@ -781,7 +792,7 @@ type Inventory struct {
 ```
 
 <a name="JamfToken"></a>
-## type [JamfToken](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L20-L23>)
+## type [JamfToken](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L21-L24>)
 
 
 
@@ -793,7 +804,7 @@ type JamfToken struct {
 ```
 
 <a name="GetToken"></a>
-### func [GetToken](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L50>)
+### func [GetToken](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/jamf.go#L57>)
 
 ```go
 func GetToken(baseURL string) (*JamfToken, error)
@@ -805,7 +816,7 @@ func GetToken(baseURL string) (*JamfToken, error)
 - \- https://developer.jamf.com/jamf-pro/reference/post_v1-auth-token
 
 <a name="KeyValue"></a>
-## type [KeyValue](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L212-L215>)
+## type [KeyValue](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L214-L217>)
 
 KeyValue represents a key\-value pair.
 
@@ -817,7 +828,7 @@ type KeyValue struct {
 ```
 
 <a name="LicensedSoftware"></a>
-## type [LicensedSoftware](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L357-L360>)
+## type [LicensedSoftware](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L359-L362>)
 
 LicensedSoftware represents licensed software installed on the computer.
 
@@ -829,7 +840,7 @@ type LicensedSoftware struct {
 ```
 
 <a name="LocalUserAccount"></a>
-## type [LocalUserAccount](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L363-L381>)
+## type [LocalUserAccount](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L365-L383>)
 
 LocalUserAccount represents a local user account on the computer.
 
@@ -856,7 +867,7 @@ type LocalUserAccount struct {
 ```
 
 <a name="ManagementResponse"></a>
-## type [ManagementResponse](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L512-L516>)
+## type [ManagementResponse](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L514-L518>)
 
 \#\#\# Jamf Management Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- ManagementResponse represents a generic response for device management operations.
 
@@ -869,7 +880,7 @@ type ManagementResponse struct {
 ```
 
 <a name="MdmCapable"></a>
-## type [MdmCapable](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L304-L307>)
+## type [MdmCapable](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L306-L309>)
 
 MdmCapable represents MDM capability information of a computer.
 
@@ -881,7 +892,7 @@ type MdmCapable struct {
 ```
 
 <a name="MobileDevice"></a>
-## type [MobileDevice](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L55-L68>)
+## type [MobileDevice](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L57-L70>)
 
 MobileDevice represents the details of a mobile device.
 
@@ -903,7 +914,7 @@ type MobileDevice struct {
 ```
 
 <a name="MobileDevices"></a>
-## type [MobileDevices](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L49-L52>)
+## type [MobileDevices](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L51-L54>)
 
 Response structure for the Jamf Pro API for mobile devices
 
@@ -915,7 +926,7 @@ type MobileDevices struct {
 ```
 
 <a name="OperatingSystem"></a>
-## type [OperatingSystem](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L384-L394>)
+## type [OperatingSystem](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L386-L396>)
 
 OperatingSystem represents information about the operating system of the computer.
 
@@ -934,7 +945,7 @@ type OperatingSystem struct {
 ```
 
 <a name="PackageReceipts"></a>
-## type [PackageReceipts](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L397-L401>)
+## type [PackageReceipts](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L399-L403>)
 
 PackageReceipts represents the package receipts on the computer.
 
@@ -947,7 +958,7 @@ type PackageReceipts struct {
 ```
 
 <a name="Partition"></a>
-## type [Partition](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L482-L491>)
+## type [Partition](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L484-L493>)
 
 Partition represents a partition on a disk.
 
@@ -965,7 +976,7 @@ type Partition struct {
 ```
 
 <a name="Plugin"></a>
-## type [Plugin](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L404-L408>)
+## type [Plugin](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L406-L410>)
 
 Plugin represents a plugin installed on the computer.
 
@@ -978,7 +989,7 @@ type Plugin struct {
 ```
 
 <a name="Printer"></a>
-## type [Printer](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L411-L416>)
+## type [Printer](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L413-L418>)
 
 Printer represents a printer in the inventory.
 
@@ -992,7 +1003,7 @@ type Printer struct {
 ```
 
 <a name="Purchasing"></a>
-## type [Purchasing](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L419-L433>)
+## type [Purchasing](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L421-L435>)
 
 Purchasing represents the purchasing information of a computer.
 
@@ -1015,7 +1026,7 @@ type Purchasing struct {
 ```
 
 <a name="RemoteManagement"></a>
-## type [RemoteManagement](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L310-L313>)
+## type [RemoteManagement](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L312-L315>)
 
 RemoteManagement represents remote management information of a computer.
 
@@ -1027,7 +1038,7 @@ type RemoteManagement struct {
 ```
 
 <a name="Sections"></a>
-## type [Sections](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L529-L554>)
+## type [Sections](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L531-L556>)
 
 \#\#\# Enums \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- Inteded for Device Query parameters, \`Sections\` serves as a namespace for valid Computer Detail section constants.
 
@@ -1061,7 +1072,7 @@ type Sections struct {
 ```
 
 <a name="Security"></a>
-## type [Security](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L436-L448>)
+## type [Security](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L438-L450>)
 
 Security represents the security settings of the computer.
 
@@ -1082,7 +1093,7 @@ type Security struct {
 ```
 
 <a name="Service"></a>
-## type [Service](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L451-L453>)
+## type [Service](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L453-L455>)
 
 Service represents a service in the inventory.
 
@@ -1093,7 +1104,7 @@ type Service struct {
 ```
 
 <a name="Site"></a>
-## type [Site](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L316-L319>)
+## type [Site](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L318-L321>)
 
 Site represents the site information of a computer.
 
@@ -1105,7 +1116,7 @@ type Site struct {
 ```
 
 <a name="SoftwareUpdate"></a>
-## type [SoftwareUpdate](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L456-L460>)
+## type [SoftwareUpdate](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L458-L462>)
 
 SoftwareUpdate represents a software update available for the computer.
 
@@ -1118,7 +1129,7 @@ type SoftwareUpdate struct {
 ```
 
 <a name="SortOptions"></a>
-## type [SortOptions](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L585-L608>)
+## type [SortOptions](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L587-L610>)
 
 Inteded for Device Query parameters, \`SortOptions serves as a namespace for valid sort criteria constants.
 
@@ -1150,7 +1161,7 @@ type SortOptions struct {
 ```
 
 <a name="Storage"></a>
-## type [Storage](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L463-L466>)
+## type [Storage](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L465-L468>)
 
 Storage represents the storage details of a computer.
 
@@ -1162,7 +1173,7 @@ type Storage struct {
 ```
 
 <a name="UDIDsNotProcessed"></a>
-## type [UDIDsNotProcessed](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L519-L521>)
+## type [UDIDsNotProcessed](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L521-L523>)
 
 UDIDsNotProcessed represents a list of UDIDs that were not processed.
 
@@ -1173,7 +1184,7 @@ type UDIDsNotProcessed struct {
 ```
 
 <a name="UserAndLocation"></a>
-## type [UserAndLocation](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L494-L504>)
+## type [UserAndLocation](<https://github.com/gemini-oss/rego/blob/main/pkg/jamf/entities.go#L496-L506>)
 
 UserAndLocation represents user and location information of a computer.
 

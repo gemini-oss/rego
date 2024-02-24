@@ -11,62 +11,63 @@ pkg/common/ratelimit/ratelimit.go
 ## Index
 
 - [type RateLimiter](<#RateLimiter>)
-  - [func NewRateLimiter\(args ...int\) \*RateLimiter](<#NewRateLimiter>)
+  - [func NewRateLimiter\(args ...interface\{\}\) \*RateLimiter](<#NewRateLimiter>)
   - [func \(rl \*RateLimiter\) Start\(\)](<#RateLimiter.Start>)
   - [func \(rl \*RateLimiter\) Stop\(\)](<#RateLimiter.Stop>)
   - [func \(rl \*RateLimiter\) UpdateFromHeaders\(headers http.Header\)](<#RateLimiter.UpdateFromHeaders>)
-  - [func \(rl \*RateLimiter\) UpdateRate\(newLimit int\)](<#RateLimiter.UpdateRate>)
   - [func \(rl \*RateLimiter\) Wait\(\)](<#RateLimiter.Wait>)
 
 
 <a name="RateLimiter"></a>
-## type [RateLimiter](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L14-L24>)
+## type [RateLimiter](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L15-L28>)
 
-
+RateLimiter struct defines the fields for the rate limiter
 
 ```go
 type RateLimiter struct {
-    Limit          int
-    Available      int
-    ResetTimestamp int64
-    RetryAfter     int
-    UsesReset      bool
-    UsesRetryAfter bool
-
-    Logger *log.Logger
+    Available      int           // Available requests remaining
+    Limit          int           // Total requests allowed in the interval
+    Interval       time.Duration // Interval to reset the rate limiter
+    Requests       int           // Total requests made
+    ResetTimestamp int64         // Timestamp to reset the rate limiter
+    RetryAfter     int           // Retry after time
+    TimeUntilReset time.Duration // Time until the rate limiter resets
+    UsesReset      bool          // Flag to check if the rate limiter retrieves info from specific headers
+    UsesRetryAfter bool          // Flag to check if the rate limiter uses a retry after value
+    Logger         *log.Logger   // Logger for the rate limiter
     // contains filtered or unexported fields
 }
 ```
 
 <a name="NewRateLimiter"></a>
-### func [NewRateLimiter](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L26>)
+### func [NewRateLimiter](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L31>)
 
 ```go
-func NewRateLimiter(args ...int) *RateLimiter
+func NewRateLimiter(args ...interface{}) *RateLimiter
 ```
 
-
+NewRateLimiter creates a new RateLimiter instance with the given parameters
 
 <a name="RateLimiter.Start"></a>
-### func \(\*RateLimiter\) [Start](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L45>)
+### func \(\*RateLimiter\) [Start](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L55>)
 
 ```go
 func (rl *RateLimiter) Start()
 ```
 
-
+Start begins the rate limiter's internal timer
 
 <a name="RateLimiter.Stop"></a>
-### func \(\*RateLimiter\) [Stop](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L121>)
+### func \(\*RateLimiter\) [Stop](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L159>)
 
 ```go
 func (rl *RateLimiter) Stop()
 ```
 
-
+Stop terminates the rate limiter's internal timer
 
 <a name="RateLimiter.UpdateFromHeaders"></a>
-### func \(\*RateLimiter\) [UpdateFromHeaders](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L126>)
+### func \(\*RateLimiter\) [UpdateFromHeaders](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L164>)
 
 ```go
 func (rl *RateLimiter) UpdateFromHeaders(headers http.Header)
@@ -74,17 +75,8 @@ func (rl *RateLimiter) UpdateFromHeaders(headers http.Header)
 
 
 
-<a name="RateLimiter.UpdateRate"></a>
-### func \(\*RateLimiter\) [UpdateRate](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L179>)
-
-```go
-func (rl *RateLimiter) UpdateRate(newLimit int)
-```
-
-UpdateRate can be used to dynamically change the rate limit
-
 <a name="RateLimiter.Wait"></a>
-### func \(\*RateLimiter\) [Wait](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L70>)
+### func \(\*RateLimiter\) [Wait](<https://github.com/gemini-oss/rego/blob/main/pkg/common/ratelimit/ratelimiter.go#L84>)
 
 ```go
 func (rl *RateLimiter) Wait()

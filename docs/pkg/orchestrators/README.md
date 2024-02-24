@@ -21,7 +21,7 @@ pkg/orchestrators/orchestrators.go
 
 ```go
 type Client struct {
-    Logger  *log.Logger
+    Log     *log.Logger
     Google  *google.Client
     Jamf    *jamf.Client
     Okta    *okta.Client

@@ -140,7 +140,7 @@ var WarningDetails = map[string]string{
 ```
 
 <a name="Authorization"></a>
-## type [Authorization](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L182-L188>)
+## type [Authorization](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L184-L190>)
 
 
 
@@ -155,7 +155,7 @@ type Authorization struct {
 ```
 
 <a name="Block"></a>
-## type [Block](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L165-L169>)
+## type [Block](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L167-L171>)
 
 
 
@@ -168,7 +168,7 @@ type Block struct {
 ```
 
 <a name="Channel"></a>
-## type [Channel](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L230-L256>)
+## type [Channel](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L232-L258>)
 
 Channel represents the information about a channel in the Slack 'users.conversations' method.
 
@@ -203,19 +203,20 @@ type Channel struct {
 ```
 
 <a name="Client"></a>
-## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L21-L29>)
+## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L22-L31>)
 
 \#\#\# Slack Client Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 
 ```go
 type Client struct {
-    BaseURL       string           // BaseURL is the base URL for Okta API requests.
+    BaseURL       string           // BaseURL is the base URL for Slack API requests.
     BotID         string           // The ID of the bot in current workspace
-    HTTPClient    *requests.Client // HTTPClient is the client used to make HTTP requests.
+    HTTP          *requests.Client // HTTP client used to make HTTP requests.
     Error         *Error           // Error is the error response from the last request made by the client.
-    Logger        *log.Logger      // Logger is the logger used to log messages.
-    Token         string
-    SigningSecret string
+    Log           *log.Logger      // Log is the logger used to log information about the client.
+    Token         string           // Authentication token for the Slack API.
+    SigningSecret string           // Signing secret for bots
+    Cache         *cache.Cache     // Cache is the cache used to store responses from the Slack API.
 }
 ```
 
@@ -228,7 +229,7 @@ func NewClient(verbosity int) *Client
 
 \- \# Generate Slack Client
 
-- @param logger \*log.Logger
+- @param log \*log.Logger
 - @return \*Client
 - Example:
 
@@ -333,7 +334,7 @@ func (c *Client) VerifyRequest(r *http.Request, body []byte) bool
 
 
 <a name="Element"></a>
-## type [Element](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L171-L174>)
+## type [Element](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L173-L176>)
 
 
 
@@ -345,7 +346,7 @@ type Element struct {
 ```
 
 <a name="Error"></a>
-## type [Error](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L32-L35>)
+## type [Error](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L34-L37>)
 
 Error represents the common error response from the Slack methods.
 
@@ -357,7 +358,7 @@ type Error struct {
 ```
 
 <a name="Event"></a>
-## type [Event](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L153-L163>)
+## type [Event](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L155-L165>)
 
 https://api.slack.com/apis/connections/events-api#event-type-structure
 
@@ -376,7 +377,7 @@ type Event struct {
 ```
 
 <a name="EventCallback"></a>
-## type [EventCallback](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L139-L150>)
+## type [EventCallback](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L141-L152>)
 
 https://api.slack.com/apis/connections/events-api#callback-field
 
@@ -396,7 +397,7 @@ type EventCallback struct {
 ```
 
 <a name="InnerElement"></a>
-## type [InnerElement](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L176-L180>)
+## type [InnerElement](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L178-L182>)
 
 
 
@@ -409,7 +410,7 @@ type InnerElement struct {
 ```
 
 <a name="Member"></a>
-## type [Member](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L292-L312>)
+## type [Member](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L294-L314>)
 
 Member represents a member in the Slack users.list method response.
 
@@ -438,7 +439,7 @@ type Member struct {
 ```
 
 <a name="Metadata"></a>
-## type [Metadata](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L341-L343>)
+## type [Metadata](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L343-L345>)
 
 Metadata represents the response metadata in the Slack users.list method response.
 
@@ -449,7 +450,7 @@ type Metadata struct {
 ```
 
 <a name="Profile"></a>
-## type [Profile](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L315-L338>)
+## type [Profile](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L317-L340>)
 
 Profile represents a member's profile in the Slack users.list method response.
 
@@ -481,7 +482,7 @@ type Profile struct {
 ```
 
 <a name="Purpose"></a>
-## type [Purpose](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L266-L270>)
+## type [Purpose](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L268-L272>)
 
 Purpose represents the purpose information of a channel in the Slack 'users.conversations' method.
 
@@ -494,7 +495,7 @@ type Purpose struct {
 ```
 
 <a name="ResponseMetadata"></a>
-## type [ResponseMetadata](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L273-L275>)
+## type [ResponseMetadata](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L275-L277>)
 
 ResponseMetadata represents the metadata related to a response in the Slack 'users.conversations' method.
 
@@ -505,7 +506,7 @@ type ResponseMetadata struct {
 ```
 
 <a name="SlackChallenge"></a>
-## type [SlackChallenge](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L132-L136>)
+## type [SlackChallenge](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L134-L138>)
 
 \#\#\# Slack Event Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 
@@ -518,7 +519,7 @@ type SlackChallenge struct {
 ```
 
 <a name="SlackMessage"></a>
-## type [SlackMessage](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L196-L214>)
+## type [SlackMessage](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L198-L216>)
 
 \#\#\# Slack Message Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- https://api.slack.com/methods/chat.postMessage#args
 
@@ -545,7 +546,7 @@ type SlackMessage struct {
 ```
 
 <a name="SlackTokenPayload"></a>
-## type [SlackTokenPayload](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L37-L39>)
+## type [SlackTokenPayload](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L39-L41>)
 
 
 
@@ -556,7 +557,7 @@ type SlackTokenPayload struct {
 ```
 
 <a name="SlashCommand"></a>
-## type [SlashCommand](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L117-L125>)
+## type [SlashCommand](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L119-L127>)
 
 \#\#\# Slack Command Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 
@@ -573,7 +574,7 @@ type SlashCommand struct {
 ```
 
 <a name="Topic"></a>
-## type [Topic](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L259-L263>)
+## type [Topic](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L261-L265>)
 
 Topic represents the topic information of a channel in the Slack 'users.conversations' method.
 
@@ -586,7 +587,7 @@ type Topic struct {
 ```
 
 <a name="UserChannels"></a>
-## type [UserChannels](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L223-L227>)
+## type [UserChannels](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L225-L229>)
 
 \#\#\# Slack Channel Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- UserChannels represents the response from the Slack 'users.conversations' method. https://api.slack.com/methods/users.conversations
 
@@ -618,7 +619,7 @@ type UserParameters struct {
 ```
 
 <a name="Users"></a>
-## type [Users](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L284-L289>)
+## type [Users](<https://github.com/gemini-oss/rego/blob/main/pkg/slack/entities.go#L286-L291>)
 
 \#\#\# Slack User Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- UsersListResponse represents the common successful response from the Slack users.list method. https://api.slack.com/methods/users.list
 

@@ -86,7 +86,7 @@ var (
 ```
 
 <a name="Accessory"></a>
-## type [Accessory](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L78-L99>)
+## type [Accessory](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L96-L117>)
 
 Accessory represents an individual accessory. https://snipe-it.readme.io/reference/accessories#sortable-columns
 
@@ -116,7 +116,7 @@ type Accessory struct {
 ```
 
 <a name="AccessoryList"></a>
-## type [AccessoryList](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L71-L74>)
+## type [AccessoryList](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L89-L92>)
 
 Source: https://snipe-it.readme.io/reference/accessories
 
@@ -168,7 +168,7 @@ type AssetQuery struct {
 ```
 
 <a name="AvailableActions"></a>
-## type [AvailableActions](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L246-L253>)
+## type [AvailableActions](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L264-L271>)
 
 AvailableActions represents the available actions for a hardware item.
 
@@ -184,7 +184,7 @@ type AvailableActions struct {
 ```
 
 <a name="Category"></a>
-## type [Category](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L111-L127>)
+## type [Category](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L129-L145>)
 
 Category represents an individual category. https://snipe-it.readme.io/reference/categories#sortable-columns
 
@@ -209,7 +209,7 @@ type Category struct {
 ```
 
 <a name="CategoryList"></a>
-## type [CategoryList](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L104-L107>)
+## type [CategoryList](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L122-L125>)
 
 \#\#\# Categories \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- Source: https://snipe-it.readme.io/reference/categories
 
@@ -221,20 +221,21 @@ type CategoryList struct {
 ```
 
 <a name="Client"></a>
-## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/snipeit.go#L53-L57>)
+## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L23-L28>)
 
-
+\#\#\# SnipeIT Client Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 
 ```go
 type Client struct {
-    BaseURL    string
-    HTTPClient *requests.Client
-    Logger     *log.Logger
+    BaseURL string           // BaseURL is the base URL for the SnipeIT API.
+    HTTP    *requests.Client // HTTP client for the SnipeIT API.
+    Log     *log.Logger      // Log is the logger for the SnipeIT API.
+    Cache   *cache.Cache     // Cache for the SnipeIT API.
 }
 ```
 
 <a name="NewClient"></a>
-### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/snipeit.go#L59>)
+### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/snipeit.go#L53>)
 
 ```go
 func NewClient(verbosity int) *Client
@@ -279,7 +280,7 @@ func (c *Client) GetAllLocations() (*LocationList, error)
 - \- https://snipe-it.readme.io/reference/locations
 
 <a name="CustomFields"></a>
-## type [CustomFields](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L242-L243>)
+## type [CustomFields](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L260-L261>)
 
 CustomFields represents the custom fields of a hardware item.
 
@@ -289,7 +290,7 @@ type CustomFields struct {
 ```
 
 <a name="DateInfo"></a>
-## type [DateInfo](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L228-L231>)
+## type [DateInfo](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L246-L249>)
 
 DateInfo represents a date and its formatted representation.
 
@@ -301,7 +302,7 @@ type DateInfo struct {
 ```
 
 <a name="Hardware"></a>
-## type [Hardware](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L25-L66>)
+## type [Hardware](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L43-L84>)
 
 Hardware represents an individual hardware item. https://snipe-it.readme.io/reference/hardware-list#sortable-columns
 
@@ -351,7 +352,7 @@ type Hardware struct {
 ```
 
 <a name="HardwareList"></a>
-## type [HardwareList](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L18-L21>)
+## type [HardwareList](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L36-L39>)
 
 \#\#\# Assets \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- Source: https://snipe-it.readme.io/reference/hardware-list
 
@@ -363,7 +364,7 @@ type HardwareList struct {
 ```
 
 <a name="Location"></a>
-## type [Location](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L139-L161>)
+## type [Location](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L157-L179>)
 
 
 
@@ -394,7 +395,7 @@ type Location struct {
 ```
 
 <a name="LocationList"></a>
-## type [LocationList](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L134-L137>)
+## type [LocationList](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L152-L155>)
 
 \#\#\# Locations \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 
@@ -423,7 +424,7 @@ type LocationQuery struct {
 ```
 
 <a name="Record"></a>
-## type [Record](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L222-L225>)
+## type [Record](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L240-L243>)
 
 \#\#\# Common Asset types \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\- Record represents an id:name pairing for many types of records in Snipe\-IT.
 
@@ -435,7 +436,7 @@ type Record struct {
 ```
 
 <a name="StatusLabel"></a>
-## type [StatusLabel](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L234-L239>)
+## type [StatusLabel](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L252-L257>)
 
 StatusLabel represents the status label of a hardware item.
 
@@ -449,7 +450,7 @@ type StatusLabel struct {
 ```
 
 <a name="User"></a>
-## type [User](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L173-L214>)
+## type [User](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L191-L232>)
 
 
 
@@ -499,7 +500,7 @@ type User struct {
 ```
 
 <a name="UserList"></a>
-## type [UserList](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L168-L171>)
+## type [UserList](<https://github.com/gemini-oss/rego/blob/main/pkg/snipeit/entities.go#L186-L189>)
 
 \#\#\# Users \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 

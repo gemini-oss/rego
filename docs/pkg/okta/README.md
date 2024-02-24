@@ -53,6 +53,7 @@ pkg/okta/users.go
   - [func \(c \*Client\) ListManagedDevices\(\) \(\*Devices, error\)](<#Client.ListManagedDevices>)
   - [func \(c \*Client\) ListUsersForDevice\(deviceID string\) \(\*DeviceUsers, error\)](<#Client.ListUsersForDevice>)
   - [func \(c \*Client\) UpdateUser\(userID string, u \*User\) \(\*User, error\)](<#Client.UpdateUser>)
+  - [func \(c \*Client\) UseCache\(\) \*Client](<#Client.UseCache>)
 - [type Conditions](<#Conditions>)
 - [type Device](<#Device>)
 - [type DeviceEmbedded](<#DeviceEmbedded>)
@@ -126,7 +127,7 @@ var (
 ```
 
 <a name="Accessibility"></a>
-## type [Accessibility](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L95-L100>)
+## type [Accessibility](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L97-L102>)
 
 
 
@@ -140,7 +141,7 @@ type Accessibility struct {
 ```
 
 <a name="AppLink"></a>
-## type [AppLink](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L123-L134>)
+## type [AppLink](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L125-L136>)
 
 AppLink represents an app link object.
 
@@ -177,7 +178,7 @@ type AppQuery struct {
 ```
 
 <a name="Application"></a>
-## type [Application](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L79-L93>)
+## type [Application](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L81-L95>)
 
 
 
@@ -200,7 +201,7 @@ type Application struct {
 ```
 
 <a name="ApplicationEmbedded"></a>
-## type [ApplicationEmbedded](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L118-L120>)
+## type [ApplicationEmbedded](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L120-L122>)
 
 
 
@@ -211,7 +212,7 @@ type ApplicationEmbedded struct {
 ```
 
 <a name="ApplicationProfile"></a>
-## type [ApplicationProfile](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L106-L109>)
+## type [ApplicationProfile](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L108-L111>)
 
 
 
@@ -223,7 +224,7 @@ type ApplicationProfile struct {
 ```
 
 <a name="Applications"></a>
-## type [Applications](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L77>)
+## type [Applications](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L79>)
 
 \#\#\# Okta Application Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 
@@ -232,21 +233,22 @@ type Applications []Application
 ```
 
 <a name="Client"></a>
-## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L23-L28>)
+## type [Client](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L24-L30>)
 
 \#\#\# Okta Client Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 
 ```go
 type Client struct {
-    BaseURL    string           // BaseURL is the base URL for Okta API requests.
-    HTTPClient *requests.Client // HTTPClient is the client used to make HTTP requests.
-    Error      *Error           // Error is the error response from the last request made by the client.
-    Logger     *log.Logger      // Logger is the logger used to log messages.
+    BaseURL string           // BaseURL is the base URL for Okta API requests.
+    HTTP    *requests.Client // HTTPClient is the client used to make HTTP requests.
+    Error   *Error           // Error is the error response from the last request made by the client.
+    Log     *log.Logger      // Log is the logger used to log messages.
+    Cache   *cache.Cache     // Cache is the cache used to store responses from the Okta API.
 }
 ```
 
 <a name="NewClient"></a>
-### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/okta.go#L60>)
+### func [NewClient](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/okta.go#L67>)
 
 ```go
 func NewClient(verbosity int) *Client
@@ -267,7 +269,7 @@ o := okta.NewClient(log.DEBUG)
 \`\`\`
 
 <a name="Client.BuildURL"></a>
-### func \(\*Client\) [BuildURL](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/okta.go#L40>)
+### func \(\*Client\) [BuildURL](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/okta.go#L41>)
 
 ```go
 func (c *Client) BuildURL(endpoint string, identifiers ...string) string
@@ -297,7 +299,7 @@ func (c *Client) GetGroup(groupID string) (*Group, error)
 - \- https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Group/#tag/Group/operation/getGroup
 
 <a name="Client.GetRole"></a>
-### func \(\*Client\) [GetRole](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/roles.go#L140>)
+### func \(\*Client\) [GetRole](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/roles.go#L143>)
 
 ```go
 func (c *Client) GetRole(roleID string) (*Role, error)
@@ -345,7 +347,7 @@ func (c *Client) GetUserGroups(userID string) (*Groups, error)
 - \- https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/updateUser
 
 <a name="Client.GetUserRoles"></a>
-### func \(\*Client\) [GetUserRoles](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/roles.go#L163>)
+### func \(\*Client\) [GetUserRoles](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/roles.go#L166>)
 
 ```go
 func (c *Client) GetUserRoles(userID string) (*Roles, error)
@@ -444,7 +446,7 @@ func (c *Client) ListAllUsers() (*Users, error)
 - \- https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/listUsers
 
 <a name="Client.ListAllUsersWithRoleAssignments"></a>
-### func \(\*Client\) [ListAllUsersWithRoleAssignments](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/roles.go#L191>)
+### func \(\*Client\) [ListAllUsersWithRoleAssignments](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/roles.go#L194>)
 
 ```go
 func (c *Client) ListAllUsersWithRoleAssignments() (*Users, error)
@@ -504,8 +506,17 @@ func (c *Client) UpdateUser(userID string, u *User) (*User, error)
 - /api/v1/users/\{userId\}
 - \- https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/updateUser
 
+<a name="Client.UseCache"></a>
+### func \(\*Client\) [UseCache](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/okta.go#L50>)
+
+```go
+func (c *Client) UseCache() *Client
+```
+
+UseCache\(\) enables caching for the next method call.
+
 <a name="Conditions"></a>
-## type [Conditions](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L379-L382>)
+## type [Conditions](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L381-L384>)
 
 
 
@@ -517,7 +528,7 @@ type Conditions struct {
 ```
 
 <a name="Device"></a>
-## type [Device](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L143-L155>)
+## type [Device](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L145-L157>)
 
 
 
@@ -538,7 +549,7 @@ type Device struct {
 ```
 
 <a name="DeviceEmbedded"></a>
-## type [DeviceEmbedded](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L183-L185>)
+## type [DeviceEmbedded](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L185-L187>)
 
 
 
@@ -549,7 +560,7 @@ type DeviceEmbedded struct {
 ```
 
 <a name="DeviceProfile"></a>
-## type [DeviceProfile](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L157-L168>)
+## type [DeviceProfile](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L159-L170>)
 
 
 
@@ -595,7 +606,7 @@ type DeviceQuery struct {
 ```
 
 <a name="DeviceUser"></a>
-## type [DeviceUser](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L177-L181>)
+## type [DeviceUser](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L179-L183>)
 
 
 
@@ -608,7 +619,7 @@ type DeviceUser struct {
 ```
 
 <a name="DeviceUsers"></a>
-## type [DeviceUsers](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L175>)
+## type [DeviceUsers](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L177>)
 
 
 
@@ -617,7 +628,7 @@ type DeviceUsers []DeviceUser
 ```
 
 <a name="Devices"></a>
-## type [Devices](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L141>)
+## type [Devices](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L143>)
 
 \#\#\# Okta Device Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 
@@ -626,7 +637,7 @@ type Devices []Device
 ```
 
 <a name="DisplayName"></a>
-## type [DisplayName](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L170-L173>)
+## type [DisplayName](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L172-L175>)
 
 
 
@@ -638,7 +649,7 @@ type DisplayName struct {
 ```
 
 <a name="Error"></a>
-## type [Error](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L30-L36>)
+## type [Error](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L32-L38>)
 
 
 
@@ -653,7 +664,7 @@ type Error struct {
 ```
 
 <a name="ErrorCause"></a>
-## type [ErrorCause](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L38-L40>)
+## type [ErrorCause](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L40-L42>)
 
 
 
@@ -664,7 +675,7 @@ type ErrorCause struct {
 ```
 
 <a name="Group"></a>
-## type [Group](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L339-L349>)
+## type [Group](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L341-L351>)
 
 Group represents a user group object.
 
@@ -683,7 +694,7 @@ type Group struct {
 ```
 
 <a name="GroupActions"></a>
-## type [GroupActions](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L371-L373>)
+## type [GroupActions](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L373-L375>)
 
 
 
@@ -694,7 +705,7 @@ type GroupActions struct {
 ```
 
 <a name="GroupCondition"></a>
-## type [GroupCondition](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L394-L397>)
+## type [GroupCondition](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L396-L399>)
 
 
 
@@ -706,7 +717,7 @@ type GroupCondition struct {
 ```
 
 <a name="GroupEmbedded"></a>
-## type [GroupEmbedded](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L356>)
+## type [GroupEmbedded](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L358>)
 
 
 
@@ -715,7 +726,7 @@ type GroupEmbedded interface{}
 ```
 
 <a name="GroupExpression"></a>
-## type [GroupExpression](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L384-L387>)
+## type [GroupExpression](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L386-L389>)
 
 
 
@@ -745,7 +756,7 @@ type GroupParameters struct {
 ```
 
 <a name="GroupProfile"></a>
-## type [GroupProfile](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L351-L354>)
+## type [GroupProfile](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L353-L356>)
 
 
 
@@ -757,7 +768,7 @@ type GroupProfile struct {
 ```
 
 <a name="GroupRule"></a>
-## type [GroupRule](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L360-L369>)
+## type [GroupRule](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L362-L371>)
 
 
 
@@ -775,7 +786,7 @@ type GroupRule struct {
 ```
 
 <a name="GroupRuleGroupAssignment"></a>
-## type [GroupRuleGroupAssignment](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L375-L377>)
+## type [GroupRuleGroupAssignment](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L377-L379>)
 
 
 
@@ -786,7 +797,7 @@ type GroupRuleGroupAssignment struct {
 ```
 
 <a name="GroupRules"></a>
-## type [GroupRules](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L358>)
+## type [GroupRules](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L360>)
 
 
 
@@ -795,7 +806,7 @@ type GroupRules []*GroupRule
 ```
 
 <a name="Groups"></a>
-## type [Groups](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L336>)
+## type [Groups](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L338>)
 
 \#\#\# Okta Group Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 
@@ -804,7 +815,7 @@ type Groups []*Group
 ```
 
 <a name="Hints"></a>
-## type [Hints](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L68-L70>)
+## type [Hints](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L70-L72>)
 
 
 
@@ -815,7 +826,7 @@ type Hints struct {
 ```
 
 <a name="Licensing"></a>
-## type [Licensing](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L102-L104>)
+## type [Licensing](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L104-L106>)
 
 
 
@@ -826,7 +837,7 @@ type Licensing struct {
 ```
 
 <a name="Link"></a>
-## type [Link](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L61-L66>)
+## type [Link](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L63-L68>)
 
 
 
@@ -840,7 +851,7 @@ type Link struct {
 ```
 
 <a name="Links"></a>
-## type [Links](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L42-L59>)
+## type [Links](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L44-L61>)
 
 
 
@@ -866,7 +877,7 @@ type Links struct {
 ```
 
 <a name="PasswordCredentials"></a>
-## type [PasswordCredentials](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L250-L254>)
+## type [PasswordCredentials](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L252-L256>)
 
 
 
@@ -879,7 +890,7 @@ type PasswordCredentials struct {
 ```
 
 <a name="PasswordHash"></a>
-## type [PasswordHash](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L256-L265>)
+## type [PasswordHash](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L258-L267>)
 
 
 
@@ -897,7 +908,7 @@ type PasswordHash struct {
 ```
 
 <a name="PasswordHook"></a>
-## type [PasswordHook](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L267-L269>)
+## type [PasswordHook](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L269-L271>)
 
 
 
@@ -908,7 +919,7 @@ type PasswordHook struct {
 ```
 
 <a name="PeopleCondition"></a>
-## type [PeopleCondition](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L389-L392>)
+## type [PeopleCondition](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L391-L394>)
 
 
 
@@ -920,7 +931,7 @@ type PeopleCondition struct {
 ```
 
 <a name="Permission"></a>
-## type [Permission](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L208-L213>)
+## type [Permission](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L210-L215>)
 
 
 
@@ -934,7 +945,7 @@ type Permission struct {
 ```
 
 <a name="Provider"></a>
-## type [Provider](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L271-L274>)
+## type [Provider](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L273-L276>)
 
 
 
@@ -946,7 +957,7 @@ type Provider struct {
 ```
 
 <a name="RecoveryQuestion"></a>
-## type [RecoveryQuestion](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L276-L279>)
+## type [RecoveryQuestion](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L278-L281>)
 
 
 
@@ -958,7 +969,7 @@ type RecoveryQuestion struct {
 ```
 
 <a name="Role"></a>
-## type [Role](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L196-L206>)
+## type [Role](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L198-L208>)
 
 
 
@@ -977,7 +988,7 @@ type Role struct {
 ```
 
 <a name="RoleReport"></a>
-## type [RoleReport](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L215-L218>)
+## type [RoleReport](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L217-L220>)
 
 
 
@@ -989,7 +1000,7 @@ type RoleReport struct {
 ```
 
 <a name="Roles"></a>
-## type [Roles](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L192-L194>)
+## type [Roles](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L194-L196>)
 
 \#\#\# Okta Roles Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 
@@ -1000,7 +1011,7 @@ type Roles struct {
 ```
 
 <a name="User"></a>
-## type [User](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L227-L242>)
+## type [User](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L229-L244>)
 
 
 
@@ -1024,7 +1035,7 @@ type User struct {
 ```
 
 <a name="UserCredentials"></a>
-## type [UserCredentials](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L244-L248>)
+## type [UserCredentials](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L246-L250>)
 
 
 
@@ -1037,7 +1048,7 @@ type UserCredentials struct {
 ```
 
 <a name="UserEmbedded"></a>
-## type [UserEmbedded](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L329>)
+## type [UserEmbedded](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L331>)
 
 
 
@@ -1046,7 +1057,7 @@ type UserEmbedded interface{}
 ```
 
 <a name="UserProfile"></a>
-## type [UserProfile](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L281-L314>)
+## type [UserProfile](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L283-L316>)
 
 
 
@@ -1105,7 +1116,7 @@ type UserQuery struct {
 ```
 
 <a name="UserType"></a>
-## type [UserType](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L316-L327>)
+## type [UserType](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L318-L329>)
 
 
 
@@ -1125,7 +1136,7 @@ type UserType struct {
 ```
 
 <a name="Users"></a>
-## type [Users](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L225>)
+## type [Users](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L227>)
 
 \#\#\# Okta Users Structs \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 
@@ -1134,7 +1145,7 @@ type Users []*User
 ```
 
 <a name="Visibility"></a>
-## type [Visibility](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L111-L116>)
+## type [Visibility](<https://github.com/gemini-oss/rego/blob/main/pkg/okta/entities.go#L113-L118>)
 
 
 
