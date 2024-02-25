@@ -8,10 +8,15 @@ build:
 test:
 	go test -v ./...
 
-# Generates documentation
-doc:
-	~/go/bin/gomarkdoc ./... --output 'docs/{{.Dir}}/README.md' --exclude-dirs ./pkg/internal/tests/...
+# Generates markdown documentation for Hugo
+docs:
+	./gen_hugo_index.sh
 
+# Starts the hugo test server
+server:
+	hugo server -s hugo --disableFastRender
+
+# Formats the code
 pretty:
 	gofmt -s -w .
 
