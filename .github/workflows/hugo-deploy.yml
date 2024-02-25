@@ -60,9 +60,10 @@ jobs:
         run: |
           git checkout -b gh-pages
           make docs
-          $(go env GOPATH)/bin/hugo -s hugo -d docs
+          $(go env GOPATH)/bin/hugo -s hugo
+          mv hugo/public/ docs/
           git add -A
-          git commit -S -m "`Hugo`: Update Site (Documentation)" --signoff
+          git commit -S -m "Update `Hugo` (Documentation)" --signoff
           git push --set-upstream origin gh-pages --force
 
       - name: Cleanup
