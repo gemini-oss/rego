@@ -2,7 +2,7 @@
 
 ##########
 : <<'END'
-This package initializes methods for functions which need special authentication to interact with APIs:
+This script initializes/updates the content directory for Hugo documentation.
 
 :Copyright: (c) 2024 by Gemini Space Station, LLC., see AUTHORS for more info
 :License: See the LICENSE file for details

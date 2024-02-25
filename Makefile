@@ -1,3 +1,8 @@
+# Makefile \
+:Copyright: (c) 2024 by Gemini Space Station, LLC., see AUTHORS for more info \
+:License: See the LICENSE file for details \
+:Author: Anthony Dardano <anthony.dardano@gemini.com>
+
 BINARY=rego
 
 # Builds the project
