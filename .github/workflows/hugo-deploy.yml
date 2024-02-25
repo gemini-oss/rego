@@ -63,7 +63,7 @@ jobs:
           $(go env GOPATH)/bin/hugo -s hugo -d docs
           git add -A
           git commit -S -m "`Hugo`: Update Site (Documentation)" --signoff
-          git push --set-upstream origin gh-pages
+          git push --set-upstream origin gh-pages --force
 
       - name: Cleanup
         run: |
