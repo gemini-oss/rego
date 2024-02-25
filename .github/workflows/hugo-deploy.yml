@@ -21,10 +21,18 @@ jobs:
 
       - name: Setup SSH
         run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
           git config --global user.name "Anthony Dardano"
           git config --global user.email "anthony.dardano@gemini.com"
+          git config --global user.signingkey ~/.ssh/id_ed25519
           git config --global gpg.format ssh
           git config --global commit.gpgsign true
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -57,3 +65,7 @@ jobs:
           git add -A
           git commit -S -m "`Hugo`: Update Site (Documentation)" --signoff
           git push
+
+      - name: Cleanup
+        run: |
+          rm -rf ~/.ssh
