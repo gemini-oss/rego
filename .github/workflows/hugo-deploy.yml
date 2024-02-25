@@ -64,7 +64,7 @@ jobs:
           make docs
           git add -A
           git commit -S -m "`Hugo`: Update Site (Documentation)" --signoff
-          git push
+          git push --set-upstream origin gh-pages
 
       - name: Cleanup
         run: |
