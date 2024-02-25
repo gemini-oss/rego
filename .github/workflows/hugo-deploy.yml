@@ -31,6 +31,7 @@ jobs:
           git config --global user.signingkey ~/.ssh/id_ed25519
           git config --global gpg.format ssh
           git config --global commit.gpgsign true
+          git config --global push.autoSetupRemote origin
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
@@ -55,13 +56,11 @@ jobs:
             sudo mv hugo $(go env GOPATH)/bin/
           fi
 
-      - name: Build Site
-        run: $(go env GOPATH)/bin/hugo -s hugo
-
-      - name: Deploy Site
+      - name: Build and Deploy Site
         run: |
           git checkout -b gh-pages
           make docs
+          $(go env GOPATH)/bin/hugo -s hugo -d docs
           git add -A
           git commit -S -m "`Hugo`: Update Site (Documentation)" --signoff
           git push --set-upstream origin gh-pages
