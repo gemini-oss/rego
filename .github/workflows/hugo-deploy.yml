@@ -31,7 +31,7 @@ jobs:
           git config --global user.signingkey ~/.ssh/id_ed25519
           git config --global gpg.format ssh
           git config --global commit.gpgsign true
-          git config --global push.autoSetupRemote origin
+          git config --global push.autoSetupRemote true
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
