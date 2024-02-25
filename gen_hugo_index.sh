@@ -74,9 +74,6 @@ EOF
     fi
 }
 
-# Create the _index.md file for the root directory
-cp README.md hugo/content/_index.md
-
 # Traverse the source directory structure and mirror it in the docs directory
 find "${SRC_DIR}" -type d | while read -r src_dir; do
     docs_dir_path="${DOCS_DIR}/${src_dir}"
@@ -94,3 +91,6 @@ if which gomarkdoc >/dev/null 2>&1; then
 else
     go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@latest
 fi
+
+# Create the _index.md file for the root directory
+cp README.md hugo/content/_index.md
