@@ -45,7 +45,7 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
 
 // UseCache() enables caching for the next method call.
 func (c *Client) UseCache() *Client {
-	c.Cache.Use = true
+	c.Cache.Enabled = true
 	return c
 }
 
@@ -112,7 +112,7 @@ func NewClient(verbosity int) *Client {
 
 	// Look into `Functional Options` patterns for a better way to handle this (and othe clients while we're at it)
 	encryptionKey := []byte(config.GetEnv("REGO_ENCRYPTION_KEY", "32-byte-long-encryption-key-1234"))
-	cache, err := cache.NewCache(encryptionKey, "/tmp/rego_cache_jamf.json")
+	cache, err := cache.NewCache(encryptionKey, "/tmp/rego_cache_jamf.gob")
 	if err != nil {
 		panic(err)
 	}

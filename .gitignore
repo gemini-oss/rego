@@ -39,3 +39,4 @@ go.work
 
 # ReGo Cache files
 *_cache.json
+*.gob

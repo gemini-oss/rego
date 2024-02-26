@@ -2,7 +2,9 @@
 package cache_test
 
 import (
+	"bytes"
 	"os"
+	"reflect"
 	"strconv"
 	"sync"
 	"testing"
@@ -16,7 +18,7 @@ func TestCacheSetAndGet(t *testing.T) {
 	value := []byte("testValue")
 	encryptionKey := []byte("a-very-very-very-very-secret-key") // 32 bytes
 
-	c, _ := cache.NewCache(encryptionKey, "")
+	c, _ := cache.NewCache(encryptionKey, true)
 
 	// Test setting and getting a value
 	err := c.Set(key, value, 1*time.Minute)
@@ -27,9 +29,11 @@ func TestCacheSetAndGet(t *testing.T) {
 	retrievedValue, exists := c.Get(key)
 	if !exists {
 		t.Errorf("Get() exist = %v, want %v", exists, true)
+
 	}
-	if string(retrievedValue) != string(value) {
-		t.Errorf("Get() value = %v, want %v", string(retrievedValue), string(value))
+
+	if !bytes.Equal(retrievedValue, value) {
+		t.Errorf("Get() value = %v, want %v", retrievedValue, value)
 	}
 }
 
@@ -38,7 +42,7 @@ func TestCacheExpiration(t *testing.T) {
 	value := []byte("expireValue")
 	encryptionKey := []byte("32-byte-long-encryption-key-1234") // 32 bytes
 
-	c, _ := cache.NewCache(encryptionKey, "")
+	c, _ := cache.NewCache(encryptionKey, true)
 
 	// Set with a short expiration
 	err := c.Set(key, value, 100*time.Millisecond)
@@ -58,7 +62,7 @@ func TestCacheExpiration(t *testing.T) {
 func TestCacheNonExistentKey(t *testing.T) {
 	key := "nonExistentKey"
 	encryptionKey := []byte("key-for-nonexistent-test") // 32 bytes
-	c, _ := cache.NewCache(encryptionKey, "")
+	c, _ := cache.NewCache(encryptionKey, true)
 
 	_, exists := c.Get(key)
 	if exists {
@@ -70,7 +74,7 @@ func TestCachePersistence(t *testing.T) {
 	key := "persistKey"
 	value := []byte("persistValue")
 	encryptionKey := []byte("32-byte-long-encryption-key-1234") // 32 bytes
-	tempFile := "temp_cache.json"
+	tempFile := "temp_cache.gob"
 
 	defer os.Remove(tempFile)
 
@@ -86,14 +90,15 @@ func TestCachePersistence(t *testing.T) {
 	if !exists {
 		t.Errorf("Get() exist = %v, want %v", exists, true)
 	}
-	if string(retrievedValue) != string(value) {
-		t.Errorf("Get() value = %v, want %v", string(retrievedValue), string(value))
+
+	if !bytes.Equal(retrievedValue, value) {
+		t.Errorf("Get() value = %v, want %v", retrievedValue, value)
 	}
 }
 
 func TestCacheConcurrency(t *testing.T) {
 	encryptionKey := []byte("32-byte-long-encryption-key-1234")
-	c, _ := cache.NewCache(encryptionKey, "")
+	c, _ := cache.NewCache(encryptionKey)
 
 	var wg sync.WaitGroup
 	numWorkers := 10
@@ -106,8 +111,8 @@ func TestCacheConcurrency(t *testing.T) {
 			value := []byte("value" + strconv.Itoa(workerID))
 			c.Set(key, value, time.Minute)
 			retrievedValue, _ := c.Get(key)
-			if string(retrievedValue) != string(value) {
-				t.Errorf("Concurrency test failed for worker %d", workerID)
+			if !bytes.Equal(retrievedValue, value) {
+				t.Errorf("Get() value = %v, want %v", retrievedValue, value)
 			}
 		}(i)
 	}
@@ -117,9 +122,9 @@ func TestCacheConcurrency(t *testing.T) {
 
 func TestCacheWithLargeData(t *testing.T) {
 	encryptionKey := []byte("32-byte-long-encryption-key-1234")
-	c, _ := cache.NewCache(encryptionKey, "")
+	c, _ := cache.NewCache(encryptionKey, "large_data.gob")
 
-	largeValue := make([]byte, 1024*1024) // 1 MB of data
+	largeValue := make([]byte, 1024*1024*1024) // 1GB
 	key := "largeKey"
 
 	err := c.Set(key, largeValue, time.Minute)
@@ -128,8 +133,8 @@ func TestCacheWithLargeData(t *testing.T) {
 	}
 
 	retrievedValue, exists := c.Get(key)
-	if !exists || len(retrievedValue) != len(largeValue) {
-		t.Errorf("Failed to retrieve the correct large data size")
+	if !exists || !reflect.DeepEqual(retrievedValue, largeValue) {
+		t.Errorf("Get() value = %v, want %v", retrievedValue, largeValue)
 	}
 }
 
@@ -143,7 +148,7 @@ func TestCacheInvalidKey(t *testing.T) {
 
 func TestCachePersistenceFailure(t *testing.T) {
 	encryptionKey := []byte("32-byte-long-encryption-key-1234")
-	nonExistentPath := "/non/existent/path/cache.json"
+	nonExistentPath := "/non/existent/path/cache.gob"
 
 	// Expecting no error even though the path doesn't exist
 	_, err := cache.NewCache(encryptionKey, nonExistentPath)

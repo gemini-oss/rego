@@ -95,7 +95,19 @@ func (d *DeviceQuery) ValidateQuery() error {
  * - https://developer.jamf.com/jamf-pro/reference/get_v1-computers-inventory
  */
 func (c *Client) ListAllComputers() (*Computers, error) {
-	allDevices := &Computers{}
+	url := c.BuildURL(ComputersInventory)
+
+	if c.Cache.Enabled {
+		if data, found := c.Cache.Get(url); found {
+			var cache Computers
+			if err := json.Unmarshal(data, &cache); err != nil {
+				return nil, err
+			}
+
+			c.Log.Debug("Cached Body:", string(data))
+			return &cache, nil
+		}
+	}
 
 	q := &DeviceQuery{
 		Sections: []string{
@@ -107,7 +119,8 @@ func (c *Client) ListAllComputers() (*Computers, error) {
 		PageSize: 100,
 	}
 
-	url := c.BuildURL(ComputersInventory)
+	allDevices := &Computers{}
+
 	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
@@ -129,6 +142,15 @@ func (c *Client) ListAllComputers() (*Computers, error) {
 	totalPages := allDevices.TotalCount / q.PageSize
 	if allDevices.TotalCount%q.PageSize > 0 {
 		totalPages++
+	}
+
+	if totalPages <= 1 { // If only one page, no need for further requests
+		// After successfully fetching devices, cache them:
+		if data, err := json.Marshal(allDevices); err == nil {
+			c.Cache.Set(url, data, 5*time.Minute) // Set cache with an expiration
+		}
+
+		return allDevices, nil
 	}
 
 	// Buffered channel to hold device pages result from each goroutine
@@ -193,6 +215,11 @@ func (c *Client) ListAllComputers() (*Computers, error) {
 		return nil, <-rolesErrCh
 	}
 
+	// After successfully fetching devices, cache them:
+	if data, err := json.Marshal(allDevices); err == nil {
+		c.Cache.Set(url, data, 5*time.Minute) // Set cache with an expiration
+	}
+
 	return allDevices, nil
 }
 
@@ -251,14 +278,15 @@ func (c *Client) ListAllComputerGroups() (*[]GroupMembership, error) {
  */
 func (c *Client) ListAllMobileDevices() (*MobileDevices, error) {
 	url := c.BuildURL(MobileDev)
-	if c.Cache.Use {
+	if c.Cache.Enabled {
 		if data, found := c.Cache.Get(url); found {
-			var cachedDevices MobileDevices
-			if err := json.Unmarshal(data, &cachedDevices); err == nil {
-				c.Log.Debug("Cached Body:", string(data))
-				return &cachedDevices, nil
+			var cache MobileDevices
+			if err := json.Unmarshal(data, &cache); err != nil {
+				return nil, err
 			}
-			// Handle or log error if unmarshalling fails
+
+			c.Log.Debug("Cached Body:", string(data))
+			return &cache, nil
 		}
 	}
 
