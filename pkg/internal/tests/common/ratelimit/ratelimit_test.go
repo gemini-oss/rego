@@ -61,7 +61,7 @@ func TestRateLimiterWithHeaders(t *testing.T) {
 
 	client := &http.Client{}
 	rl := ratelimit.NewRateLimiter()
-	rl.UsesReset = true
+	rl.ResetHeaders = true
 	rl.Logger.Verbosity = log.TRACE
 
 	var rateLimited bool
@@ -154,7 +154,7 @@ func TestRateLimiterReset(t *testing.T) {
 func TestUpdateFromHeaders(t *testing.T) {
 	rl := ratelimit.NewRateLimiter(5)
 	rl.Logger.Verbosity = log.TRACE
-	rl.UsesReset = true
+	rl.ResetHeaders = true
 	rl.Start()
 	defer rl.Stop()
 
@@ -173,4 +173,24 @@ func TestUpdateFromHeaders(t *testing.T) {
 	}
 
 	rl.Logger.Delete()
+}
+
+func TestRateLimiterDecrementBehavior(t *testing.T) {
+	rl := ratelimit.NewRateLimiter(5)
+	rl.Logger.Verbosity = log.TRACE
+	rl.Start()
+	defer rl.Stop()
+
+	// Call Wait with and without decrementing
+	rl.ResetHeaders = true
+	rl.Wait() // This should not decrement
+	if rl.Available != rl.Limit {
+		t.Errorf("Expected Available to remain the same, got %d", rl.Available)
+	}
+
+	rl.ResetHeaders = false
+	rl.Wait() // This should decrement
+	if rl.Available != rl.Limit-1 {
+		t.Errorf("Expected Available to decrement, got %d", rl.Available)
+	}
 }

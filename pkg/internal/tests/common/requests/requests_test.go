@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gemini-oss/rego/pkg/common/log"
 	"github.com/gemini-oss/rego/pkg/common/ratelimit"
 	"github.com/gemini-oss/rego/pkg/common/requests"
 )
@@ -48,32 +49,6 @@ func TestNewClient(t *testing.T) {
 			got := requests.NewClient(tt.client, tt.headers, tt.rateLimiter)
 			if (got == nil) != tt.wantNil {
 				t.Errorf("NewClient() = %v, want nil: %v", got, tt.wantNil)
-			}
-		})
-	}
-}
-
-func TestClientDoRequest(t *testing.T) {
-	mockClient := mockHTTPClient("response body", http.StatusOK)
-
-	tests := []struct {
-		name    string
-		method  string
-		url     string
-		query   interface{}
-		data    interface{}
-		wantErr bool
-	}{
-		{"Valid Request", "GET", "http://gemini.com", nil, nil, false},
-		{"Invalid URL", "GET", ":", nil, nil, true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := requests.NewClient(mockClient, nil, nil)
-			_, _, err := c.DoRequest(tt.method, tt.url, tt.query, tt.data)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Client.DoRequest() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -145,8 +120,8 @@ func TestSetQueryParams(t *testing.T) {
 			"Multiple Values in a Single Query Param",
 			httptest.NewRequest("GET", "http://gemini.com", nil),
 			struct {
-				Param1 string `json:"param1"`
-			}{Param1: "value1 value2"},
+				Param1 []string `json:"param1"`
+			}{Param1: []string{"value1", "value2"}},
 			"http://gemini.com?param1=value1&param1=value2",
 		},
 	}
@@ -230,7 +205,7 @@ func TestSetFormURLEncodedPayload(t *testing.T) {
 			"Valid Form Data",
 			FormDataStruct{Field1: "test", Field2: 123, Field3: []string{"one", "two"}},
 			false,
-			"field1=test&field2=123&field3=one+two", // Adjusted to match space being encoded as + [requests.go:125]
+			"field1=test&field2=123&field3=one&field3=two",
 			true,
 		},
 		{
@@ -348,5 +323,51 @@ func TestDoRequest(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestRetryLogic(t *testing.T) {
+	rateLimitStatusCode := http.StatusTooManyRequests
+	normalStatusCode := http.StatusOK
+	rateLimitedResponse := "Rate limited"
+	normalResponse := "Success"
+
+	// Counter to track the number of requests made
+	var requestCount int
+
+	// Mock HTTP client to simulate rate-limited responses
+	mockClient := &http.Client{
+		Transport: roundTripperFunc(func(req *http.Request) *http.Response {
+			requestCount++
+			header := make(http.Header) // Initialize the Header field
+			if requestCount <= 3 {      // Simulate being rate-limited
+				return &http.Response{
+					StatusCode: rateLimitStatusCode,
+					Body:       io.NopCloser(bytes.NewBufferString(rateLimitedResponse)),
+					Header:     header,
+				}
+			}
+			return &http.Response{
+				StatusCode: normalStatusCode,
+				Body:       io.NopCloser(bytes.NewBufferString(normalResponse)),
+				Header:     header,
+			}
+		}),
+	}
+
+	c := requests.NewClient(mockClient, nil, ratelimit.NewRateLimiter(log.NewLogger("{requests_test}", log.TRACE), 3))
+
+	_, body, err := c.DoRequest("GET", "http://gemini.com", nil, nil)
+	if err != nil {
+		t.Fatalf("DoRequest() error: %v", err)
+	}
+
+	responseBody := string(body)
+	if responseBody != normalResponse {
+		t.Errorf("DoRequest() expected body %s, got %s", normalResponse, responseBody)
+	}
+
+	if requestCount != 4 { // 3 retries + 1 successful request
+		t.Errorf("DoRequest() expected 4 total requests, got %d", requestCount)
 	}
 }

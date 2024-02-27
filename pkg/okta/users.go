@@ -15,6 +15,7 @@ package okta
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 )
 
 /*
@@ -71,6 +72,19 @@ func (c *Client) ListAllUsers() (*Users, error) {
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/listUsers
  */
 func (c *Client) ListActiveUsers() (*Users, error) {
+	url := c.BuildURL(OktaUsers)
+
+	if c.Cache.Enabled {
+		if data, found := c.Cache.Get(url); found {
+			var cache Users
+			if err := json.Unmarshal(data, &cache); err != nil {
+				return nil, err
+			}
+
+			c.Log.Debug("Cached Body:", string(data))
+			return &cache, nil
+		}
+	}
 
 	allUsers := Users{}
 
@@ -79,8 +93,6 @@ func (c *Client) ListActiveUsers() (*Users, error) {
 		Search: `status eq "ACTIVE"`,
 	}
 
-	// url := fmt.Sprintf("%s/users", c.BaseURL)
-	url := c.BuildURL(OktaUsers)
 	res, err := c.HTTP.PaginatedRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
@@ -93,6 +105,10 @@ func (c *Client) ListActiveUsers() (*Users, error) {
 			return nil, fmt.Errorf("unmarshalling user: %w", err)
 		}
 		allUsers = append(allUsers, &user)
+	}
+
+	if data, err := json.Marshal(allUsers); err == nil {
+		c.Cache.Set(url, data, 30*time.Minute)
 	}
 
 	return &allUsers, nil

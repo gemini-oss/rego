@@ -15,6 +15,7 @@ package okta
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 )
 
 /*
@@ -40,10 +41,10 @@ import (
     search=profile.sid sw "S-1"
 */
 type DeviceQuery struct {
-	After  string // The cursor to use for pagination. It is an opaque string that specifies your current location in the list and is obtained from the `Link` response header.
-	Limit  string // Default: 200. A limit on the number of objects to return
-	Search string // A SCIM filter expression that filters the results. Searches include all Device profile properties and the Device `id``, `status``, and `lastUpdated`` properties.
-	Expand string // Lists associated users for the device in `_embedded` element
+	After  string `url:"after,omitempty"`  // The cursor to use for pagination. It is an opaque string that specifies your current location in the list and is obtained from the `Link` response header.
+	Limit  string `url:"limit,omitempty"`  // Default: 200. A limit on the number of objects to return
+	Search string `url:"search,omitempty"` // A SCIM filter expression that filters the results. Searches include all Device profile properties and the Device `id``, `status``, and `lastUpdated`` properties.
+	Expand string `url:"expand,omitempty"` // Lists associated users for the device in `_embedded` element
 }
 
 /*
@@ -53,11 +54,23 @@ type DeviceQuery struct {
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Device/#tag/Device/operation/listDevices
  */
 func (c *Client) ListAllDevices() (*Devices, error) {
-	allDevices := Devices{}
+	url := c.BuildURL(OktaDevices)
 
+	if c.Cache.Enabled {
+		if data, found := c.Cache.Get(url); found {
+			var cache Devices
+			if err := json.Unmarshal(data, &cache); err != nil {
+				return nil, err
+			}
+
+			c.Log.Debug("Cached Body:", string(data))
+			return &cache, nil
+		}
+	}
+
+	allDevices := Devices{}
 	q := DeviceQuery{}
 
-	url := c.BuildURL(OktaDevices)
 	rawMessages, err := c.HTTP.PaginatedRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
@@ -73,6 +86,10 @@ func (c *Client) ListAllDevices() (*Devices, error) {
 		allDevices = append(allDevices, device)
 	}
 
+	if data, err := json.Marshal(allDevices); err == nil {
+		c.Cache.Set(url, data, 30*time.Minute)
+	}
+
 	return &allDevices, nil
 }
 
@@ -83,9 +100,21 @@ func (c *Client) ListAllDevices() (*Devices, error) {
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Device/#tag/Device/operation/listDevices
  */
 func (c *Client) ListDevices(q DeviceQuery) (*Devices, error) {
+	url := c.BuildURL(OktaDevices)
+
+	if c.Cache.Enabled {
+		if data, found := c.Cache.Get(url); found {
+			var cache Devices
+			if err := json.Unmarshal(data, &cache); err != nil {
+				return nil, err
+			}
+
+			c.Log.Debug("Cached Body:", string(data))
+			return &cache, nil
+		}
+	}
 	allDevices := Devices{}
 
-	url := c.BuildURL(OktaDevices)
 	rawMessages, err := c.HTTP.PaginatedRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
@@ -99,6 +128,10 @@ func (c *Client) ListDevices(q DeviceQuery) (*Devices, error) {
 			return nil, fmt.Errorf("unmarshalling user: %w", err)
 		}
 		allDevices = append(allDevices, device)
+	}
+
+	if data, err := json.Marshal(allDevices); err == nil {
+		c.Cache.Set(url, data, 30*time.Minute) // Set cache with an expiration
 	}
 
 	return &allDevices, nil
@@ -137,11 +170,13 @@ func (c *Client) ListUsersForDevice(deviceID string) (*DeviceUsers, error) {
 func (c *Client) ListManagedDevices() (*Devices, error) {
 	managedDevices := Devices{}
 
-	devices, err := c.ListDevices(DeviceQuery{
-		Limit:  "100",
-		Search: `status eq "ACTIVE" AND (profile.platform eq "macOS" OR profile.platform eq "WINDOWS")`,
-		Expand: "user",
-	})
+	devices, err := c.ListDevices(
+		DeviceQuery{
+			Limit:  "50",
+			Search: `status eq "ACTIVE" AND (profile.platform eq "macOS" OR profile.platform eq "WINDOWS")`,
+			Expand: "user",
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -149,9 +184,11 @@ func (c *Client) ListManagedDevices() (*Devices, error) {
 	for _, device := range *devices {
 		if device.Profile.Registered {
 			isManaged := false
-			for _, user := range *device.Embedded.DeviceUsers {
-				if user.ManagementStatus == "MANAGED" {
-					isManaged = true
+			if device.Embedded != nil {
+				for _, user := range *device.Embedded.DeviceUsers {
+					if user.ManagementStatus == "MANAGED" {
+						isManaged = true
+					}
 				}
 			}
 			// If the device has at least one managed user, append it to managedDevices

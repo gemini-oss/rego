@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+	"time"
 )
 
 /*
@@ -45,6 +46,19 @@ func (c *Client) ListAllRoles() (*Roles, error) {
  * # Generate a report of all Okta roles and their users
  */
 func (c *Client) GenerateRoleReport() ([]*RoleReport, error) {
+	cacheKey := "Okta Role Report"
+	if c.Cache.Enabled {
+		if data, found := c.Cache.Get(cacheKey); found {
+			var cache []*RoleReport
+			if err := json.Unmarshal(data, &cache); err != nil {
+				return nil, err
+			}
+
+			c.Log.Debug("[Cached] " + cacheKey + ": " + string(data))
+			return cache, nil
+		}
+	}
+
 	roleReports := []*RoleReport{}
 	rolesMap := make(map[string][]*User)
 
@@ -132,6 +146,10 @@ func (c *Client) GenerateRoleReport() ([]*RoleReport, error) {
 		})
 	}
 
+	if data, err := json.Marshal(roleReports); err == nil {
+		c.Cache.Set(cacheKey, data, 60*time.Minute)
+	}
+
 	return roleReports, nil
 }
 
@@ -164,11 +182,22 @@ func (c *Client) GetRole(roleID string) (*Role, error) {
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/RoleAssignment/#tag/RoleAssignment/operation/listAssignedRolesForUser
  */
 func (c *Client) GetUserRoles(userID string) (*Roles, error) {
+	url := c.BuildURL(OktaUsers, userID, "roles")
+
+	if c.Cache.Enabled {
+		if data, found := c.Cache.Get(url); found {
+			var cache Roles
+			if err := json.Unmarshal(data, &cache); err != nil {
+				return nil, err
+			}
+
+			c.Log.Debug("[Cached]", url, ": ", string(data))
+			return &cache, nil
+		}
+	}
 
 	userRoles := Roles{}
 
-	// url := fmt.Sprintf("%s/%s/roles", OktaUsers, userID)
-	url := c.BuildURL(OktaUsers, userID, "roles")
 	res, err := c.HTTP.PaginatedRequest("GET", url, nil, nil)
 	if err != nil {
 		return nil, err
@@ -183,6 +212,10 @@ func (c *Client) GetUserRoles(userID string) (*Roles, error) {
 		userRoles.Roles = append(userRoles.Roles, role)
 	}
 
+	if data, err := json.Marshal(userRoles); err == nil {
+		c.Cache.Set(url, data, 30*time.Minute)
+	}
+
 	return &userRoles, nil
 }
 
@@ -192,20 +225,40 @@ func (c *Client) GetUserRoles(userID string) (*Roles, error) {
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/RoleAssignment/#tag/RoleAssignment/operation/listUsersWithRoleAssignments
  */
 func (c *Client) ListAllUsersWithRoleAssignments() (*Users, error) {
+	url := c.BuildURL(OktaIAM, "assignees", "users")
 
-	type U struct {
-		Value []*User `json:"value,omitempty"`
+	if c.Cache.Enabled {
+		if data, found := c.Cache.Get(url); found {
+			var cache Users
+			if err := json.Unmarshal(data, &cache); err != nil {
+				return nil, err
+			}
+
+			c.Log.Debug("Cached Body:", string(data))
+			return &cache, nil
+		}
 	}
 
-	// users := &Users{}
+	allUsers := Users{}
 
-	// url := fmt.Sprintf("%s/assignees/users", OktaIAM)
-	url := c.BuildURL(OktaIAM, "assignees", "users")
 	res, err := c.HTTP.PaginatedRequest("GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Log.Printf("res: %+v", res)
 
-	return nil, nil
+	for _, r := range res {
+		user := User{}
+		err := json.Unmarshal(r, &user)
+		c.Log.Debug("User:", user)
+		if err != nil {
+			return nil, fmt.Errorf("unmarshalling user: %w", err)
+		}
+		allUsers = append(allUsers, &user)
+	}
+
+	if data, err := json.Marshal(allUsers); err == nil {
+		c.Cache.Set(url, data, 30*time.Minute)
+	}
+
+	return &allUsers, nil
 }

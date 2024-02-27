@@ -89,14 +89,15 @@ func NewClient(verbosity int) *Client {
 
 	// Look into `Functional Options` patterns for a better way to handle this (and othe clients while we're at it)
 	encryptionKey := []byte(config.GetEnv("REGO_ENCRYPTION_KEY", "32-byte-long-encryption-key-1234"))
-	cache, err := cache.NewCache(encryptionKey, "/tmp/rego_cache_okta.gob")
+	cache, err := cache.NewCache(encryptionKey, "/tmp/rego_cache_okta.gob", 1000000)
 	if err != nil {
 		panic(err)
 	}
 
 	// https://developer.okta.com/docs/reference/rl-best-practices/
 	rl := ratelimit.NewRateLimiter()
-	rl.UsesReset = true
+	rl.ResetHeaders = true
+	rl.Logger.Verbosity = verbosity
 
 	return &Client{
 		BaseURL: BaseURL,

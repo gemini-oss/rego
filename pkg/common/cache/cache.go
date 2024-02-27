@@ -44,7 +44,7 @@ type CacheOptions struct {
 	EncryptionKey   []byte
 	PersistencePath string
 	InMemory        bool
-	MaxItems 	  int
+	MaxItems        int
 }
 
 func NewCache(args ...interface{}) (*Cache, error) {
@@ -64,8 +64,8 @@ func NewCache(args ...interface{}) (*Cache, error) {
 			opts.PersistencePath = v
 		case bool:
 			opts.InMemory = v
-        case int:
-            opts.MaxItems = v
+		case int:
+			opts.MaxItems = v
 		default:
 			// Handle unknown option
 			if v != nil {
@@ -82,8 +82,8 @@ func NewCache(args ...interface{}) (*Cache, error) {
 	c := &Cache{
 		data:            make(map[string]CacheItem),
 		hashes:          make(map[string]string),
-        accessList:      make([]string, 0, opts.MaxItems),
-        accessMap:       make(map[string]int),
+		accessList:      make([]string, 0, opts.MaxItems),
+		accessMap:       make(map[string]int),
 		encryptionKey:   opts.EncryptionKey,
 		persistencePath: opts.PersistencePath,
 		inMemory:        opts.InMemory,
@@ -160,21 +160,21 @@ func (c *Cache) Set(key string, value interface{}, duration time.Duration) error
 		return err
 	}
 
-    hash := sha256Hash(serializedValue)
-    if existingKey, exists := c.hashes[hash]; exists {
-        existingItem := c.data[existingKey]
-        existingItem.Expires = time.Now().Add(duration)
-        c.data[existingKey] = existingItem
-        c.updateAccess(existingKey)
-        return nil
-    }
+	hash := sha256Hash(serializedValue)
+	if existingKey, exists := c.hashes[hash]; exists {
+		existingItem := c.data[existingKey]
+		existingItem.Expires = time.Now().Add(duration)
+		c.data[existingKey] = existingItem
+		c.updateAccess(existingKey)
+		return nil
+	}
 
-    c.data[key] = CacheItem{
-        Data:    encryptedValue,
-        Expires: time.Now().Add(duration),
-    }
-    c.hashes[hash] = key
-    c.updateAccess(key)
+	c.data[key] = CacheItem{
+		Data:    encryptedValue,
+		Expires: time.Now().Add(duration),
+	}
+	c.hashes[hash] = key
+	c.updateAccess(key)
 
 	if !c.inMemory {
 		return c.persistToDisk()
@@ -184,13 +184,20 @@ func (c *Cache) Set(key string, value interface{}, duration time.Duration) error
 }
 
 func (c *Cache) Get(key string) ([]byte, bool) {
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 
 	d, exists := c.data[key]
 	if !exists || time.Now().After(d.Expires) {
 		return nil, false
 	}
+
+	// Update the expiration time upon access
+	newExpiration := time.Now().Add(1 * time.Minute) // or some other default duration
+	d.Expires = newExpiration
+	c.data[key] = d
+
+	c.updateAccess(key)
 
 	decryptedValue, err := c.decrypt(d.Data)
 	if err != nil {
@@ -206,29 +213,29 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 }
 
 func (c *Cache) serializeWithGob(data interface{}) ([]byte, error) {
-    var buffer bytes.Buffer
-    gz := gzip.NewWriter(&buffer)
-    enc := gob.NewEncoder(gz)
+	var buffer bytes.Buffer
+	gz := gzip.NewWriter(&buffer)
+	enc := gob.NewEncoder(gz)
 
-    if err := enc.Encode(data); err != nil {
-        gz.Close()
-        return nil, err
-    }
+	if err := enc.Encode(data); err != nil {
+		gz.Close()
+		return nil, err
+	}
 
-    // It's important to close the gzip.Writer to flush the data to the buffer
-    if err := gz.Close(); err != nil {
-        return nil, err
-    }
+	// It's important to close the gzip.Writer to flush the data to the buffer
+	if err := gz.Close(); err != nil {
+		return nil, err
+	}
 
-    return buffer.Bytes(), nil
+	return buffer.Bytes(), nil
 }
 
 func (c *Cache) deserializeWithGob(data []byte, result interface{}) error {
-    gz, err := gzip.NewReader(bytes.NewBuffer(data))
-    if err != nil {
-        return err
-    }
-    defer gz.Close()
+	gz, err := gzip.NewReader(bytes.NewBuffer(data))
+	if err != nil {
+		return err
+	}
+	defer gz.Close()
 	dec := gob.NewDecoder(gz)
 	return dec.Decode(result)
 }
@@ -269,23 +276,25 @@ func (c *Cache) loadFromDisk() error {
 
 // updateAccess updates the access order for a given key
 func (c *Cache) updateAccess(key string) {
-    if idx, found := c.accessMap[key]; found {
-        // Move the item to the end of accessList
-        c.accessList = append(c.accessList[:idx], c.accessList[idx+1:]...)
-        c.accessList = append(c.accessList, key)
-        c.accessMap[key] = len(c.accessList) - 1
-        return
-    }
+	if idx, found := c.accessMap[key]; found {
+		// Remove the item from its current position
+		c.accessList = append(c.accessList[:idx], c.accessList[idx+1:]...)
 
-    // New item: add to accessList and accessMap
-    c.accessList = append(c.accessList, key)
-    c.accessMap[key] = len(c.accessList) - 1
+		// Update accessMap for all items that shifted
+		for i := idx; i < len(c.accessList); i++ {
+			c.accessMap[c.accessList[i]] = i
+		}
+	}
 
-    // Evict the least recently used item if necessary
-    if len(c.accessList) > c.maxItems {
-        oldest := c.accessList[0]
-        c.accessList = c.accessList[1:]
-        delete(c.data, oldest)
-        delete(c.accessMap, oldest)
-    }
+	// Add the item to the end of accessList
+	c.accessList = append(c.accessList, key)
+	c.accessMap[key] = len(c.accessList) - 1
+
+	// Evict the least recently used item if necessary
+	if len(c.accessList) > c.maxItems {
+		oldest := c.accessList[0]
+		c.accessList = c.accessList[1:]
+		delete(c.data, oldest)
+		delete(c.accessMap, oldest)
+	}
 }

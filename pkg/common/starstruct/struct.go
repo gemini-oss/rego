@@ -26,10 +26,10 @@ func PrettyJSON(data interface{}) (string, error) {
 }
 
 /*
- * Convert a struct to a map[string]string
+ * Convert a struct to a map[string][]string
  */
-func StructToMap(item interface{}) map[string]string {
-	out := make(map[string]string)
+func StructToMap(item interface{}) map[string][]string {
+	out := make(map[string][]string)
 
 	v := reflect.ValueOf(item)
 	// Dereference pointer if necessary
@@ -45,36 +45,21 @@ func StructToMap(item interface{}) map[string]string {
 			continue
 		}
 
-		var fieldStr string
+		key := getMapKey(typeOfItem.Field(i))
+
+		if key == "" {
+			continue
+		}
+
 		if field.Kind() == reflect.Slice && field.Type().Elem().Kind() == reflect.String {
 			// Handle slice of strings
 			var sliceElements []string
 			for j := 0; j < field.Len(); j++ {
 				sliceElements = append(sliceElements, field.Index(j).Interface().(string))
 			}
-			fieldStr = strings.Join(sliceElements, "ᕙ(▀̿̿Ĺ̯̿̿▀̿ ̿)ᕗ") // Kaomoji to separate slice elements
+			out[key] = append(out[key], sliceElements...)
 		} else {
-			fieldStr = fmt.Sprintf("%v", field.Interface())
-		}
-
-		// Try getting the "json" tag, then the "url" tag, and finally the "xml" tag
-		tag := typeOfItem.Field(i).Tag.Get("json")
-		if tag == "" {
-			tag = typeOfItem.Field(i).Tag.Get("url")
-		}
-		if tag == "" {
-			tag = typeOfItem.Field(i).Tag.Get("xml")
-		}
-		tag = strings.Split(tag, ",")[0] // exclude ",omitempty" if exists
-
-		if tag != "" && fieldStr != "" {
-			// Use the tag as the key
-			out[tag] = fieldStr
-		} else if fieldStr != "" {
-			// If tag is not defined, use the field name as the key
-			// We are only lowercasing the first letter of the field name
-			fieldName := typeOfItem.Field(i).Name
-			out[strings.ToLower(fieldName[:1])+fieldName[1:]] = fieldStr
+			out[key] = append(out[key], fmt.Sprintf("%v", field.Interface()))
 		}
 	}
 

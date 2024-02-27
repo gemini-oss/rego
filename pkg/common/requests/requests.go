@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	rl "github.com/gemini-oss/rego/pkg/common/ratelimit"
+	"github.com/gemini-oss/rego/pkg/common/retry"
 	ss "github.com/gemini-oss/rego/pkg/common/starstruct"
 )
 
@@ -121,15 +122,8 @@ func SetQueryParams(req *http.Request, query interface{}) {
 	q := req.URL.Query()
 	parameters := ss.StructToMap(query)
 
-	for key, value := range parameters {
-		// Check if the value for current key contains a kaomoji -- indicating multiple query parameters for a field
-		if strings.Contains(value, "ᕙ(▀̿̿Ĺ̯̿̿▀̿ ̿)ᕗ") {
-			// Split the value into multiple parameters
-			params := strings.Split(value, "ᕙ(▀̿̿Ĺ̯̿̿▀̿ ̿)ᕗ")
-			for _, value := range params {
-				q.Add(key, value)
-			}
-		} else {
+	for key, values := range parameters {
+		for _, value := range values {
 			q.Add(key, value)
 		}
 	}
@@ -158,11 +152,12 @@ func SetFormURLEncodedPayload(req *http.Request, data interface{}) error {
 		return nil
 	}
 
-	// Convert data to URL-encoded form
 	formData := url.Values{}
 	parameters := ss.StructToMap(data)
-	for key, value := range parameters {
-		formData.Add(key, value)
+	for key, values := range parameters {
+		for _, value := range values {
+			formData.Add(key, value)
+		}
 	}
 
 	req.Body = io.NopCloser(strings.NewReader(formData.Encode()))
@@ -172,17 +167,30 @@ func SetFormURLEncodedPayload(req *http.Request, data interface{}) error {
 }
 
 func (c *Client) DoRequest(method string, url string, query interface{}, data interface{}) (*http.Response, []byte, error) {
+	realTime := retry.RealTime{}
+	return c.doRetry(method, url, query, data, realTime)
+}
 
+func (c *Client) doRetry(method string, url string, query interface{}, data interface{}, time retry.Time) (*http.Response, []byte, error) {
+	var resp *http.Response
+	var body []byte
+	err := retry.Retry(func() error {
+		var reqErr error
+		resp, body, reqErr = c.do(method, url, query, data)
+		return reqErr
+	}, time)
+
+	return resp, body, err
+}
+
+func (c *Client) do(method string, url string, query interface{}, data interface{}) (*http.Response, []byte, error) {
 	// Validate HTTP method
-	switch method {
-	case "GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "PATCH":
-		// Valid method, proceed with request
-	default:
-		return nil, nil, fmt.Errorf("invalid HTTP method: %s", method)
+	validMethods := map[string]bool{
+		"GET": true, "POST": true, "PUT": true, "DELETE": true,
+		"HEAD": true, "OPTIONS": true, "PATCH": true,
 	}
-
-	if c.RateLimiter != nil {
-		c.RateLimiter.Wait()
+	if _, valid := validMethods[method]; !valid {
+		return nil, nil, fmt.Errorf("invalid HTTP method: %s", method)
 	}
 
 	req, err := c.CreateRequest(method, url)
@@ -192,16 +200,7 @@ func (c *Client) DoRequest(method string, url string, query interface{}, data in
 
 	SetQueryParams(req, query)
 
-	switch c.Headers["Content-Type"] {
-	case FormURLEncoded, fmt.Sprintf("%s; charset=utf-8", FormURLEncoded):
-		err = SetFormURLEncodedPayload(req, data)
-	case MultipartFormData:
-	case JSON, fmt.Sprintf("%s; charset=utf-8", JSON):
-		err = SetJSONPayload(req, data)
-	default:
-	}
-
-	if err != nil {
+	if err := setPayload(req, data, c.Headers["Content-Type"]); err != nil {
 		return nil, nil, err
 	}
 
@@ -214,6 +213,7 @@ func (c *Client) DoRequest(method string, url string, query interface{}, data in
 	// Update rate limiter if headers are present
 	if c.RateLimiter != nil {
 		c.RateLimiter.UpdateFromHeaders(resp.Header)
+		c.RateLimiter.Wait()
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -222,19 +222,26 @@ func (c *Client) DoRequest(method string, url string, query interface{}, data in
 	}
 
 	switch resp.StatusCode {
-	case http.StatusBadRequest:
-		return nil, body, fmt.Errorf(string(body))
-	case http.StatusUnauthorized:
-		return nil, body, fmt.Errorf(string(body))
-	case http.StatusForbidden:
-		return nil, body, fmt.Errorf(string(body))
-	case http.StatusNotFound:
-		return nil, body, fmt.Errorf(string(body))
-	case http.StatusTooManyRequests:
-		fmt.Println(string(body))
-		return nil, body, fmt.Errorf(string(body))
-	default:
+	case http.StatusOK:
 		return resp, body, nil
+	case http.StatusTooManyRequests:
+		fmt.Println(string(body)) // Will consider logging instead of printing
+	default:
+		return nil, body, fmt.Errorf(string(body))
+	}
+
+	return nil, body, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+}
+
+func setPayload(req *http.Request, data interface{}, contentType string) error {
+	switch contentType {
+	case FormURLEncoded, fmt.Sprintf("%s; charset=utf-8", FormURLEncoded):
+		return SetFormURLEncodedPayload(req, data)
+	case JSON, fmt.Sprintf("%s; charset=utf-8", JSON):
+		return SetJSONPayload(req, data)
+	default:
+		// No payload to set
+		return nil
 	}
 }
 
@@ -248,10 +255,6 @@ func (c *Client) DoRequest(method string, url string, query interface{}, data in
  */
 func (c *Client) PaginatedRequest(method string, url string, query interface{}, payload interface{}) ([]json.RawMessage, error) {
 	var results []json.RawMessage
-
-	if c.RateLimiter != nil {
-		c.RateLimiter.Wait()
-	}
 
 	// Initial request
 	resp, body, err := c.DoRequest(method, url, query, nil)
@@ -280,9 +283,6 @@ func (c *Client) PaginatedRequest(method string, url string, query interface{}, 
 	// Pagination
 	p := &Paginator{}
 	for p.HasNextPage(resp.Header.Values("Link")) {
-		if c.RateLimiter != nil {
-			c.RateLimiter.Wait()
-		}
 
 		// Request next page
 		resp, body, err = c.DoRequest("GET", p.NextPageLink, nil, nil)

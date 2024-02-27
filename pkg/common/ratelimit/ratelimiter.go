@@ -19,10 +19,10 @@ type RateLimiter struct {
 	Limit          int           // Total requests allowed in the interval
 	Interval       time.Duration // Interval to reset the rate limiter
 	Requests       int           // Total requests made
+	ResetHeaders   bool          // Flag to check if the rate limiter retrieves info from specific headers
 	ResetTimestamp int64         // Timestamp to reset the rate limiter
 	RetryAfter     int           // Retry after time
 	TimeUntilReset time.Duration // Time until the rate limiter resets
-	UsesReset      bool          // Flag to check if the rate limiter retrieves info from specific headers
 	UsesRetryAfter bool          // Flag to check if the rate limiter uses a retry after value
 	Logger         *log.Logger   // Logger for the rate limiter
 }
@@ -104,7 +104,9 @@ func (rl *RateLimiter) Wait() {
 		}
 
 		// Proceed without waiting.
-		rl.decrementAvailable()
+		if !rl.ResetHeaders {
+			rl.decrementAvailable()
+		}
 		rl.mu.Unlock()
 		return
 	}
@@ -162,6 +164,11 @@ func (rl *RateLimiter) Stop() {
 }
 
 func (rl *RateLimiter) UpdateFromHeaders(headers http.Header) {
+	// Add a check for nil headers
+	if headers == nil {
+		return // or handle this case as needed
+	}
+
 	// Log the start of the update process.
 	rl.Logger.Trace("Updating Rate Limiter from headers")
 
@@ -170,25 +177,19 @@ func (rl *RateLimiter) UpdateFromHeaders(headers http.Header) {
 	// Defer the unlocking so it's done automatically at the end of the function.
 	defer rl.mu.Unlock()
 
-	// Check if the RateLimiter uses a reset timestamp.
-	if rl.UsesReset {
-		// Try to get the "X-Rate-Limit-Reset" header.
-		if resetHeader := headers.Get("X-Rate-Limit-Reset"); resetHeader != "" {
-			// If the header is present and can be parsed to an int64, update the ResetTimestamp.
-			if reset, err := strconv.ParseInt(resetHeader, 10, 64); err == nil {
-				rl.ResetTimestamp = reset
-			}
+	// Try to get the "X-Rate-Limit-Reset" header.
+	if resetHeader := headers.Get("X-Rate-Limit-Reset"); resetHeader != "" {
+		// If the header is present and can be parsed to an int64, update the ResetTimestamp.
+		if reset, err := strconv.ParseInt(resetHeader, 10, 64); err == nil {
+			rl.ResetTimestamp = reset
 		}
 	}
 
-	// Check if the RateLimiter uses a retry-after value.
-	if rl.UsesRetryAfter {
-		// Try to get the "Retry-After" header.
-		if retryAfterHeader := headers.Get("Retry-After"); retryAfterHeader != "" {
-			// If the header is present and can be parsed to an int, update the RetryAfter.
-			if retryAfter, err := strconv.Atoi(retryAfterHeader); err == nil {
-				rl.RetryAfter = retryAfter
-			}
+	// Try to get the "Retry-After" header.
+	if retryAfterHeader := headers.Get("Retry-After"); retryAfterHeader != "" {
+		// If the header is present and can be parsed to an int, update the RetryAfter.
+		if retryAfter, err := strconv.Atoi(retryAfterHeader); err == nil {
+			rl.RetryAfter = retryAfter
 		}
 	}
 
