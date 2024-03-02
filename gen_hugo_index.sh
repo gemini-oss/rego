@@ -90,6 +90,7 @@ if which gomarkdoc >/dev/null 2>&1; then
     $(go env GOPATH)/bin/gomarkdoc ./... --output 'hugo/content/docs/{{.Dir}}/_index.md' --exclude-dirs ./pkg/internal/tests/... --embed
 else
     go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@latest
+    $(go env GOPATH)/bin/gomarkdoc ./... --output 'hugo/content/docs/{{.Dir}}/_index.md' --exclude-dirs ./pkg/internal/tests/... --embed
 fi
 
 # Create the _index.md file for the root directory

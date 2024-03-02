@@ -47,10 +47,38 @@ type Computers struct {
 	TotalCount int          `json:"totalCount"` // Total number of computers.
 }
 
+// Total() [Computers] returns the total number of computers in generic functions
+func (c Computers) Total() int {
+	return c.TotalCount
+}
+
+// Append() [Computers] Appends the results of Computers in generic functions to an existing list
+func (c Computers) Append(result interface{}) {
+	more, ok := result.(*Computers)
+	if !ok {
+		return
+	}
+	*c.Results = append(*c.Results, *more.Results...)
+}
+
 // Response structure for the Jamf Pro API for mobile devices
 type MobileDevices struct {
 	Results    *[]*MobileDevice `json:"results"`    // List of mobile devices.
 	TotalCount int              `json:"totalCount"` // Total number of mobile devices.
+}
+
+// Total() [MobileDevices] returns the total number of mobile devices in generics
+func (c MobileDevices) Total() int {
+	return c.TotalCount
+}
+
+// Append() [MobileDevices] Appends the results of Mobile Devices in generic functions to an existing list
+func (m MobileDevices) Append(result interface{}) {
+	more, ok := result.(*MobileDevices)
+	if !ok {
+		return
+	}
+	*m.Results = append(*m.Results, *more.Results...)
 }
 
 // MobileDevice represents the details of a mobile device.
@@ -146,7 +174,7 @@ type ContentCaching struct {
 	ActualCacheBytesUsed                int64              `json:"actualCacheBytesUsed,omitempty"`                // Actual bytes used by the cache.
 	Address                             string             `json:"address,omitempty"`                             // Address of the caching server.
 	Addresses                           []string           `json:"addresses,omitempty"`                           // List of addresses related to the caching server.
-	Alerts                              []CacheAlert       `json:"alerts,omitempty"`                              // Alerts related to caching.
+	Alerts                              interface{}        `json:"alerts,omitempty"`                              // Alerts related to caching. Can either be an array or object assigned to CacheAlert
 	CacheBytesFree                      int64              `json:"cacheBytesFree,omitempty"`                      // Free bytes in the cache.
 	CacheBytesLimit                     int64              `json:"cacheBytesLimit,omitempty"`                     // Limit of cache bytes.
 	CacheBytesUsed                      int64              `json:"cacheBytesUsed,omitempty"`                      // Bytes used in the cache.
@@ -156,11 +184,13 @@ type ContentCaching struct {
 	DataMigrationCompleted              bool               `json:"dataMigrationCompleted,omitempty"`              // Indicates if data migration is completed.
 	DataMigrationError                  DataMigrationError `json:"dataMigrationError,omitempty"`                  // Data migration error details.
 	DataMigrationProgressPercentage     int                `json:"dataMigrationProgressPercentage,omitempty"`     // Progress percentage of data migration.
-	Details                             []CacheDetail      `json:"details,omitempty"`                             // Details of the content caching. Seems redundant, but it helps with struct recursion.
+	Details                             CacheDetail        `json:"details,omitempty"`                             // Details of the content caching. Seems redundant, but it helps with struct recursion.
 	GUID                                string             `json:"guid,omitempty"`                                // GUID of the caching server.
 	Healthy                             bool               `json:"healthy,omitempty"`                             // Indicates if the caching server is healthy.
 	MaxCachePressureLast1HourPercentage int                `json:"maxCachePressureLast1HourPercentage,omitempty"` // Max cache pressure in the last hour.
 	Parents                             []ContentCaching   `json:"parents,omitempty"`                             // Parent caching servers, recursively using the same structure.
+	ParentID                            string             `json:"contentCachingParentId,omitempty"`              // Parent ID of the content caching event.
+	ParentDetailsID                     string             `json:"contentCachingParentDetailsId,omitempty"`       // Parent details ID of the content caching event.
 	PersonalCacheBytesFree              int64              `json:"personalCacheBytesFree,omitempty"`              // Free bytes in the personal cache.
 	PersonalCacheBytesLimit             int64              `json:"personalCacheBytesLimit,omitempty"`             // Limit of personal cache bytes.
 	PersonalCacheBytesUsed              int64              `json:"personalCacheBytesUsed,omitempty"`              // Used bytes in the personal cache.
@@ -188,12 +218,14 @@ type ContentCaching struct {
 
 // CacheAlert represents an alert related to caching.
 type CacheAlert struct {
-	CacheBytesLimit      int64  `json:"cacheBytesLimit,omitempty"`      // Limit of cache bytes for the alert.
-	ClassName            string `json:"className,omitempty"`            // The class name of the alert.
-	PathPreventingAccess string `json:"pathPreventingAccess,omitempty"` // Path that is preventing access.
-	PostDate             string `json:"postDate,omitempty"`             // Post date of the alert.
-	ReservedVolumeBytes  int64  `json:"reservedVolumeBytes,omitempty"`  // Reserved volume bytes.
-	Resource             string `json:"resource,omitempty"`             // Resource associated with the alert.
+	Addresses            []string `json:"addresses,omitempty"`                   // List of addresses related to the caching server.
+	CacheBytesLimit      int64    `json:"cacheBytesLimit,omitempty"`             // Limit of cache bytes for the alert.
+	ClassName            string   `json:"className,omitempty"`                   // The class name of the alert.
+	ID                   string   `json:"contentCachingParentAlertId,omitempty"` // Unique identifier of the alert.
+	PathPreventingAccess string   `json:"pathPreventingAccess,omitempty"`        // Path that is preventing access.
+	PostDate             string   `json:"postDate,omitempty"`                    // Post date of the alert.
+	ReservedVolumeBytes  int64    `json:"reservedVolumeBytes,omitempty"`         // Reserved volume bytes.
+	Resource             string   `json:"resource,omitempty"`                    // Resource associated with the alert.
 }
 
 // CacheDetail represents details of the cache.

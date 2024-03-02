@@ -18,6 +18,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/gemini-oss/rego/pkg/common/cache"
 	"github.com/gemini-oss/rego/pkg/common/config"
@@ -43,10 +45,34 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
 	return url
 }
 
-// UseCache() enables caching for the next method call.
-func (c *Client) UseCache() *Client {
-	c.Cache.Enabled = true
-	return c
+/*
+ * SetCache stores a Jamf API response in the cache
+ */
+func (c *Client) SetCache(key string, value interface{}, duration time.Duration) {
+	// Convert value to a byte slice and cache it
+	data, err := json.Marshal(value)
+	if err != nil {
+		c.Log.Error("Error marshalling cache data:", err)
+		return
+	}
+	c.Cache.Set(key, data, duration)
+}
+
+/*
+ * GetCache retrieves a Jamf API response from the cache
+ */
+func (c *Client) GetCache(key string, target interface{}) bool {
+	data, found := c.Cache.Get(key)
+	if !found {
+		return false
+	}
+
+	err := json.Unmarshal(data, target)
+	if err != nil {
+		c.Log.Error("Error unmarshalling cache data:", err)
+		return false
+	}
+	return true
 }
 
 /*
@@ -124,4 +150,111 @@ func NewClient(verbosity int) *Client {
 		Log:        log.NewLogger("{jamf}", verbosity),
 		Cache:      cache,
 	}
+}
+
+// JamfResult is an interface for Jamf API responses involving pagination
+type JamfAPIResponse interface {
+	Total() int
+	Append(interface{})
+}
+
+/*
+ * Perform a generic request to the Jamf API
+ */
+func do[T any](c *Client, method string, url string, query interface{}, data interface{}) (T, error) {
+	var result T
+	res, body, err := c.HTTP.DoRequest(method, url, query, data)
+	if err != nil {
+		return *new(T), err
+	}
+
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return *new(T), fmt.Errorf("unmarshalling error: %w", err)
+	}
+
+	return result, nil
+}
+
+/*
+ * Perform a concurrent generic request to the Jamf API
+ */
+func doConcurrent[T JamfAPIResponse](c *Client, method string, url string, q *DeviceQuery, data interface{}) (*T, error) {
+	// Do initial request to get the total number of items
+	firstPage, err := do[T](c, method, url, q, data)
+	if err != nil {
+		return nil, err
+	}
+
+	// If there's only one page, return the result
+	totalPages := calculateTotalPages(firstPage.Total(), q.PageSize)
+	if totalPages <= 1 {
+		return &firstPage, nil
+	}
+
+	// Create a channel to collect results from each goroutine
+	resultsCh := make(chan *T, totalPages)
+	errCh := make(chan error, totalPages)
+
+	// Use a buffered channel as a semaphore to limit concurrent requests.
+	sem := make(chan struct{}, 10)
+	var wg sync.WaitGroup
+
+	// Start goroutines for each page
+	for i := (q.Page + 1); i < totalPages; i++ {
+		wg.Add(1)
+		go func(p int) {
+			// Release one semaphore resource when the goroutine completes
+			defer wg.Done()
+
+			sem <- struct{}{} // acquire one semaphore resource
+
+			// Create a new query with the current page
+			q := *q
+			c.Log.Println("Query:", q)
+			q.Page = p
+
+			result, err := do[T](c, method, url, q, data)
+			if err != nil {
+				errCh <- err
+				return
+			}
+
+			resultsCh <- &result
+			<-sem // release one semaphore resource
+		}(i)
+	}
+
+	// Wait for all goroutines to complete
+	wg.Wait()
+	close(resultsCh)
+	close(errCh)
+
+	// Check for errors
+	if len(errCh) > 0 {
+		return nil, <-errCh
+	}
+
+	// Combine results from all pages
+	results := firstPage
+	for result := range resultsCh {
+		results.Append(result)
+	}
+
+	return &results, nil
+}
+
+/*
+ * Calculate the total number of pages
+ * based on the total number of items and the page size
+ */
+func calculateTotalPages(totalItems, pageSize int) int {
+	totalPages := totalItems / pageSize
+	if totalItems%pageSize > 0 {
+		totalPages++
+	}
+	return totalPages
 }

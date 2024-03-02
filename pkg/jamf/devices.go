@@ -14,9 +14,7 @@ This package initializes all the methods for functions which interact with the J
 package jamf
 
 import (
-	"encoding/json"
 	"fmt"
-	"sync"
 	"time"
 )
 
@@ -26,6 +24,26 @@ var (
 	ComputerGroups           = fmt.Sprintf("%s/computer-groups", V1)            // /api/v1/computer-groups
 	MobileDev                = fmt.Sprintf("%s/mobile-devices", V2)             // /api/v2/mobile-devices
 )
+
+// DeviceClient for chaining methods
+type DeviceClient struct {
+	client *Client
+	query  DeviceQuery
+}
+
+// Entry point for device-related operations
+func (c *Client) Devices() *DeviceClient {
+	return &DeviceClient{
+		client: c,
+		query: DeviceQuery{ // Default query parameters
+			Sections: []string{
+				Section.General,
+			},
+			Page:     0,
+			PageSize: 100,
+		},
+	}
+}
 
 /*
 - Query parameters for Computer Details
@@ -68,7 +86,7 @@ func (d *DeviceQuery) IsEmpty() bool {
 func (d *DeviceQuery) ValidateQuery() error {
 	if d.Sections != nil {
 		d.Sections = []string{
-			"GENERAL",
+			Section.General,
 		}
 	}
 
@@ -89,138 +107,64 @@ func (d *DeviceQuery) ValidateQuery() error {
 	return nil
 }
 
+// ### Chainable DeviceClient Methods
+// ---------------------------------------------------------------------
+func (dc *DeviceClient) Sections(sections []string) *DeviceClient {
+	dc.query.Sections = sections
+	return dc
+}
+
+func (dc *DeviceClient) Page(page int) *DeviceClient {
+	dc.query.Page = page
+	return dc
+}
+
+func (dc *DeviceClient) PageSize(pageSize int) *DeviceClient {
+	dc.query.PageSize = pageSize
+	return dc
+}
+
+func (dc *DeviceClient) Sort(sort []string) *DeviceClient {
+	dc.query.Sort = sort
+	return dc
+}
+
+func (dc *DeviceClient) Filter(filter string) *DeviceClient {
+	dc.query.Filter = filter
+	return dc
+}
+
+// END OF CHAINABLE METHODS
+//---------------------------------------------------------------------
+
 /*
  * # Get Computer Devices
  * /api/v1/computers-inventory
  * - https://developer.jamf.com/jamf-pro/reference/get_v1-computers-inventory
  */
-func (c *Client) ListAllComputers() (*Computers, error) {
-	url := c.BuildURL(ComputersInventory)
+func (dc *DeviceClient) ListAllComputers() (*Computers, error) {
+	url := dc.client.BuildURL(ComputersInventory)
 
-	if c.Cache.Enabled {
-		if data, found := c.Cache.Get(url); found {
-			var cache Computers
-			if err := json.Unmarshal(data, &cache); err != nil {
-				return nil, err
-			}
-
-			c.Log.Debug("Cached Body:", string(data))
-			return &cache, nil
-		}
+	var cache Computers
+	if dc.client.GetCache(url, &cache) {
+		return &cache, nil
 	}
 
 	q := &DeviceQuery{
 		Sections: []string{
 			Section.General,
-			Section.Hardware,
-			Section.UserAndLocation,
 		},
 		Page:     0,
 		PageSize: 100,
 	}
 
-	allDevices := &Computers{}
-
-	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
+	computers, err := doConcurrent[Computers](dc.client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
 
-	err = json.Unmarshal(body, &allDevices)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling user: %w", err)
-	}
-
-	// Use a buffered channel as a semaphore to limit concurrent requests.
-	sem := make(chan struct{}, 10)
-
-	// WaitGroup to ensure all go routines complete their tasks.
-	var wg sync.WaitGroup
-
-	totalPages := allDevices.TotalCount / q.PageSize
-	if allDevices.TotalCount%q.PageSize > 0 {
-		totalPages++
-	}
-
-	if totalPages <= 1 { // If only one page, no need for further requests
-		// After successfully fetching devices, cache them:
-		if data, err := json.Marshal(allDevices); err == nil {
-			c.Cache.Set(url, data, 5*time.Minute) // Set cache with an expiration
-		}
-
-		return allDevices, nil
-	}
-
-	// Buffered channel to hold device pages result from each goroutine
-	devicesCh := make(chan map[string]*Computers, totalPages)
-
-	// Buffered channel to hold any errors that occur while getting device pages
-	rolesErrCh := make(chan error)
-
-	for next_page := true; next_page; next_page = (q.Page < totalPages) {
-
-		wg.Add(1)
-
-		q.Page++ // Increment page number
-		c.Log.Println("Page: ", q.Page)
-
-		// Start a new goroutine to get the next device page
-		go func(q DeviceQuery) {
-			// Release one semaphore resource when the goroutine completes
-			defer wg.Done()
-
-			sem <- struct{}{} // acquire one semaphore resource
-			page := &Computers{}
-
-			res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
-			if err != nil {
-				rolesErrCh <- err
-				return
-			}
-			c.Log.Println("Response Status:", res.Status)
-			c.Log.Debug("Response Body: ", string(body))
-
-			err = json.Unmarshal(body, &page)
-			if err != nil {
-				rolesErrCh <- err
-				return
-			}
-
-			newPage := make(map[string]*Computers)
-			newPage[fmt.Sprint(q.Page)] = page
-			devicesCh <- newPage
-			<-sem // release one semaphore resource
-		}(*q) // Pass the query to the goroutine
-	}
-
-	// Wait for all goroutines to finish and close channels
-	go func() {
-		wg.Wait()
-		close(devicesCh)
-		close(rolesErrCh)
-	}()
-
-	// Collect devices from all pages
-	for deviceRecords := range devicesCh {
-		for _, results := range deviceRecords {
-			*allDevices.Results = append(*allDevices.Results, *results.Results...)
-		}
-	}
-
-	// Check if there were any errors
-	if len(rolesErrCh) > 0 {
-		// Handle or return errors. For simplicity, only returning the first error here
-		return nil, <-rolesErrCh
-	}
-
-	// After successfully fetching devices, cache them:
-	if data, err := json.Marshal(allDevices); err == nil {
-		c.Cache.Set(url, data, 5*time.Minute) // Set cache with an expiration
-	}
-
-	return allDevices, nil
+	dc.client.SetCache(url, computers, 5*time.Minute)
+	return computers, nil
 }
 
 /*
@@ -228,47 +172,42 @@ func (c *Client) ListAllComputers() (*Computers, error) {
  * /api/v1/computers-inventory-detail/{id}
  * - https://developer.jamf.com/jamf-pro/reference/get_v1-computers-inventory-detail-id
  */
-func (c *Client) GetComputerDetails(id string) (*Computer, error) {
-	computer := &Computer{}
+func (dc *DeviceClient) GetComputerDetails(id string) (*Computer, error) {
+	url := dc.client.BuildURL(ComputersInventoryDetail, id)
 
-	url := c.BuildURL(ComputersInventoryDetail, id)
-	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
+	var cache Computer
+	if dc.client.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	computer, err := do[*Computer](dc.client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
 
-	err = json.Unmarshal(body, &computer)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling user: %w", err)
-	}
-
+	dc.client.SetCache(url, computer, 5*time.Minute)
 	return computer, nil
 }
 
 /*
  * # Get Computer Groups
  * /api/v1/computer-groups
- * - https://developer.jamf.com/jamf-pro/reference/get_v1-computers-inventory
+ * - https://developer.jamf.com/jamf-pro/reference/get_v1-computer-groups
  */
-func (c *Client) ListAllComputerGroups() (*[]GroupMembership, error) {
-	allGroups := &[]GroupMembership{}
+func (dc *DeviceClient) ListAllComputerGroups() (*[]GroupMembership, error) {
+	url := dc.client.BuildURL(ComputerGroups)
 
-	url := c.BuildURL(ComputerGroups)
-	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
+	var cache *[]GroupMembership
+	if dc.client.GetCache(url, cache) {
+		return cache, nil
+	}
+
+	groups, err := do[*[]GroupMembership](dc.client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
 
-	err = json.Unmarshal(body, &allGroups)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling user: %w", err)
-	}
-
-	return allGroups, nil
+	return groups, nil
 }
 
 /*
@@ -276,125 +215,24 @@ func (c *Client) ListAllComputerGroups() (*[]GroupMembership, error) {
  * /api/v2/mobile-devices
  * - https://developer.jamf.com/jamf-pro/reference/get_v2-mobile-devices
  */
-func (c *Client) ListAllMobileDevices() (*MobileDevices, error) {
-	url := c.BuildURL(MobileDev)
-	if c.Cache.Enabled {
-		if data, found := c.Cache.Get(url); found {
-			var cache MobileDevices
-			if err := json.Unmarshal(data, &cache); err != nil {
-				return nil, err
-			}
+func (dc *DeviceClient) ListAllMobileDevices() (*MobileDevices, error) {
+	url := dc.client.BuildURL(MobileDev)
 
-			c.Log.Debug("Cached Body:", string(data))
-			return &cache, nil
-		}
+	var cache MobileDevices
+	if dc.client.GetCache(url, &cache) {
+		return &cache, nil
 	}
-
-	allDevices := &MobileDevices{}
 
 	q := &DeviceQuery{
 		Page:     0,
 		PageSize: 100,
 	}
 
-	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
+	md, err := doConcurrent[MobileDevices](dc.client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
 
-	err = json.Unmarshal(body, &allDevices)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling user: %w", err)
-	}
-
-	// Use a buffered channel as a semaphore to limit concurrent requests.
-	sem := make(chan struct{}, 10)
-
-	// WaitGroup to ensure all go routines complete their tasks.
-	var wg sync.WaitGroup
-
-	totalPages := allDevices.TotalCount / q.PageSize
-	if allDevices.TotalCount%q.PageSize > 0 {
-		totalPages++
-	}
-
-	if totalPages <= 1 { // If only one page, no need for further requests
-		// After successfully fetching devices, cache them:
-		if data, err := json.Marshal(allDevices); err == nil {
-			c.Cache.Set(url, data, 5*time.Minute) // Set cache with an expiration
-		}
-
-		return allDevices, nil
-	}
-
-	// Buffered channel to hold device pages result from each goroutine
-	devicesCh := make(chan map[string]*MobileDevices, totalPages)
-
-	// Buffered channel to hold any errors that occur while getting device pages
-	rolesErrCh := make(chan error)
-
-	for next_page := true; next_page; next_page = (q.Page < totalPages) {
-
-		wg.Add(1)
-
-		q.Page++ // Increment page number
-		c.Log.Println("Page:", q.Page)
-
-		// Start a new goroutine to get the next device page
-		go func(q DeviceQuery) {
-			// Release one semaphore resource when the goroutine completes
-			defer wg.Done()
-
-			sem <- struct{}{} // acquire one semaphore resource
-			page := &MobileDevices{}
-
-			res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
-			if err != nil {
-				rolesErrCh <- err
-				return
-			}
-			c.Log.Println("Response Status:", res.Status)
-			c.Log.Debug("Response Body:", string(body))
-
-			err = json.Unmarshal(body, &page)
-			if err != nil {
-				rolesErrCh <- err
-				return
-			}
-
-			newPage := make(map[string]*MobileDevices)
-			newPage[fmt.Sprint(q.Page)] = page
-			devicesCh <- newPage
-			<-sem // release one semaphore resource
-		}(*q) // Pass the query to the goroutine
-	}
-
-	// Wait for all goroutines to finish and close channels
-	go func() {
-		wg.Wait()
-		close(devicesCh)
-		close(rolesErrCh)
-	}()
-
-	// Collect devices from all pages
-	for deviceRecords := range devicesCh {
-		for _, results := range deviceRecords {
-			*allDevices.Results = append(*allDevices.Results, *results.Results...)
-		}
-	}
-
-	// Check if there were any errors
-	if len(rolesErrCh) > 0 {
-		// Handle or return errors. For simplicity, only returning the first error here
-		return nil, <-rolesErrCh
-	}
-
-	// After successfully fetching devices, cache them:
-	if data, err := json.Marshal(allDevices); err == nil {
-		c.Cache.Set(url, data, 5*time.Minute) // Set cache with an expiration
-	}
-
-	return allDevices, nil
+	dc.client.SetCache(url, md, 5*time.Minute)
+	return md, nil
 }
