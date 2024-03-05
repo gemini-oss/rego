@@ -15,12 +15,15 @@ import (
 func TestCacheSetAndGet(t *testing.T) {
 	key := "testKey"
 	value := []byte("testValue")
-	encryptionKey := []byte("a-very-very-very-very-secret-key") // 32 bytes
+	encryptionKey := []byte("32~Byte-long_passphrase-key-1234") // 32 bytes
 
-	c, _ := cache.NewCache(encryptionKey, true)
+	c, err := cache.NewCache(encryptionKey, true)
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 
 	// Test setting and getting a value
-	err := c.Set(key, value, 1*time.Minute)
+	err = c.Set(key, value, 1*time.Minute)
 	if err != nil {
 		t.Errorf("Set() error = %v, wantErr %v", err, nil)
 	}
@@ -36,10 +39,20 @@ func TestCacheSetAndGet(t *testing.T) {
 	}
 }
 
+func TestCacheCreateFail(t *testing.T) {
+	encryptionKey := []byte("a-very-very-very-very-secret-key") // 32 bytes
+
+	// We expect an error because the encryption key is
+	_, err := cache.NewCache(encryptionKey, true)
+	if err == nil {
+		t.Fatal("Cache creation succeeded with invalid key")
+	}
+}
+
 func TestCacheExpiration(t *testing.T) {
 	key := "expireKey"
 	value := []byte("expireValue")
-	encryptionKey := []byte("32-byte-long-encryption-key-1234") // 32 bytes
+	encryptionKey := []byte("32~Byte-long_passphrase-key-1234") // 32 bytes
 
 	c, _ := cache.NewCache(encryptionKey, true)
 
@@ -60,7 +73,7 @@ func TestCacheExpiration(t *testing.T) {
 
 func TestCacheNonExistentKey(t *testing.T) {
 	key := "nonExistentKey"
-	encryptionKey := []byte("key-for-nonexistent-test") // 32 bytes
+	encryptionKey := []byte("32~Byte-long_passphrase-key-1234")
 	c, _ := cache.NewCache(encryptionKey, true)
 
 	_, exists := c.Get(key)
@@ -72,7 +85,7 @@ func TestCacheNonExistentKey(t *testing.T) {
 func TestCachePersistence(t *testing.T) {
 	key := "persistKey"
 	value := []byte("persistValue")
-	encryptionKey := []byte("32-byte-long-encryption-key-1234") // 32 bytes
+	encryptionKey := []byte("32~Byte-long_passphrase-key-1234")
 	tempFile := "temp_cache.gob"
 
 	defer os.Remove(tempFile)
@@ -96,7 +109,7 @@ func TestCachePersistence(t *testing.T) {
 }
 
 func TestCacheConcurrentReads(t *testing.T) {
-	encryptionKey := []byte("32-byte-long-encryption-key-1234")
+	encryptionKey := []byte("32~Byte-long_passphrase-key-1234")
 	c, err := cache.NewCache(encryptionKey, true)
 	if err != nil {
 		t.Fatalf("Failed to create cache: %v", err)
@@ -134,7 +147,7 @@ func TestCacheConcurrentReads(t *testing.T) {
 }
 
 func TestCacheConcurrentWrites(t *testing.T) {
-	encryptionKey := []byte("32-byte-long-encryption-key-1234")
+	encryptionKey := []byte("32~Byte-long_passphrase-key-1234")
 	c, err := cache.NewCache(encryptionKey, true)
 	if err != nil {
 		t.Fatalf("Failed to create cache: %v", err)
@@ -179,7 +192,7 @@ func TestCacheInvalidKey(t *testing.T) {
 }
 
 func TestCachePersistenceFailure(t *testing.T) {
-	encryptionKey := []byte("32-byte-long-encryption-key-1234")
+	encryptionKey := []byte("32~Byte-long_passphrase-key-1234")
 	nonExistentPath := "/non/existent/path/cache.gob"
 
 	// Expecting no error even though the path doesn't exist
@@ -190,7 +203,7 @@ func TestCachePersistenceFailure(t *testing.T) {
 }
 
 func TestCacheImmediateExpiration(t *testing.T) {
-	encryptionKey := []byte("32-byte-long-encryption-key-1234")
+	encryptionKey := []byte("32~Byte-long_passphrase-key-1234")
 	c, _ := cache.NewCache(encryptionKey, true)
 
 	key := "immediateExpireKey"
@@ -204,7 +217,7 @@ func TestCacheImmediateExpiration(t *testing.T) {
 }
 
 func TestCacheNoExpiration(t *testing.T) {
-	encryptionKey := []byte("32-byte-long-encryption-key-1234")
+	encryptionKey := []byte("32~Byte-long_passphrase-key-1234")
 	c, _ := cache.NewCache(encryptionKey, true)
 
 	key := "noExpireKey"
@@ -218,7 +231,7 @@ func TestCacheNoExpiration(t *testing.T) {
 }
 
 func TestCacheLRUEviction(t *testing.T) {
-	encryptionKey := []byte("32-byte-long-encryption-key-1234")
+	encryptionKey := []byte("32~Byte-long_passphrase-key-1234")
 	maxItems := 5
 	c, _ := cache.NewCache(maxItems, encryptionKey, true)
 
@@ -237,7 +250,7 @@ func TestCacheLRUEviction(t *testing.T) {
 }
 
 func TestCacheDataCompression(t *testing.T) {
-	encryptionKey := []byte("32-byte-long-encryption-key-1234")
+	encryptionKey := []byte("32~Byte-long_passphrase-key-1234")
 	c, _ := cache.NewCache(encryptionKey, true)
 
 	largeValue := make([]byte, 1024*1024) // 1MB
@@ -259,7 +272,7 @@ func TestCacheDataCompression(t *testing.T) {
 }
 
 func TestCachePersistenceWithLargeData(t *testing.T) {
-	encryptionKey := []byte("32-byte-long-encryption-key-1234")
+	encryptionKey := []byte("32~Byte-long_passphrase-key-1234")
 	tempFile := "temp_large_data_cache.gob"
 	defer os.Remove(tempFile)
 
@@ -286,7 +299,7 @@ func TestCachePersistenceWithLargeData(t *testing.T) {
 }
 
 func TestCacheExpirationUpdateOnAccess(t *testing.T) {
-	encryptionKey := []byte("32-byte-long-encryption-key-1234")
+	encryptionKey := []byte("32~Byte-long_passphrase-key-1234")
 	maxItems := 3
 	c, _ := cache.NewCache(maxItems, encryptionKey, true)
 

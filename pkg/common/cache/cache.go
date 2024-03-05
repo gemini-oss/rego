@@ -4,17 +4,15 @@ package cache
 import (
 	"bytes"
 	"compress/gzip"
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/gob"
 	"errors"
-	"io"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/gemini-oss/rego/pkg/common/crypt"
 )
 
 var (
@@ -74,8 +72,10 @@ func NewCache(args ...interface{}) (*Cache, error) {
 		}
 	}
 
-	if len(opts.EncryptionKey) != 16 && len(opts.EncryptionKey) != 24 && len(opts.EncryptionKey) != 32 {
-		return nil, ErrInvalidKeySize
+	// Validate the encryption key
+	err := crypt.ValidPassphrase(opts.EncryptionKey)
+	if err != nil {
+		return nil, err
 	}
 
 	// Initialize Cache with options
@@ -99,51 +99,14 @@ func NewCache(args ...interface{}) (*Cache, error) {
 	return c, nil
 }
 
-// Encrypts data using the AES algorithm
+// Encrypts data using the AES-GCM (256) algorithm
 func (c *Cache) encrypt(data []byte) (string, error) {
-	block, err := aes.NewCipher(c.encryptionKey)
-	if err != nil {
-		return "", err
-	}
-
-	gcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return "", err
-	}
-
-	nonce := make([]byte, gcm.NonceSize())
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		return "", err
-	}
-
-	encrypted := gcm.Seal(nonce, nonce, data, nil)
-	return base64.StdEncoding.EncodeToString(encrypted), nil
+	return crypt.EncryptAES(data, c.encryptionKey)
 }
 
-// Decrypts data using the AES algorithm
+// Decrypts data using the AES-GCM (256) algorithm
 func (c *Cache) decrypt(data string) ([]byte, error) {
-	encryptedData, err := base64.StdEncoding.DecodeString(data)
-	if err != nil {
-		return nil, err
-	}
-
-	block, err := aes.NewCipher(c.encryptionKey)
-	if err != nil {
-		return nil, err
-	}
-
-	gcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return nil, err
-	}
-
-	nonceSize := gcm.NonceSize()
-	if len(encryptedData) < nonceSize {
-		return nil, err
-	}
-
-	nonce, ciphertext := encryptedData[:nonceSize], encryptedData[nonceSize:]
-	return gcm.Open(nil, nonce, ciphertext, nil)
+	return crypt.DecryptAES(data, c.encryptionKey)
 }
 
 func (c *Cache) Set(key string, value interface{}, duration time.Duration) error {

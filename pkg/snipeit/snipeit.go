@@ -51,22 +51,28 @@ const (
 )
 
 func NewClient(verbosity int) *Client {
+	log := log.NewLogger("{snipeit}", verbosity)
 
-	url := config.GetEnv("SNIPEIT_URL", "snipeit_url")
+	url := config.GetEnv("SNIPEIT_URL")
+	if len(url) == 0 {
+		log.Fatal("SNIPEIT_URL is not set.")
+	}
+
 	url = strings.TrimPrefix(url, "https://")
 	url = strings.TrimPrefix(url, "http://")
 	url = strings.Trim(url, "./")
 
 	BaseURL = fmt.Sprintf(BaseURL, url)
-	token := config.GetEnv("SNIPEIT_TOKEN", "snipeit_token")
+	token := config.GetEnv("SNIPEIT_TOKEN")
+	if len(token) == 0 {
+		log.Fatal("SNIPEIT_TOKEN is not set.")
+	}
 
 	headers := requests.Headers{
 		"Authorization": "Bearer " + token,
 		"Accept":        requests.JSON,
 		"Content-Type":  requests.JSON,
 	}
-
-	log := log.NewLogger("{snipeit}", verbosity)
 
 	// https://snipe-it.readme.io/reference/api-throttling
 	rl := ratelimit.NewRateLimiter(120)

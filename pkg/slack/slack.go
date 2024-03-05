@@ -57,9 +57,17 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
 ```
 */
 func NewClient(verbosity int) *Client {
+	log := log.NewLogger("{slack}", verbosity)
 
-	token := config.GetEnv("SLACK_API_TOKEN", "slackBotToken")
-	signingSecret := config.GetEnv("SLACK_SIGNING_SECRET", "slackSigningSecret")
+	token := config.GetEnv("SLACK_API_TOKEN")
+	if len(token) == 0 {
+		log.Fatal("SLACK_API_TOKEN is not set.")
+	}
+
+	signingSecret := config.GetEnv("SLACK_SIGNING_SECRET")
+	if len(signingSecret) == 0 {
+		log.Fatal("SLACK_SIGNING_SECRET is not set.")
+	}
 
 	headers := requests.Headers{
 		"Authorization": "Bearer " + token,
@@ -70,7 +78,7 @@ func NewClient(verbosity int) *Client {
 	return &Client{
 		BaseURL:       BaseURL,
 		HTTP:          requests.NewClient(nil, headers, nil),
-		Log:           log.NewLogger("{slack}", verbosity),
+		Log:           log,
 		Token:         token,
 		SigningSecret: signingSecret,
 	}

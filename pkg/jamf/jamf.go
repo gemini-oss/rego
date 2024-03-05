@@ -85,9 +85,13 @@ func GetToken(baseURL string) (*JamfToken, error) {
 
 	// Prepare the credentials for Basic Auth
 	creds := Credentials{
-		Username: config.GetEnv("JSS_USERNAME", ""),
-		Password: config.GetEnv("JSS_PASSWORD", ""),
+		Username: config.GetEnv("JSS_USERNAME"),
+		Password: config.GetEnv("JSS_PASSWORD"),
 	}
+	if len(creds.Username) == 0 || len(creds.Password) == 0 {
+		return nil, fmt.Errorf("JSS_USERNAME or JSS_PASSWORD is not set")
+	}
+
 	basicCreds := fmt.Sprintf("%s:%s", creds.Username, creds.Password)
 
 	headers := requests.Headers{
@@ -115,7 +119,11 @@ func GetToken(baseURL string) (*JamfToken, error) {
  */
 func NewClient(verbosity int) *Client {
 
-	url := config.GetEnv("JSS_URL", "https://yourserver.jamfcloud.com")
+	url := config.GetEnv("JSS_URL") // https://yourserver.jamfcloud.com
+	if len(url) == 0 {
+		panic("JSS_URL is not set.")
+	}
+
 	url = strings.TrimPrefix(url, "https://")
 	url = strings.TrimPrefix(url, "http://")
 	url = strings.TrimSuffix(url, "/")
@@ -137,7 +145,11 @@ func NewClient(verbosity int) *Client {
 	}
 
 	// Look into `Functional Options` patterns for a better way to handle this (and othe clients while we're at it)
-	encryptionKey := []byte(config.GetEnv("REGO_ENCRYPTION_KEY", "32-byte-long-encryption-key-1234"))
+	encryptionKey := []byte(config.GetEnv("REGO_ENCRYPTION_KEY"))
+	if len(encryptionKey) == 0 {
+		panic("REGO_ENCRYPTION_KEY is not set.")
+	}
+
 	cache, err := cache.NewCache(encryptionKey, "/tmp/rego_cache_jamf.gob")
 	if err != nil {
 		panic(err)

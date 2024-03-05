@@ -65,20 +65,32 @@ func (c *Client) UseCache() *Client {
 ```
 */
 func NewClient(verbosity int) *Client {
+	log := log.NewLogger("{okta}", verbosity)
 
-	org_name := config.GetEnv("OKTA_ORG_NAME", "yourOktaDomain")
-	//org_name := config.GetEnv("OKTA_SANDBOX_ORG_NAME", "yourOktaDomain")
+	org_name := config.GetEnv("OKTA_ORG_NAME") // {ORG_NAME}.okta.com
+	//org_name := config.GetEnv("OKTA_SANDBOX_ORG_NAME")
+	if len(org_name) == 0 {
+		log.Fatal("OKTA_ORG_NAME is not set")
+	}
+
 	org_name = strings.TrimPrefix(org_name, "https://")
 	org_name = strings.TrimPrefix(org_name, "http://")
 	org_name = strings.TrimSuffix(org_name, ".okta.com")
 
-	base := config.GetEnv("OKTA_BASE_URL", "okta.com")
-	//base := config.GetEnv("OKTA_SANDBOX_BASE_URL", "oktapreview.com")
+	base := config.GetEnv("OKTA_BASE_URL") // {ORG_NAME}.{BASE_URL}
+	//base := config.GetEnv("OKTA_SANDBOX_BASE_URL") // oktapreview.com
+	if len(base) == 0 {
+		log.Fatal("OKTA_BASE_URL is not set")
+	}
+
 	base = strings.Trim(base, "./")
 	base = strings.TrimSuffix(base, ".com")
 
-	token := config.GetEnv("OKTA_API_TOKEN", "oktaApiKey")
-	//token := config.GetEnv("OKTA_SANDBOX_API_TOKEN", "oktaApiKey")
+	token := config.GetEnv("OKTA_API_TOKEN")
+	//token := config.GetEnv("OKTA_SANDBOX_API_TOKEN")
+	if len(token) == 0 {
+		log.Fatal("OKTA_API_TOKEN is not set")
+	}
 	BaseURL := fmt.Sprintf(BaseURL, org_name, base)
 
 	headers := requests.Headers{
@@ -87,8 +99,12 @@ func NewClient(verbosity int) *Client {
 		"Content-Type":  "application/json",
 	}
 
-	// Look into `Functional Options` patterns for a better way to handle this (and othe clients while we're at it)
-	encryptionKey := []byte(config.GetEnv("REGO_ENCRYPTION_KEY", "32-byte-long-encryption-key-1234"))
+	// Look into `Functional Options` patterns for a better way to handle this (and other clients while we're at it)
+	encryptionKey := []byte(config.GetEnv("REGO_ENCRYPTION_KEY"))
+	if len(encryptionKey) == 0 {
+		log.Fatal("REGO_ENCRYPTION_KEY is not set")
+	}
+
 	cache, err := cache.NewCache(encryptionKey, "/tmp/rego_cache_okta.gob", 1000000)
 	if err != nil {
 		panic(err)
@@ -102,7 +118,7 @@ func NewClient(verbosity int) *Client {
 	return &Client{
 		BaseURL: BaseURL,
 		HTTP:    requests.NewClient(nil, headers, rl),
-		Log:     log.NewLogger("{okta}", verbosity),
+		Log:     log,
 		Cache:   cache,
 	}
 }

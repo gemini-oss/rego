@@ -1,5 +1,5 @@
 // pkg/internal/tests/common/config/config_test.go
-package config
+package config_test
 
 import (
 	"os"
@@ -13,7 +13,7 @@ func TestGetEnv(t *testing.T) {
 	os.Setenv("TEST_VAR", "test value")
 	defer os.Unsetenv("TEST_VAR") // Ensure cleanup after test
 
-	value := config.GetEnv("TEST_VAR", "default value")
+	value := config.GetEnv("TEST_VAR")
 
 	if value != "test value" {
 		t.Errorf("GetEnv(\"TEST_VAR\", \"default value\") = %s; want \"test value\"", value)

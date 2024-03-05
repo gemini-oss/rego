@@ -218,9 +218,16 @@ func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
 		c.Log.Println("Detected CICD Environment: Reading Credentials from Environment Variables")
 		switch c.Auth.Type {
 		case API_KEY:
-			headers["Authorization"] = "Bearer " + config.GetEnv("GOOGLE_API_KEY", "GOOGLE_API_KEY")
+			headers["Authorization"] = "Bearer " + config.GetEnv("GOOGLE_API_KEY")
+			if len(headers["Authorization"]) <= 7 {
+				return nil, fmt.Errorf("GOOGLE_API_KEY is not set")
+			}
 		case OAUTH_CLIENT:
-			b64 := config.GetEnv("GOOGLE_OAUTH_CLIENT", "GOOGLE_OAUTH_CLIENT")
+			b64 := config.GetEnv("GOOGLE_OAUTH_CLIENT")
+			if len(b64) == 0 {
+				return nil, fmt.Errorf("GOOGLE_OAUTH_CLIENT is not set")
+			}
+
 			decoded, err := base64.StdEncoding.DecodeString(b64)
 			if err != nil {
 				fmt.Println("decode error:", err)
@@ -233,7 +240,11 @@ func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
 				return nil, err
 			}
 		case SERVICE_ACCOUNT:
-			b64 := config.GetEnv("GOOGLE_SERVICE_ACCOUNT", "GOOGLE_SERVICE_ACCOUNT")
+			b64 := config.GetEnv("GOOGLE_SERVICE_ACCOUNT")
+			if len(b64) == 0 {
+				return nil, fmt.Errorf("GOOGLE_SERVICE_ACCOUNT is not set")
+			}
+
 			decoded, err := base64.StdEncoding.DecodeString(b64)
 			if err != nil {
 				fmt.Println("decode error:", err)
@@ -252,6 +263,9 @@ func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
 		switch c.Auth.Type {
 		case API_KEY:
 			headers["Authorization"] = "Bearer " + c.Auth.Credentials
+			if len(headers["Authorization"]) <= 7 {
+				return nil, fmt.Errorf("GOOGLE_API_KEY is not set")
+			}
 		case OAUTH_CLIENT:
 			file, err := os.ReadFile(c.Auth.Credentials)
 			if err != nil {
