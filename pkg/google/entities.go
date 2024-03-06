@@ -35,14 +35,49 @@ type GoogleConfig struct {
 }
 
 type Client struct {
-	Auth    AuthCredentials   // Credentials to use for authentication
-	BaseURL string            // Base URL to use for API calls
-	OAuth   *auth.OAuthConfig // OAuth Config
-	JWT     *jwt.Config       // JWT Config
-	HTTP    *requests.Client  // HTTP Client
-	Error   *ErrorResponse    // Error
-	Log     *log.Logger       // Logger
-	Cache   *cache.Cache      // Cache
+	Auth     AuthCredentials   // Credentials to use for authentication
+	BaseURL  string            // Base URL to use for API calls
+	OAuth    *auth.OAuthConfig // OAuth Config
+	JWT      *jwt.Config       // JWT Config
+	HTTP     *requests.Client  // HTTP Client
+	Error    *ErrorResponse    // Error
+	Log      *log.Logger       // Logger
+	Cache    *cache.Cache      // Cache
+	Customer *Customer         // Google Workspace Account
+}
+
+// Customer represents a Google Workspace account.
+type Customer struct {
+	ID                   string                 `json:"id,omitempty"`                   // The unique ID for the customer's Google Workspace account.
+	CustomerDomain       string                 `json:"customerDomain,omitempty"`       // The customer's primary domain name string.
+	Kind                 string                 `json:"kind,omitempty"`                 // Identifies the resource as a customer.
+	Etag                 string                 `json:"etag,omitempty"`                 // ETag of the resource.
+	AlternateEmail       string                 `json:"alternateEmail,omitempty"`       // The customer's secondary contact email address.
+	CustomerCreationTime string                 `json:"customerCreationTime,omitempty"` // The customer's creation time.
+	PostalAddress        *CustomerPostalAddress `json:"postalAddress,omitempty"`        // The customer's postal address information.
+	PhoneNumber          string                 `json:"phoneNumber,omitempty"`          // The customer's contact phone number in E.164 format.
+	Language             string                 `json:"language,omitempty"`             // The customer's ISO 639-2 language code.
+}
+
+// CustomerPostalAddress represents a customer's physical address.
+type CustomerPostalAddress struct {
+	CountryCode      string `json:"countryCode,omitempty"`      // ISO 3166 country code.
+	AddressLine2     string `json:"addressLine2,omitempty"`     // Address line 2 of the address.
+	Region           string `json:"region,omitempty"`           // Name of the region.
+	AddressLine3     string `json:"addressLine3,omitempty"`     // Address line 3 of the address.
+	Locality         string `json:"locality,omitempty"`         // Name of the locality.
+	PostalCode       string `json:"postalCode,omitempty"`       // The postal code.
+	AddressLine1     string `json:"addressLine1,omitempty"`     // A customer's physical address line 1.
+	OrganizationName string `json:"organizationName,omitempty"` // The company or company division name.
+	ContactName      string `json:"contactName,omitempty"`      // The customer contact's name.
+}
+
+func (c Customer) String() string {
+	// If no customerId is provided, use 'my_customer' to represent the authenticated account
+	if c.ID == "" {
+		return "my_customer"
+	}
+	return c.ID
 }
 
 /*
@@ -202,10 +237,10 @@ type RoleReport struct {
 // ---------------------------------------------------------------------
 // https://developers.google.com/drive/api/reference/rest/v3/files/list#response-body
 type FileList struct {
-	Kind             string `json:"kind,omitempty"`             // drive#fileList
-	IncompleteSearch bool   `json:"incompleteSearch,omitempty"` // Whether the search process was incomplete. If true, then some search results may be missing, since all documents were not searched. This may occur when searching multiple Team Drives with the "default,allTeamDrives" corpora, but all corpora could not be searched. When this happens, it is suggested that clients narrow their query by choosing a different corpus such as "default" or "teamDrive".
-	Files            []File `json:"files,omitempty"`            // The list of files. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
-	NextPageToken    string `json:"nextPageToken,omitempty"`    // The page token for the next page of files. This will be absent if the end of the files list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results.
+	Kind             string   `json:"kind,omitempty"`             // drive#fileList
+	IncompleteSearch bool     `json:"incompleteSearch,omitempty"` // Whether the search process was incomplete. If true, then some search results may be missing, since all documents were not searched. This may occur when searching multiple Team Drives with the "default,allTeamDrives" corpora, but all corpora could not be searched. When this happens, it is suggested that clients narrow their query by choosing a different corpus such as "default" or "teamDrive".
+	Files            *[]*File `json:"files,omitempty"`            // The list of files. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
+	NextPageToken    string   `json:"nextPageToken,omitempty"`    // The page token for the next page of files. This will be absent if the end of the files list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results.
 }
 
 // https://developers.google.com/drive/api/reference/rest/v3/files#resource:-file
@@ -1283,9 +1318,21 @@ type Website struct {
 // ----------------------------------------------------------------------------
 // https://developers.google.com/admin-sdk/directory/v1/guides/manage-chrome-devices
 type ChromeOSDevices struct {
-	Kind            string            `json:"kind,omitempty"`            // The kind of the response
-	ChromeOSDevices []*ChromeOSDevice `json:"chromeosdevices,omitempty"` // List of ChromeOS devices
-	NextPageToken   string            `json:"nextPageToken,omitempty"`   // Token for the next page of results
+	Kind            string             `json:"kind,omitempty"`            // The kind of the response
+	ChromeOSDevices *[]*ChromeOSDevice `json:"chromeosdevices,omitempty"` // List of ChromeOS devices
+	NextPageToken   string             `json:"nextPageToken,omitempty"`   // Token for the next page of results
+}
+
+func (c ChromeOSDevices) Append(result interface{}) {
+	more, ok := result.(*ChromeOSDevices)
+	if !ok {
+		return
+	}
+	*c.ChromeOSDevices = append(*c.ChromeOSDevices, *more.ChromeOSDevices...)
+}
+
+func (c ChromeOSDevices) PageToken() string {
+	return c.NextPageToken
 }
 
 // ChromeOSDevice represents a ChromeOS device resource.
@@ -1450,8 +1497,20 @@ type ScreenshotFile struct {
 // ----------------------------------------------------------------------------
 // ResolvedPolicies represents a list of resolved policies found by the resolve request.
 type ResolvedPolicies struct {
-	ResolvedPolicies []ResolvedPolicy `json:"resolvedPolicies,omitempty"` // The list of resolved policies found by the resolve request.
-	NextPageToken    string           `json:"nextPageToken,omitempty"`    // The page token used to get the next set of resolved policies found by the request.
+	ResolvedPolicies *[]*ResolvedPolicy `json:"resolvedPolicies,omitempty"` // The list of resolved policies found by the resolve request.
+	NextPageToken    string             `json:"nextPageToken,omitempty"`    // The page token used to get the next set of resolved policies found by the request.
+}
+
+func (r ResolvedPolicies) Append(result interface{}) {
+	more, ok := result.(*ResolvedPolicies)
+	if !ok {
+		return
+	}
+	*r.ResolvedPolicies = append(*r.ResolvedPolicies, *more.ResolvedPolicies...)
+}
+
+func (r ResolvedPolicies) PageToken() string {
+	return r.NextPageToken
 }
 
 // https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies/resolve#ResolvedPolicy
@@ -1470,8 +1529,20 @@ type PolicyValue struct {
 
 // https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas
 type PolicySchemas struct {
-	PolicySchemas []*PolicySchema `json:"policySchemas,omitempty"` // List of policy schemas.
-	NextPageToken string          `json:"nextPageToken,omitempty"` // Token for the next page of results.
+	PolicySchemas *[]*PolicySchema `json:"policySchemas,omitempty"` // List of policy schemas.
+	NextPageToken string           `json:"nextPageToken,omitempty"` // Token for the next page of results.
+}
+
+func (p PolicySchemas) Append(result interface{}) {
+	more, ok := result.(*PolicySchemas)
+	if !ok {
+		return
+	}
+	*p.PolicySchemas = append(*p.PolicySchemas, *more.PolicySchemas...)
+}
+
+func (p PolicySchemas) PageToken() string {
+	return p.NextPageToken
 }
 
 // PolicySchema represents the schema of a policy.

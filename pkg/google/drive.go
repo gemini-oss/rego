@@ -13,9 +13,9 @@ https://developers.google.com/drive/api/v3/reference/
 package google
 
 import (
-	"encoding/json"
 	"fmt"
 	"sync"
+	"time"
 )
 
 var (
@@ -61,6 +61,9 @@ type DriveFileQuery struct {
  * Check if the DriveQuery is empty
  */
 func (d *DriveFileQuery) IsEmpty() bool {
+	if d == nil {
+		return true
+	}
 	return !d.AcknowledgeAbuse &&
 		d.Corpora == "" &&
 		d.DriveID == "" &&
@@ -114,25 +117,16 @@ func (d *DriveFileQuery) ValidateQuery() error {
 - https://developers.google.com/drive/api/v3/reference/files/get
 */
 func (c *Client) GetFile(driveID string) (*File, error) {
-	file := &File{}
+	url := c.BuildURL(DriveFiles, nil, driveID)
 
 	q := DriveFileQuery{
 		Fields:            "*",
 		SupportsAllDrives: true,
 	}
 
-	url := fmt.Sprintf("%s/%s", DriveFiles, driveID)
-	c.Log.Debug("url:", url)
-	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
+	file, err := do[*File](c, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
-	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
-
-	err = json.Unmarshal(body, &file)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling user: %w", err)
 	}
 
 	return file, nil
@@ -153,17 +147,10 @@ func (c *Client) CreateFile(file *File) (*File, error) {
 	}
 
 	url := DriveFiles
-	c.Log.Debug("url:", url)
-	res, body, err := c.HTTP.DoRequest("POST", url, nil, &file)
+
+	file, err := do[*File](c, "POST", url, nil, &file)
 	if err != nil {
 		return nil, err
-	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
-
-	err = json.Unmarshal(body, &file)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling user: %w", err)
 	}
 
 	return file, nil
@@ -177,8 +164,7 @@ func (c *Client) CreateFile(file *File) (*File, error) {
  * https://developers.google.com/drive/api/v3/reference/files/update
  */
 func (c *Client) MoveFileToFolder(file *File, folder *File) error {
-	url := fmt.Sprintf("%s/%s", DriveFiles, file.ID)
-	c.Log.Debug("url:", url)
+	url := c.BuildURL(DriveFiles, nil, file.ID)
 
 	if file.Parents == nil {
 		c.Log.Println("File has no parents")
@@ -196,12 +182,10 @@ func (c *Client) MoveFileToFolder(file *File, folder *File) error {
 		SupportsAllDrives: true,
 	}
 
-	res, body, err := c.HTTP.DoRequest("PATCH", url, q, nil)
+	_, err := do[any](c, "PATCH", url, q, nil)
 	if err != nil {
 		return err
 	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
 
 	return nil
 }
@@ -214,24 +198,15 @@ func (c *Client) MoveFileToFolder(file *File, folder *File) error {
  * https://developers.google.com/drive/api/v3/reference/files/update
  */
 func (c *Client) CopyFileToFolder(file *File, folder *File) error {
-	url := fmt.Sprintf("%s/%s/copy", DriveFiles, file.ID)
-	c.Log.Debug("url:", url)
+	url := c.BuildURL(DriveFiles, nil, file.ID, "copy")
 
 	q := DriveFileQuery{
 		SupportsAllDrives: true,
 	}
 
-	res, body, err := c.HTTP.DoRequest("POST", url, q, nil)
+	copy, err := do[*File](c, "POST", url, q, nil)
 	if err != nil {
 		return err
-	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
-
-	copy := &File{}
-	err = json.Unmarshal(body, &copy)
-	if err != nil {
-		return nil
 	}
 
 	c.MoveFileToFolder(copy, folder)
@@ -249,8 +224,7 @@ func (c *Client) GetRootFileList() (*FileList, error) {
 		ID:   "root",
 		Path: "/",
 	}
-	q := DriveFileQuery{}
-	return c.GetFileList(&file, q)
+	return c.GetFileList(&file, nil)
 }
 
 /*
@@ -261,94 +235,125 @@ func (c *Client) GetRootFileList() (*FileList, error) {
  * @param {DriveFileQuery} q - The query parameters to use
  * https://developers.google.com/drive/api/v3/reference/files/list
  */
-func (c *Client) GetFileList(file *File, q DriveFileQuery) (*FileList, error) {
-	allFiles := &FileList{}
-	allFiles.Files = append(allFiles.Files, *file)
+func (c *Client) GetFileList(file *File, q *DriveFileQuery) (*FileList, error) {
+	cacheKey := fmt.Sprintf("drive_filelist_%s", file.ID)
 
-	var parentPath string
-	if file.Path == "" && file.ID != "root" {
-		var err error // Prevent Variable shadowing
-		file.Path, err = c.GetFilePath(file.ID)
-		if err != nil {
+	var cache FileList
+	if c.GetCache(cacheKey, &cache) {
+		return &cache, nil
+	}
+
+	if file.Path == "" {
+		if err := c.initFilePath(file); err != nil {
 			return nil, err
 		}
-	} else if file.ID == "root" || file.Path == "/" {
-		file.Path = "My Drive"
-		parentPath = file.Path
 	}
-	parentPath = "Search Results"
 
 	if q.IsEmpty() {
-		q.Fields = `files(id, name, md5Checksum, mimeType, originalFilename, owners, parents, shortcutDetails/targetId, shortcutDetails/targetMimeType)`
-		q.PageSize = 1000
-		q.IncludeLabels = "*"
-		q.Q = fmt.Sprintf(`'%s' in parents and trashed = false`, file.ID)
-		q.SupportsAllDrives = true
-		parentPath = "Search Results"
-	} else {
-		err := q.ValidateQuery()
-		if err != nil {
-			return nil, err
-		}
-		if q.Q == "" {
-			q.Q = fmt.Sprintf(`'%s' in parents and trashed = false`, file.ID)
-		}
+		q = &DriveFileQuery{}
+		initFileListQuery(q, file.ID)
+	} else if err := q.ValidateQuery(); err != nil {
+		return nil, err
 	}
 
+	allFiles := &FileList{Files: &[]*File{file}}
+	parentPath := determineParentPath(file)
+
+	err := c.processFileList(q, parentPath, allFiles)
+	if err != nil {
+		return nil, err
+	}
+
+	c.SetCache(cacheKey, allFiles, 5*time.Minute)
+
+	return allFiles, nil
+}
+
+func (c *Client) initFilePath(file *File) error {
+	if file.ID != "root" {
+		var err error
+		file.Path, err = c.GetFilePath(file.ID)
+		return err
+	}
+	file.Path = "My Drive"
+	return nil
+}
+
+func initFileListQuery(q *DriveFileQuery, fileId string) {
+	*q = DriveFileQuery{
+		Fields:            `files(id, name, md5Checksum, mimeType, originalFilename, owners, parents, shortcutDetails/targetId, shortcutDetails/targetMimeType)`,
+		PageSize:          1000,
+		IncludeLabels:     "*",
+		Q:                 fmt.Sprintf(`'%s' in parents and trashed = false`, fileId),
+		SupportsAllDrives: true,
+	}
+}
+
+func determineParentPath(file *File) string {
+	if file.ID == "root" || file.Path == "/" {
+		return "My Drive"
+	}
+	return file.Path
+}
+
+func (c *Client) processFileList(q *DriveFileQuery, parentPath string, allFiles *FileList) error {
 	sem := make(chan struct{}, 10)
 	filesChannel := make(chan *FileList)
 	filesErrChannel := make(chan error)
+
 	var wg sync.WaitGroup
 
 	for {
-		filesPage, err := c.fetchFilesPage(q)
+		filesPage, err := c.fetchFilesPage(*q)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		for _, file := range filesPage.Files {
-			// Generate file's path and append it to the list
+		for _, file := range *filesPage.Files {
 			file.Path = parentPath + "/" + file.Name
 			c.Log.Println("File Path:", file.Path)
-			allFiles.Files = append(allFiles.Files, file)
+			*allFiles.Files = append(*allFiles.Files, file)
+
 			if file.MimeType == "application/vnd.google-apps.folder" {
 				wg.Add(1)
-				go func(fileId string, filePath string) {
-					defer wg.Done()
-					sem <- struct{}{}
-					subFiles, err := c.GetFileList(&File{ID: fileId, Path: filePath + "/"}, DriveFileQuery{})
-					<-sem
-					if err != nil {
-						filesErrChannel <- err
-					} else {
-						filesChannel <- subFiles
-					}
-				}(file.ID, file.Path)
+				go c.fetchSubFiles(file, file.Path, sem, filesChannel, filesErrChannel, &wg)
 			}
 		}
 
 		if filesPage.NextPageToken == "" {
 			break
 		}
-
 		q.PageToken = filesPage.NextPageToken
 	}
 
 	go func() {
 		wg.Wait()
+		close(sem)
 		close(filesChannel)
 		close(filesErrChannel)
 	}()
 
 	for file := range filesChannel {
-		allFiles.Files = append(allFiles.Files, file.Files...)
+		*allFiles.Files = append(*allFiles.Files, *file.Files...)
 	}
 
 	for err := range filesErrChannel {
-		return nil, err
+		return err
 	}
 
-	return allFiles, nil
+	return nil
+}
+
+func (c *Client) fetchSubFiles(file *File, parentPath string, sem chan struct{}, filesChannel chan<- *FileList, filesErrChannel chan<- error, wg *sync.WaitGroup) {
+	defer wg.Done()
+	sem <- struct{}{}
+	defer func() { <-sem }()
+	subFiles, err := c.GetFileList(&File{ID: file.ID, Path: parentPath}, &DriveFileQuery{})
+	if err != nil {
+		filesErrChannel <- err
+		return
+	}
+	filesChannel <- subFiles
 }
 
 /*
@@ -366,8 +371,8 @@ func (c *Client) SaveFileListToSheet(fileList *FileList, sheetID string, headers
 		sheetID = sheet.SpreadsheetID
 	}
 
-	sheetData := make([]interface{}, len(fileList.Files))
-	for i, v := range fileList.Files {
+	sheetData := make([]interface{}, len(*fileList.Files))
+	for i, v := range *fileList.Files {
 		sheetData[i] = v
 	}
 
@@ -396,21 +401,11 @@ func (c *Client) SaveFileListToSheet(fileList *FileList, sheetID string, headers
  * https://developers.google.com/drive/api/v3/reference/files/list
  */
 func (c *Client) fetchFilesPage(q DriveFileQuery) (*FileList, error) {
-	url := DriveFiles
-	c.Log.Debug("url:", url)
+	url := c.BuildURL(DriveFiles, nil)
 
-	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
+	filesPage, err := do[*FileList](c, "GET", url, q, nil)
 	if err != nil {
-		c.Log.Println(err)
 		return nil, err
-	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
-
-	filesPage := &FileList{}
-	err = json.Unmarshal(body, &filesPage)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling user: %w", err)
 	}
 
 	return filesPage, nil

@@ -24,14 +24,14 @@ type RateLimiter struct {
 	RetryAfter     int           // Retry after time
 	TimeUntilReset time.Duration // Time until the rate limiter resets
 	UsesRetryAfter bool          // Flag to check if the rate limiter uses a retry after value
-	Logger         *log.Logger   // Logger for the rate limiter
+	Log            *log.Logger   // Logger for the rate limiter
 }
 
 // NewRateLimiter creates a new RateLimiter instance with the given parameters
 func NewRateLimiter(args ...interface{}) *RateLimiter {
 	rl := &RateLimiter{
 		stopChan: make(chan struct{}),
-		Logger:   log.NewLogger("{ratelimit}", log.INFO),
+		Log:      log.NewLogger("{ratelimit}", log.INFO),
 	}
 
 	for _, arg := range args {
@@ -42,7 +42,7 @@ func NewRateLimiter(args ...interface{}) *RateLimiter {
 		case time.Duration:
 			rl.Interval = v
 		default:
-			rl.Logger.Warning("Unsupported argument type in NewRateLimiter")
+			rl.Log.Warning("Unsupported argument type in NewRateLimiter")
 		}
 	}
 
@@ -53,7 +53,7 @@ func NewRateLimiter(args ...interface{}) *RateLimiter {
 
 // Start begins the rate limiter's internal timer
 func (rl *RateLimiter) Start() {
-	rl.Logger.Debug("Starting Rate Limiter")
+	rl.Log.Debug("Starting Rate Limiter")
 	go func() {
 		tickerInterval := rl.Interval
 		if tickerInterval == 0 {
@@ -66,13 +66,13 @@ func (rl *RateLimiter) Start() {
 		for {
 			select {
 			case <-rl.stopChan:
-				rl.Logger.Debug("Stopping Rate Limiter")
+				rl.Log.Debug("Stopping Rate Limiter")
 				return
 			case <-ticker.C:
 				rl.mu.Lock()
 				if rl.Limit > 0 && time.Now().Unix() >= rl.ResetTimestamp {
 					rl.Available = rl.Limit
-					rl.Logger.Debug("Rate limiter reset: Available limit set to ", rl.Limit)
+					rl.Log.Debug("Rate limiter reset: Available limit set to ", rl.Limit)
 				}
 				rl.mu.Unlock()
 			}
@@ -146,7 +146,7 @@ func (rl *RateLimiter) calculateWaitDuration(timeUntilReset time.Duration) time.
 
 // performWait sleeps for the specified duration.
 func (rl *RateLimiter) performWait(duration time.Duration) {
-	rl.Logger.Tracef("Waiting for %v\n", duration)
+	rl.Log.Tracef("Waiting for %v\n", duration)
 	time.Sleep(duration)
 }
 
@@ -154,12 +154,12 @@ func (rl *RateLimiter) performWait(duration time.Duration) {
 func (rl *RateLimiter) decrementAvailable() {
 	rl.Available--
 	rl.Requests++
-	rl.Logger.Debug("Rate limiter updated: Limit=", rl.Limit, ", Available=", rl.Available)
+	rl.Log.Debug("Rate limiter updated: Limit=", rl.Limit, ", Available=", rl.Available)
 }
 
 // Stop terminates the rate limiter's internal timer
 func (rl *RateLimiter) Stop() {
-	rl.Logger.Debug("Stopping Rate Limiter")
+	rl.Log.Debug("Stopping Rate Limiter")
 	close(rl.stopChan)
 }
 
@@ -170,7 +170,7 @@ func (rl *RateLimiter) UpdateFromHeaders(headers http.Header) {
 	}
 
 	// Log the start of the update process.
-	rl.Logger.Trace("Updating Rate Limiter from headers")
+	rl.Log.Trace("Updating Rate Limiter from headers")
 
 	// Lock the RateLimiter to ensure thread-safe access to its fields.
 	rl.mu.Lock()
@@ -211,5 +211,5 @@ func (rl *RateLimiter) UpdateFromHeaders(headers http.Header) {
 	}
 
 	// Log the updated state of the Rate Limiter.
-	rl.Logger.Debug("Rate limiter updated: Limit=", rl.Limit, ", Available=", rl.Available)
+	rl.Log.Debug("Rate limiter updated: Limit=", rl.Limit, ", Available=", rl.Available)
 }

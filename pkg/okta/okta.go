@@ -113,7 +113,7 @@ func NewClient(verbosity int) *Client {
 	// https://developer.okta.com/docs/reference/rl-best-practices/
 	rl := ratelimit.NewRateLimiter()
 	rl.ResetHeaders = true
-	rl.Logger.Verbosity = verbosity
+	rl.Log.Verbosity = verbosity
 
 	return &Client{
 		BaseURL: BaseURL,

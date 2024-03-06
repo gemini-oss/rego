@@ -13,8 +13,7 @@ https://developers.google.com/drive/api/reference/rest/v3/permissions/
 package google
 
 import (
-	"encoding/json"
-	"fmt"
+	"time"
 )
 
 /*
@@ -55,24 +54,19 @@ func (d *PermissionsQuery) IsEmpty() bool {
  * https://developers.google.com/drive/api/reference/rest/v3/permissions/list
  */
 func (c *Client) GetPermissionList(driveID string) (*PermissionList, error) {
-	permissions := &PermissionList{}
+	url := c.BuildURL(DriveFiles, nil, driveID, "permissions")
 
-	q := PermissionsQuery{}
+	var cache PermissionList
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
 
-	url := fmt.Sprintf("%s/%s/permissions", DriveFiles, driveID)
-	c.Log.Debug("url:", url)
-	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
+	permissions, err := do[*PermissionList](c, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
 
-	err = json.Unmarshal(body, &permissions)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling user: %w", err)
-	}
-
+	c.SetCache(url, permissions, 5*time.Minute)
 	return permissions, nil
 }
 
@@ -84,22 +78,19 @@ func (c *Client) GetPermissionList(driveID string) (*PermissionList, error) {
  * https://developers.google.com/drive/api/reference/rest/v3/permissions/get
  */
 func (c *Client) GetPermissionDetails(driveID string, permissionID string) (*Permission, error) {
-	permission := &Permission{}
+	url := c.BuildURL(DriveFiles, nil, driveID, "permissions", permissionID)
 
-	url := fmt.Sprintf("%s/%s/permissions/%s", DriveFiles, driveID, permissionID)
-	c.Log.Debug("url:", url)
-	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
+	var cache Permission
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	permission, err := do[*Permission](c, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
 
-	err = json.Unmarshal(body, &permission)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling user: %w", err)
-	}
-
+	c.SetCache(url, permission, 5*time.Minute)
 	return permission, nil
 }
 
@@ -112,6 +103,8 @@ func (c *Client) GetPermissionDetails(driveID string, permissionID string) (*Per
  * https://developers.google.com/drive/api/reference/rest/v3/permissions/create
  */
 func (c *Client) TransferOwnership(driveID string, newOwner string) (*Permission, error) {
+	url := c.BuildURL(DriveFiles, nil, driveID, "permissions")
+
 	permission := &Permission{
 		EmailAddress: newOwner,
 		Role:         "owner",
@@ -122,18 +115,9 @@ func (c *Client) TransferOwnership(driveID string, newOwner string) (*Permission
 		TransferOwnership: true,
 	}
 
-	url := fmt.Sprintf("%s/%s/permissions", DriveFiles, driveID)
-	c.Log.Debug("url:", url)
-	res, body, err := c.HTTP.DoRequest("POST", url, q, permission)
+	permission, err := do[*Permission](c, "POST", url, q, permission)
 	if err != nil {
 		return nil, err
-	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
-
-	err = json.Unmarshal(body, &permission)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling user: %w", err)
 	}
 
 	return permission, nil

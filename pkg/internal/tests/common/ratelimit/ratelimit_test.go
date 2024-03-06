@@ -44,7 +44,7 @@ func setupDynamicMockAPIServer() *httptest.Server {
 
 func TestNewRateLimiter(t *testing.T) {
 	rl := ratelimit.NewRateLimiter(10, 5*time.Second)
-	rl.Logger.Verbosity = log.TRACE
+	rl.Log.Verbosity = log.TRACE
 	if rl.Limit != 10 || rl.Available != 10 {
 		t.Errorf("Expected Limit and Available to be 10, got %d and %d", rl.Limit, rl.Available)
 	}
@@ -52,7 +52,7 @@ func TestNewRateLimiter(t *testing.T) {
 		t.Errorf("Expected CustomResetInterval to be 5 seconds, got %v", rl.Interval)
 	}
 
-	rl.Logger.Delete()
+	rl.Log.Delete()
 }
 
 func TestRateLimiterWithHeaders(t *testing.T) {
@@ -62,7 +62,7 @@ func TestRateLimiterWithHeaders(t *testing.T) {
 	client := &http.Client{}
 	rl := ratelimit.NewRateLimiter()
 	rl.ResetHeaders = true
-	rl.Logger.Verbosity = log.TRACE
+	rl.Log.Verbosity = log.TRACE
 
 	var rateLimited bool
 
@@ -92,7 +92,7 @@ func TestRateLimiterWithHeaders(t *testing.T) {
 		t.Errorf("Available requests should not be negative, got %d", rl.Available)
 	}
 
-	rl.Logger.Delete()
+	rl.Log.Delete()
 }
 
 func TestRateLimiterNoHeaders(t *testing.T) {
@@ -101,14 +101,14 @@ func TestRateLimiterNoHeaders(t *testing.T) {
 
 	client := &http.Client{}
 	rl := ratelimit.NewRateLimiter(120, 5*time.Second)
-	rl.Logger.Verbosity = log.TRACE
+	rl.Log.Verbosity = log.TRACE
 
 	var rateLimited bool
 	requestsToMake := rl.Available * 3 // Set available requests above the limit
 
 	for i := 0; i < requestsToMake; i++ {
 		req, _ := http.NewRequest("GET", server.URL, nil)
-		rl.Logger.Print(i)
+		rl.Log.Print(i)
 
 		resp, err := client.Do(req)
 		if err != nil {
@@ -131,13 +131,13 @@ func TestRateLimiterNoHeaders(t *testing.T) {
 		t.Errorf("Available requests dropped too low, got %d", rl.Available)
 	}
 
-	rl.Logger.Delete()
+	rl.Log.Delete()
 }
 
 func TestRateLimiterReset(t *testing.T) {
 	resetTime := time.Now().Add(10 * time.Second).Unix() // Reset after 10 seconds
 	rl := ratelimit.NewRateLimiter(5)
-	rl.Logger.Verbosity = log.TRACE
+	rl.Log.Verbosity = log.TRACE
 	rl.ResetTimestamp = resetTime
 	rl.Start()
 	defer rl.Stop()
@@ -148,12 +148,12 @@ func TestRateLimiterReset(t *testing.T) {
 		t.Errorf("Expected rate limit to reset, but available is %d", rl.Available)
 	}
 
-	rl.Logger.Delete()
+	rl.Log.Delete()
 }
 
 func TestUpdateFromHeaders(t *testing.T) {
 	rl := ratelimit.NewRateLimiter(5)
-	rl.Logger.Verbosity = log.TRACE
+	rl.Log.Verbosity = log.TRACE
 	rl.ResetHeaders = true
 	rl.Start()
 	defer rl.Stop()
@@ -172,12 +172,12 @@ func TestUpdateFromHeaders(t *testing.T) {
 		t.Errorf("Expected Available to be 3, got %d", rl.Available)
 	}
 
-	rl.Logger.Delete()
+	rl.Log.Delete()
 }
 
 func TestRateLimiterDecrementBehavior(t *testing.T) {
 	rl := ratelimit.NewRateLimiter(5)
-	rl.Logger.Verbosity = log.TRACE
+	rl.Log.Verbosity = log.TRACE
 	rl.Start()
 	defer rl.Stop()
 

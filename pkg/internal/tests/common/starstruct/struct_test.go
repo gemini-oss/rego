@@ -61,26 +61,47 @@ func TestPrettyJSON(t *testing.T) {
 }
 
 // TestStructToMap tests the StructToMap function for various struct inputs.
-func TestStructToMap(t *testing.T) {
+func TestToMap(t *testing.T) {
 	testStruct := TestStruct{
 		Name: "Anthony Dardano",
 		Age:  0,
 		Tags: []string{"Staff Enterprise Infrastructure Engineer", "DJ"},
 		Address: struct {
-			City  string "json:\"city\""
-			State string "json:\"state\""
+			City  string `json:"city"`
+			State string `json:"state"`
 		}{City: "N/A", State: "FL"},
 	}
 
-	expectedMap := map[string]string{
+	expectedMap := map[string]interface{}{
 		"name":    "Anthony Dardano",
-		"tags":    "Staff Enterprise Infrastructure Engineerᕙ(▀̿̿Ĺ̯̿̿▀̿ ̿)ᕗDJ",
-		"address": "{N/A FL}",
+		"age":     0,
+		"tags":    []interface{}{"Staff Enterprise Infrastructure Engineer", "DJ"},
+		"address": map[string]interface{}{"city": "N/A", "state": "FL"},
 	}
 
-	got := starstruct.StructToMap(testStruct)
+	got, err := starstruct.ToMap(testStruct, true)
+	if err != nil {
+		t.Errorf("ToMap() error = %v", err)
+		return
+	}
+
 	if !reflect.DeepEqual(got, expectedMap) {
-		t.Errorf("StructToMap() = %v, want %v", got, expectedMap)
+		t.Errorf("ToMap() = %#v, want %#v", got, expectedMap)
+		// Additional detailed logging
+		for k, v := range got {
+			if ev, ok := expectedMap[k]; ok {
+				if !reflect.DeepEqual(v, ev) {
+					t.Errorf("Mismatch in key '%v': got %#v, want %#v", k, v, ev)
+				}
+			} else {
+				t.Errorf("Key '%v' found in got, but not in want", k)
+			}
+		}
+		for k := range expectedMap {
+			if _, ok := got[k]; !ok {
+				t.Errorf("Key '%v' found in want, but not in got", k)
+			}
+		}
 	}
 }
 

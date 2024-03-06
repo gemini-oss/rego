@@ -1,4 +1,4 @@
-// pkg/common/struct/struct.go
+// pkg/common/starstruct/struct.go
 package starstruct
 
 import (
@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 /*
@@ -25,44 +26,99 @@ func PrettyJSON(data interface{}) (string, error) {
 	return buffer.String(), err
 }
 
-/*
- * Convert a struct to a map[string][]string
- */
-func StructToMap(item interface{}) map[string][]string {
-	out := make(map[string][]string)
+func ToMap(item interface{}, includeZeroValues bool) (map[string]interface{}, error) {
+	out := make(map[string]interface{})
 
 	v := reflect.ValueOf(item)
-	// Dereference pointer if necessary
 	for v.Kind() == reflect.Ptr && !v.IsNil() {
 		v = v.Elem()
 	}
+
+	if v.Kind() == reflect.Map {
+		return mapFromMap(v), nil
+	}
+
+	if v.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("expected a struct, got %s", v.Kind())
+	}
+
 	typeOfItem := v.Type()
 
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Field(i)
 
-		if field.IsZero() {
+		if !includeZeroValues && field.IsZero() {
 			continue
 		}
 
 		key := getMapKey(typeOfItem.Field(i))
-
 		if key == "" {
-			continue
+			key = camelKey(typeOfItem.Field(i).Name)
 		}
 
-		if field.Kind() == reflect.Slice && field.Type().Elem().Kind() == reflect.String {
-			// Handle slice of strings
-			var sliceElements []string
-			for j := 0; j < field.Len(); j++ {
-				sliceElements = append(sliceElements, field.Index(j).Interface().(string))
+		var value interface{}
+		switch field.Kind() {
+		case reflect.Struct:
+			nestedMap, err := ToMap(field.Interface(), includeZeroValues)
+			if err != nil {
+				return nil, err
 			}
-			out[key] = append(out[key], sliceElements...)
-		} else {
-			out[key] = append(out[key], fmt.Sprintf("%v", field.Interface()))
+			value = nestedMap
+		case reflect.Slice, reflect.Array:
+			sliceValues, err := sliceToInterface(field, includeZeroValues)
+			if err != nil {
+				return nil, err
+			}
+			value = sliceValues
+		default:
+			value = field.Interface()
 		}
+
+		out[key] = value
 	}
 
+	return out, nil
+}
+
+func sliceToInterface(v reflect.Value, includeZeroValues bool) ([]interface{}, error) {
+	var result []interface{}
+	for i := 0; i < v.Len(); i++ {
+		elem := v.Index(i)
+		if elem.Kind() == reflect.Struct {
+			nestedMap, err := ToMap(elem.Interface(), includeZeroValues)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, nestedMap)
+		} else {
+			result = append(result, elem.Interface())
+		}
+	}
+	return result, nil
+}
+
+func camelKey(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+
+	firstChar := s[0]
+	if firstChar >= 'A' && firstChar <= 'Z' {
+		// ASCII, convert in place
+		return string(firstChar+32) + s[1:]
+	}
+
+	// Non-ASCII, use rune conversion
+	r := []rune(s)
+	r[0] = unicode.ToLower(r[0])
+	return string(r)
+}
+
+func mapFromMap(v reflect.Value) map[string]interface{} {
+	out := make(map[string]interface{})
+	for _, key := range v.MapKeys() {
+		out[fmt.Sprintf("%v", key.Interface())] = v.MapIndex(key).Interface()
+	}
 	return out
 }
 
@@ -171,6 +227,8 @@ func getMapKey(field reflect.StructField) string {
 		mapKey = urlTag
 	} else if xmlTag != "" && xmlTag != "-" {
 		mapKey = xmlTag
+	} else {
+		mapKey = camelKey(mapKey) // Convert to camel case if no tag is found
 	}
 
 	return mapKey

@@ -278,7 +278,7 @@ func TestDoRequest(t *testing.T) {
 			"POST",
 			"http://gemini.com",
 			nil,
-			map[string]string{"field1": "value1"},
+			map[string]interface{}{"field1": "value1"},
 			false,
 			"mock response",
 			http.StatusOK,

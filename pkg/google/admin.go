@@ -13,10 +13,10 @@ https://developers.google.com/admin-sdk/reference-overview
 package google
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"sync"
+	"time"
 
 	ss "github.com/gemini-oss/rego/pkg/common/starstruct"
 )
@@ -26,7 +26,7 @@ var (
 	DirectoryASPS            = fmt.Sprintf("%s/users/%s/asps", AdminDirectory, "%s")                         // https://developers.google.com/admin-sdk/directory/reference/rest/v1/asps
 	DirectoryChannels        = fmt.Sprintf("%s/channels", AdminDirectory)                                    // https://developers.google.com/admin-sdk/directory/reference/rest/v1/channels
 	DirectoryChromeOSDevices = fmt.Sprintf("%s/customer/%s/devices/chromeos", AdminDirectory, "%s")          // https://developers.google.com/admin-sdk/directory/reference/rest/v1/chromeosdevices
-	DirectoryCustomers       = fmt.Sprintf("%s/customers", AdminDirectory)                                   // https://developers.google.com/admin-sdk/directory/reference/rest/v1/customers
+	DirectoryCustomers       = fmt.Sprintf("%s/customers/%s", AdminDirectory, "%s")                          // https://developers.google.com/admin-sdk/directory/reference/rest/v1/customers
 	DirectoryDomains         = fmt.Sprintf("%s/domains", AdminDirectory)                                     // https://developers.google.com/admin-sdk/directory/reference/rest/v1/domains
 	DirectoryGroups          = fmt.Sprintf("%s/groups", AdminDirectory)                                      // https://developers.google.com/admin-sdk/directory/reference/rest/v1/groups
 	DirectoryMembers         = fmt.Sprintf("%s/groups/%s/members", AdminDirectory, "%s")                     // https://developers.google.com/admin-sdk/directory/reference/rest/v1/members
@@ -72,30 +72,44 @@ type ReportsQuery struct {
  * /admin/directory/v1/customer/{customer}/roles
  * https://developers.google.com/admin-sdk/directory/v1/reference/roles/list
  */
-func (c *Client) ListAllRoles(customerId string) (*Roles, error) {
+func (c *Client) MyCustomer() (*Customer, error) {
+	url := c.BuildURL(DirectoryCustomers, &Customer{ID: "my_customer"})
+
+	var cache Customer
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	c.Log.Println("Getting ID of current client...")
+	customer, err := do[*Customer](c, "GET", url, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	c.SetCache(url, customer, 1*time.Hour)
+	return customer, nil
+}
+
+/*
+ * List all Roles in the domain with pagination support
+ * /admin/directory/v1/customer/{customer}/roles
+ * https://developers.google.com/admin-sdk/directory/v1/reference/roles/list
+ */
+func (c *Client) ListAllRoles(customer *Customer) (*Roles, error) {
+	url := c.BuildURL(DirectoryRoles, customer)
+
+	var cache Roles
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
 	c.Log.Println("Getting all roles...")
-	roles := &Roles{}
-
-	var url string
-	switch customerId {
-	case "":
-		url = fmt.Sprintf(DirectoryRoles, "my_customer")
-	default:
-		url = fmt.Sprintf(DirectoryRoles, customerId)
-	}
-
-	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
-
-	err = json.Unmarshal(body, &roles)
+	roles, err := do[*Roles](c, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
+	c.SetCache(url, roles, 5*time.Minute)
 	return roles, nil
 }
 
@@ -104,28 +118,21 @@ func (c *Client) ListAllRoles(customerId string) (*Roles, error) {
  * /admin/directory/v1/customer/{customer}/roles/{roleId}
  * https://developers.google.com/admin-sdk/directory/v1/reference/roles/get
  */
-func (c *Client) GetRole(customerId string, roleId string) (*Role, error) {
+func (c *Client) GetRole(roleId string, customer *Customer) (*Role, error) {
+	url := c.BuildURL(DirectoryRoles, customer, roleId)
+
+	var cache Role
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
 	c.Log.Println("Getting role...")
-	role := &Role{}
-
-	if customerId == "" {
-		customerId = "my_customer"
-	}
-
-	url := fmt.Sprintf("%s/%s", DirectoryRoles, roleId)
-
-	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
-
-	err = json.Unmarshal(body, role)
+	role, err := do[*Role](c, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
+	c.SetCache(url, role, 5*time.Minute)
 	return role, nil
 }
 
@@ -134,30 +141,21 @@ func (c *Client) GetRole(customerId string, roleId string) (*Role, error) {
  * /admin/directory/v1/customer/{customer}/roleassignments
  * https://developers.google.com/admin-sdk/directory/v1/reference/roleAssignments/list
  */
-func (c *Client) ListAllRoleAssignments(customerId string) (*RoleAssignment, error) {
+func (c *Client) ListAllRoleAssignments(customer *Customer) (*RoleAssignment, error) {
+	url := c.BuildURL(DirectoryRoleAssignments, customer)
+
+	var cache RoleAssignment
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
 	c.Log.Println("Getting all role assignments...")
-	roleAssignments := &RoleAssignment{}
-
-	var url string
-	switch customerId {
-	case "":
-		url = fmt.Sprintf(DirectoryRoleAssignments, "my_customer")
-	default:
-		url = fmt.Sprintf(DirectoryRoleAssignments, customerId)
-	}
-
-	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
-
-	err = json.Unmarshal(body, roleAssignments)
+	roleAssignments, err := do[*RoleAssignment](c, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
+	c.SetCache(url, roleAssignments, 5*time.Minute)
 	return roleAssignments, nil
 }
 
@@ -166,34 +164,25 @@ func (c *Client) ListAllRoleAssignments(customerId string) (*RoleAssignment, err
  * /admin/directory/v1/customer/{customer}/roleassignments
  * https://developers.google.com/admin-sdk/directory/reference/rest/v1/roleAssignments/list#query-parameters
  */
-func (c *Client) GetAssignmentsForRole(customerId string, roleId string) (*RoleAssignment, error) {
-	c.Log.Println("Getting role's assignment...")
-	roleAssignment := &RoleAssignment{}
+func (c *Client) GetAssignmentsForRole(roleId string, customer *Customer) (*RoleAssignment, error) {
+	url := c.BuildURL(DirectoryRoleAssignments, customer)
+
+	var cache RoleAssignment
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
 
 	q := ReportsQuery{
 		RoleId: roleId,
 	}
 
-	var url string
-	switch customerId {
-	case "":
-		url = fmt.Sprintf(DirectoryRoleAssignments, "my_customer")
-	default:
-		url = fmt.Sprintf(DirectoryRoleAssignments, customerId)
-	}
-
-	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
-	if err != nil {
-		return nil, err
-	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
-
-	err = json.Unmarshal(body, &roleAssignment)
+	c.Log.Println("Getting role's assignment...")
+	roleAssignment, err := do[*RoleAssignment](c, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
 
+	c.SetCache(url, roleAssignment, 5*time.Minute)
 	return roleAssignment, nil
 }
 
@@ -245,11 +234,7 @@ func (c *Client) GetUsersFromRoleAssignments(sem chan struct{}, roleAssignments 
  * /admin/directory/v1/customer/{customer}/roleassignments/{roleId}/users
  * https://developers.google.com/admin-sdk/directory/v1/reference/roleAssignments/list
  */
-func (c *Client) GenerateRoleReport(customerId string, roleId string) ([]*RoleReport, error) {
-	// If no customerId is provided, use 'my_customer' to represent the authenticated account
-	if customerId == "" {
-		customerId = "my_customer"
-	}
+func (c *Client) GenerateRoleReport(roleId string, customer *Customer) ([]*RoleReport, error) {
 
 	// Use a buffered channel as a semaphore to limit concurrent requests.
 	// 10 is the maximum number of concurrent requests.
@@ -259,7 +244,7 @@ func (c *Client) GenerateRoleReport(customerId string, roleId string) ([]*RoleRe
 	var wg sync.WaitGroup
 
 	// Fetch all roles for the provided customer ID
-	roles, err := c.ListAllRoles(customerId)
+	roles, err := c.ListAllRoles(customer)
 	if err != nil {
 		return nil, err
 	}
@@ -275,14 +260,16 @@ func (c *Client) GenerateRoleReport(customerId string, roleId string) ([]*RoleRe
 		// Ensure the waitgroup counter is decremented when this function finishes
 		defer wg.Done()
 
-		roleAssignments, err := c.GetAssignmentsForRole(customerId, role.RoleID)
+		roleAssignments, err := c.GetAssignmentsForRole(role.RoleID, customer)
 		if err != nil {
+			c.Log.Println("Error getting role assignments:", err)
 			reportsErrChannel <- err
 			return
 		}
 
 		userList, err := c.GetUsersFromRoleAssignments(sem, roleAssignments.Items)
 		if err != nil {
+			c.Log.Println("Error getting role assignments:", err)
 			reportsErrChannel <- err
 			return
 		}
@@ -298,7 +285,7 @@ func (c *Client) GenerateRoleReport(customerId string, roleId string) ([]*RoleRe
 	// If a specific role ID is provided, generate a report only for that role
 	if roleId != "" {
 		wg.Add(1)
-		role, err := c.GetRole(customerId, roleId)
+		role, err := c.GetRole(roleId, customer)
 		if err != nil {
 			return nil, err
 		}
@@ -385,18 +372,9 @@ func (c *Client) GetFileOwnership(fileID string) (string, error) {
 	}
 	c.Log.Debug("query:", q)
 
-	url := fmt.Sprintf(ReportsActivities, "all", "drive")
-	c.Log.Debug("url:", url)
+	url := c.BuildURL(ReportsActivities, nil, "all", "drive")
 
-	c.Log.Println("Sending request...")
-	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
-	if err != nil {
-		return "", err
-	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
-
-	err = json.Unmarshal(body, fileReport)
+	fileReport, err := do[*Report](c, "GET", url, q, nil)
 	if err != nil {
 		return "", err
 	}

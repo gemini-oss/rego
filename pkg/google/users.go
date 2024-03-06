@@ -13,7 +13,6 @@ https://developers.google.com/admin-sdk/directory/reference/rest/v1/users
 package google
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
@@ -89,8 +88,6 @@ func (u *UserQuery) ValidateQuery() error {
  * https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list
  */
 func (c *Client) ListAllUsers() (*Users, error) {
-	users := &Users{}
-
 	q := UserQuery{}
 
 	err := q.ValidateQuery()
@@ -103,20 +100,12 @@ func (c *Client) ListAllUsers() (*Users, error) {
 	url := DirectoryUsers
 	c.Log.Debug("url:", url)
 
-	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
-	if err != nil {
-		return nil, err
-	}
-	c.Log.Println("Response Status: ", res.Status)
-	c.Log.Debug("Response Body: ", string(body))
-
-	err = json.Unmarshal(body, &users)
+	users, err := do[*Users](c, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	for users.NextPageToken != "" {
-		usersPage := &Users{}
 		q = UserQuery{
 			Customer:   q.Customer,
 			Domain:     q.Domain,
@@ -124,14 +113,7 @@ func (c *Client) ListAllUsers() (*Users, error) {
 			PageToken:  users.NextPageToken,
 		}
 
-		res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
-		if err != nil {
-			return nil, err
-		}
-		c.Log.Println("Response Status: ", res.Status)
-		c.Log.Debug("Response Body: ", string(body))
-
-		err = json.Unmarshal(body, &usersPage)
+		usersPage, err := do[*Users](c, "GET", url, q, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -147,9 +129,7 @@ func (c *Client) ListAllUsers() (*Users, error) {
  * /admin/directory/v1/users
  * https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list
  */
-func (c *Client) SearchUsers(q UserQuery) (*Users, error) {
-	users := &Users{}
-
+func (c *Client) SearchUsers(q *UserQuery) (*Users, error) {
 	err := q.ValidateQuery()
 	if err != nil {
 		return nil, err
@@ -158,14 +138,7 @@ func (c *Client) SearchUsers(q UserQuery) (*Users, error) {
 	url := DirectoryUsers
 	c.Log.Debug("url:", url)
 
-	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
-	if err != nil {
-		return nil, err
-	}
-	c.Log.Println("Response Status: ", res.Status)
-	c.Log.Debug("Response Body: ", string(body))
-
-	err = json.Unmarshal(body, &users)
+	users, err := do[*Users](c, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -182,15 +155,7 @@ func (c *Client) GetUser(userKey string) (*User, error) {
 	url := fmt.Sprintf(DirectoryUsers+"/%s", userKey)
 	c.Log.Debug("url:", url)
 
-	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	c.Log.Println("Response Status: ", res.Status)
-	c.Log.Debug("Response Body: ", string(body))
-
-	user := &User{}
-	err = json.Unmarshal(body, &user)
+	user, err := do[*User](c, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}

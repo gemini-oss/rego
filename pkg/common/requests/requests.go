@@ -120,11 +120,19 @@ func SetQueryParams(req *http.Request, query interface{}) {
 	}
 
 	q := req.URL.Query()
-	parameters := ss.StructToMap(query)
+	parameters, err := ss.ToMap(query, false)
+	if err != nil {
+		return
+	}
 
-	for key, values := range parameters {
-		for _, value := range values {
-			q.Add(key, value)
+	for key, value := range parameters {
+		switch v := value.(type) {
+		case []interface{}:
+			for _, item := range v {
+				q.Add(key, fmt.Sprintf("%v", item))
+			}
+		default:
+			q.Add(key, fmt.Sprintf("%v", value))
 		}
 	}
 
@@ -135,9 +143,12 @@ func SetJSONPayload(req *http.Request, data interface{}) error {
 	if data == nil {
 		return nil
 	}
-	// p := ss.StructToMap(data)
-	// payload, err := json.Marshal(p)
-	payload, err := json.Marshal(data)
+	p, err := ss.ToMap(data, true)
+	if err != nil {
+		return err
+	}
+
+	payload, err := json.Marshal(p)
 	if err != nil {
 		return fmt.Errorf("marshaling request body: %w", err)
 	}
@@ -153,10 +164,19 @@ func SetFormURLEncodedPayload(req *http.Request, data interface{}) error {
 	}
 
 	formData := url.Values{}
-	parameters := ss.StructToMap(data)
-	for key, values := range parameters {
-		for _, value := range values {
-			formData.Add(key, value)
+	parameters, err := ss.ToMap(data, false)
+	if err != nil {
+		return err
+	}
+
+	for key, value := range parameters {
+		switch v := value.(type) {
+		case []interface{}:
+			for _, item := range v {
+				formData.Add(key, fmt.Sprintf("%v", item))
+			}
+		default:
+			formData.Add(key, fmt.Sprintf("%v", value))
 		}
 	}
 
