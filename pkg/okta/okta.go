@@ -13,8 +13,10 @@ https://developer.okta.com/docs/api/
 package okta
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/gemini-oss/rego/pkg/common/cache"
 	"github.com/gemini-oss/rego/pkg/common/config"
@@ -50,6 +52,36 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
 func (c *Client) UseCache() *Client {
 	c.Cache.Enabled = true
 	return c
+}
+
+/*
+ * SetCache stores an Okta API response in the cache
+ */
+func (c *Client) SetCache(key string, value interface{}, duration time.Duration) {
+	// Convert value to a byte slice and cache it
+	data, err := json.Marshal(value)
+	if err != nil {
+		c.Log.Error("Error marshalling cache data:", err)
+		return
+	}
+	c.Cache.Set(key, data, duration)
+}
+
+/*
+ * GetCache retrieves an Okta API response from the cache
+ */
+func (c *Client) GetCache(key string, target interface{}) bool {
+	data, found := c.Cache.Get(key)
+	if !found {
+		return false
+	}
+
+	err := json.Unmarshal(data, target)
+	if err != nil {
+		c.Log.Error("Error unmarshalling cache data:", err)
+		return false
+	}
+	return true
 }
 
 /*
@@ -121,4 +153,100 @@ func NewClient(verbosity int) *Client {
 		Log:     log,
 		Cache:   cache,
 	}
+}
+
+/*
+ * Perform a generic request to the Okta API
+ */
+func do[T any](c *Client, method string, url string, query interface{}, data interface{}) (T, error) {
+	var result T
+
+	res, body, err := c.HTTP.DoRequest(method, url, query, data)
+	if err != nil {
+		return *new(T), err
+	}
+
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return *new(T), fmt.Errorf("unmarshalling error: %w", err)
+	}
+
+	return result, nil
+}
+
+/*
+ * Generically perform a paginated request to the Okta API for a slice
+ */
+func doPaginated[T Slice[E], E any](c *Client, method, url string, query interface{}, data interface{}) (*T, error) {
+	var emptySlice T = make([]E, 0)
+	results := PagedSlice[T, E]{
+		Results:  &emptySlice,
+		OktaPage: &OktaPage{},
+	}
+
+	for {
+		res, body, err := c.HTTP.DoRequest(method, url, query, data)
+		if err != nil {
+			return nil, err
+		}
+
+		c.Log.Println("Response Status:", res.Status)
+		c.Log.Debug("Response Body:", string(body))
+
+		var page []E
+		err = json.Unmarshal(body, &page)
+		if err != nil {
+			return nil, fmt.Errorf("unmarshalling error: %w", err)
+		}
+
+		*results.Results = append(*results.Results, page...)
+
+		url = results.NextPage(res.Header.Values("Link"))
+		query = nil
+		if url == "" {
+			break
+		}
+	}
+
+	return results.Results, nil
+}
+
+/*
+ * Generically perform a paginated request to the Okta API for a struct
+ */
+func doPaginatedStruct[T Struct[T]](c *Client, method, url string, query interface{}, data interface{}) (*T, error) {
+	var t T
+	results := PagedStruct[T]{
+		Results:  t.Init(),
+		OktaPage: &OktaPage{},
+	}
+
+	for {
+		res, body, err := c.HTTP.DoRequest(method, url, query, data)
+		if err != nil {
+			return nil, err
+		}
+
+		c.Log.Println("Response Status:", res.Status)
+		c.Log.Debug("Response Body:", string(body))
+
+		var page T
+		err = json.Unmarshal(body, &page)
+		if err != nil {
+			return nil, fmt.Errorf("unmarshalling error: %w", err)
+		}
+
+		(*results.Results).Append(&page)
+
+		url = results.NextPage(res.Header.Values("Link"))
+		query = nil
+		if url == "" {
+			break
+		}
+	}
+
+	return results.Results, nil
 }

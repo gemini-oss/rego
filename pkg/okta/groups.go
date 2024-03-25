@@ -13,8 +13,7 @@ https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Group
 package okta
 
 import (
-	"encoding/json"
-	"fmt"
+	"time"
 )
 
 /*
@@ -38,29 +37,19 @@ type GroupParameters struct {
  */
 func (c *Client) ListAllGroups() (*Groups, error) {
 	c.Log.Println("Getting all groups")
-	allGroups := Groups{}
+	url := c.BuildURL(OktaGroups)
 
 	q := GroupParameters{
 		Limit: 10000,
 	}
 
-	url := c.BuildURL(OktaGroups)
-	res, err := c.HTTP.PaginatedRequest("GET", url, q, nil)
+	groups, err := doPaginated[Groups](c, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Log.Printf("Received response from %s", url)
 
-	for _, r := range res {
-		group := &Group{}
-		err := json.Unmarshal(r, &group)
-		if err != nil {
-			return nil, fmt.Errorf("unmarshalling group: %w", err)
-		}
-		allGroups = append(allGroups, group)
-	}
-
-	return &allGroups, nil
+	c.SetCache(url, groups, 5*time.Minute)
+	return groups, nil
 }
 
 /*
@@ -70,21 +59,20 @@ func (c *Client) ListAllGroups() (*Groups, error) {
  */
 func (c *Client) GetGroup(groupID string) (*Group, error) {
 	c.Log.Printf("Getting group with ID %s", groupID)
-	group := &Group{}
-
 	url := c.BuildURL(OktaGroups, groupID)
-	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
+
+	var cache Group
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	group, err := do[Group](c, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Log.Printf("Received response from %s. Status: %s", url, res.Status)
 
-	err = json.Unmarshal(body, &group)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling group: %w", err)
-	}
-
-	return group, nil
+	c.SetCache(url, group, 5*time.Minute)
+	return &group, nil
 }
 
 /*
@@ -94,27 +82,22 @@ func (c *Client) GetGroup(groupID string) (*Group, error) {
  */
 func (c *Client) ListAllGroupRules() (*GroupRules, error) {
 	c.Log.Println("Getting all group rules")
-	allGroupRules := GroupRules{}
+	url := c.BuildURL(OktaGroupRules)
+
+	var cache GroupRules
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
 
 	q := GroupParameters{
 		Limit: 50,
 	}
 
-	url := c.BuildURL(OktaGroupRules)
-	res, err := c.HTTP.PaginatedRequest("GET", url, q, nil)
+	groupRules, err := doPaginated[GroupRules](c, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Log.Printf("Received response from %s", url)
 
-	for _, r := range res {
-		groupRule := &GroupRule{}
-		err := json.Unmarshal(r, &groupRule)
-		if err != nil {
-			return nil, fmt.Errorf("unmarshalling group rule: %w", err)
-		}
-		allGroupRules = append(allGroupRules, groupRule)
-	}
-
-	return &allGroupRules, nil
+	c.SetCache(url, groupRules, 30*time.Minute)
+	return groupRules, nil
 }

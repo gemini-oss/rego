@@ -50,7 +50,7 @@ const (
  */
 func (c *Client) BuildURL(endpoint string, customer *Customer, parameters ...string) string {
 	var url string
-	if strings.Contains(endpoint, "/customer/%s") || strings.Contains(endpoint, "/customers/%s"){
+	if strings.Contains(endpoint, "/customer/%s") || strings.Contains(endpoint, "/customers/%s") {
 		if customer == nil {
 			customer = &Customer{}
 		}
@@ -61,8 +61,8 @@ func (c *Client) BuildURL(endpoint string, customer *Customer, parameters ...str
 
 	for _, param := range parameters {
 		if param != "" {
-            if strings.HasPrefix(param, ":") {
-                url = strings.TrimSuffix(url, "/") + param
+			if strings.HasPrefix(param, ":") {
+				url = strings.TrimSuffix(url, "/") + param
 			} else {
 				url = fmt.Sprintf("%s/%s", url, param)
 			}

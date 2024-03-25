@@ -265,6 +265,19 @@ func setPayload(req *http.Request, data interface{}, contentType string) error {
 	}
 }
 
+func (c *Client) ExtractParam(u, parameter string) string {
+	parsedURL, err := url.Parse(u)
+	if err != nil {
+		return ""
+	}
+
+	queryParams := parsedURL.Query()
+
+	paramValue := queryParams.Get(parameter)
+
+	return paramValue
+}
+
 /*
  * PaginatedRequest
  * @param method string

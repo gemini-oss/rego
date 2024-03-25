@@ -13,8 +13,6 @@ https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/
 package okta
 
 import (
-	"encoding/json"
-	"fmt"
 	"time"
 )
 
@@ -37,33 +35,25 @@ type UserQuery struct {
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/listUsers
  */
 func (c *Client) ListAllUsers() (*Users, error) {
-	c.Log.Println("Getting all users")
-	allUsers := Users{}
+	url := c.BuildURL(OktaUsers)
 
-	q := UserQuery{
+	var cache Users
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	q := &UserQuery{
 		Limit:  `200`,
 		Search: `status eq "STAGED" or status eq "PROVISIONED" or status eq "ACTIVE" or status eq "RECOVERY" or status eq "LOCKED_OUT" or status eq "PASSWORD_EXPIRED" or status eq "SUSPENDED" or status eq "DEPROVISIONED"`,
 	}
 
-	// url := fmt.Sprintf("%s/users", c.BaseURL)
-	url := c.BuildURL(OktaUsers)
-	res, err := c.HTTP.PaginatedRequest("GET", url, q, nil)
+	users, err := doPaginated[Users](c, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Log.Printf("Received response from %s", url)
 
-	for _, r := range res {
-		user := User{}
-		err := json.Unmarshal(r, &user)
-		if err != nil {
-			return nil, fmt.Errorf("unmarshalling user: %w", err)
-		}
-		allUsers = append(allUsers, &user)
-	}
-
-	c.Log.Println("Successfully listed all users.")
-	return &allUsers, nil
+	c.SetCache(url, users, 30*time.Minute)
+	return users, nil
 }
 
 /*
@@ -74,44 +64,23 @@ func (c *Client) ListAllUsers() (*Users, error) {
 func (c *Client) ListActiveUsers() (*Users, error) {
 	url := c.BuildURL(OktaUsers)
 
-	if c.Cache.Enabled {
-		if data, found := c.Cache.Get(url); found {
-			var cache Users
-			if err := json.Unmarshal(data, &cache); err != nil {
-				return nil, err
-			}
-
-			c.Log.Debug("Cached Body:", string(data))
-			return &cache, nil
-		}
+	var cache Users
+	if c.GetCache(url, &cache) {
+		return &cache, nil
 	}
 
-	allUsers := Users{}
-
-	q := UserQuery{
+	q := &UserQuery{
 		Limit:  `200`,
 		Search: `status eq "ACTIVE"`,
 	}
 
-	res, err := c.HTTP.PaginatedRequest("GET", url, q, nil)
+	users, err := doPaginated[Users](c, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, r := range res {
-		user := User{}
-		err := json.Unmarshal(r, &user)
-		if err != nil {
-			return nil, fmt.Errorf("unmarshalling user: %w", err)
-		}
-		allUsers = append(allUsers, &user)
-	}
-
-	if data, err := json.Marshal(allUsers); err == nil {
-		c.Cache.Set(url, data, 30*time.Minute)
-	}
-
-	return &allUsers, nil
+	c.SetCache(url, users, 30*time.Minute)
+	return users, nil
 }
 
 /*
@@ -120,23 +89,20 @@ func (c *Client) ListActiveUsers() (*Users, error) {
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/getUser
  */
 func (c *Client) GetUser(userID string) (*User, error) {
-
-	// url := fmt.Sprintf("%s/users/%s", c.BaseURL, userID)
 	url := c.BuildURL(OktaUsers, userID)
-	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
+
+	var cache User
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	user, err := do[User](c, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
 
-	user := &User{}
-	err = json.Unmarshal(body, &user)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling user: %w", err)
-	}
-
-	return user, nil
+	c.SetCache(url, user, 5*time.Minute)
+	return &user, nil
 }
 
 /*
@@ -146,23 +112,14 @@ func (c *Client) GetUser(userID string) (*User, error) {
  */
 func (c *Client) UpdateUser(userID string, u *User) (*User, error) {
 
-	// url := fmt.Sprintf("%s/users/%s", c.BaseURL, userID)
 	url := c.BuildURL(OktaUsers, userID)
 
-	res, body, err := c.HTTP.DoRequest("POST", url, nil, &u)
+	user, err := do[User](c, "POST", url, nil, &u)
 	if err != nil {
 		return nil, err
 	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
 
-	user := &User{}
-	err = json.Unmarshal(body, &user)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling user: %w", err)
-	}
-
-	return user, nil
+	return &user, nil
 }
 
 /*
@@ -170,24 +127,21 @@ func (c *Client) UpdateUser(userID string, u *User) (*User, error) {
  * /api/v1/users/{userId}/appLinks
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/listAppLinks
  */
-func (c *Client) GetUserAppLinks(userID string) (*[]AppLink, error) {
-
-	// url := fmt.Sprintf("%s/users/%s/appLinks", c.BaseURL, userID)
+func (c *Client) GetUserAppLinks(userID string) (*AppLinks, error) {
 	url := c.BuildURL(OktaUsers, userID, "appLinks")
-	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
+
+	var cache AppLinks
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	appLinks, err := do[AppLinks](c, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
 
-	appLinks := &[]AppLink{}
-	err = json.Unmarshal(body, &appLinks)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling user app links: %w", err)
-	}
-
-	return appLinks, nil
+	c.SetCache(url, appLinks, 5*time.Minute)
+	return &appLinks, nil
 }
 
 /*
@@ -196,21 +150,18 @@ func (c *Client) GetUserAppLinks(userID string) (*[]AppLink, error) {
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/updateUser
  */
 func (c *Client) GetUserGroups(userID string) (*Groups, error) {
-
-	// url := fmt.Sprintf("%s/users/%s/groups", c.BaseURL, userID)
 	url := c.BuildURL(OktaUsers, userID, "groups")
-	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
+
+	var cache Groups
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	groups, err := do[Groups](c, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
 
-	groups := &Groups{}
-	err = json.Unmarshal(body, &groups)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling user groups: %w", err)
-	}
-
-	return groups, nil
+	c.SetCache(url, groups, 5*time.Minute)
+	return &groups, nil
 }

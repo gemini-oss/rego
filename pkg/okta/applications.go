@@ -13,8 +13,7 @@ https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Appli
 package okta
 
 import (
-	"encoding/json"
-	"fmt"
+	"time"
 )
 
 /*
@@ -37,27 +36,22 @@ type AppQuery struct {
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Application/#tag/Application/operation/listApplications
  */
 func (c *Client) ListAllApplications() (*Applications, error) {
+	url := c.BuildURL(OktaApps)
 
-	allApps := Applications{}
+	var cache Applications
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
 
 	q := AppQuery{
 		IncludeNonDeleted: false,
 	}
 
-	url := c.BuildURL(OktaApps)
-	res, err := c.HTTP.PaginatedRequest("GET", url, q, nil)
+	applications, err := doPaginated[Applications](c, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, r := range res {
-		app := Application{}
-		err := json.Unmarshal(r, &app)
-		if err != nil {
-			return nil, fmt.Errorf("unmarshalling user: %w", err)
-		}
-		allApps = append(allApps, app)
-	}
-
-	return &allApps, nil
+	c.SetCache(url, applications, 5*time.Minute)
+	return applications, nil
 }

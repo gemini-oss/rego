@@ -13,8 +13,6 @@ https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Devic
 package okta
 
 import (
-	"encoding/json"
-	"fmt"
 	"time"
 )
 
@@ -56,41 +54,18 @@ type DeviceQuery struct {
 func (c *Client) ListAllDevices() (*Devices, error) {
 	url := c.BuildURL(OktaDevices)
 
-	if c.Cache.Enabled {
-		if data, found := c.Cache.Get(url); found {
-			var cache Devices
-			if err := json.Unmarshal(data, &cache); err != nil {
-				return nil, err
-			}
-
-			c.Log.Debug("Cached Body:", string(data))
-			return &cache, nil
-		}
+	var cache Devices
+	if c.GetCache(url, &cache) {
+		return &cache, nil
 	}
 
-	allDevices := Devices{}
-	q := DeviceQuery{}
-
-	rawMessages, err := c.HTTP.PaginatedRequest("GET", url, q, nil)
+	devices, err := doPaginated[Devices](c, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, raw := range rawMessages {
-		c.Log.Debug(string(raw))
-		device := Device{}
-		err := json.Unmarshal(raw, &device)
-		if err != nil {
-			return nil, fmt.Errorf("unmarshalling user: %w", err)
-		}
-		allDevices = append(allDevices, device)
-	}
-
-	if data, err := json.Marshal(allDevices); err == nil {
-		c.Cache.Set(url, data, 30*time.Minute)
-	}
-
-	return &allDevices, nil
+	c.SetCache(url, devices, 5*time.Minute)
+	return devices, nil
 }
 
 /*
@@ -102,39 +77,18 @@ func (c *Client) ListAllDevices() (*Devices, error) {
 func (c *Client) ListDevices(q DeviceQuery) (*Devices, error) {
 	url := c.BuildURL(OktaDevices)
 
-	if c.Cache.Enabled {
-		if data, found := c.Cache.Get(url); found {
-			var cache Devices
-			if err := json.Unmarshal(data, &cache); err != nil {
-				return nil, err
-			}
-
-			c.Log.Debug("Cached Body:", string(data))
-			return &cache, nil
-		}
+	var cache Devices
+	if c.GetCache(url, &cache) {
+		return &cache, nil
 	}
-	allDevices := Devices{}
 
-	rawMessages, err := c.HTTP.PaginatedRequest("GET", url, q, nil)
+	devices, err := doPaginated[Devices](c, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, raw := range rawMessages {
-		c.Log.Debugf("Raw: %s\n", raw)
-		device := Device{}
-		err := json.Unmarshal(raw, &device)
-		if err != nil {
-			return nil, fmt.Errorf("unmarshalling user: %w", err)
-		}
-		allDevices = append(allDevices, device)
-	}
-
-	if data, err := json.Marshal(allDevices); err == nil {
-		c.Cache.Set(url, data, 30*time.Minute) // Set cache with an expiration
-	}
-
-	return &allDevices, nil
+	c.SetCache(url, devices, 5*time.Minute)
+	return devices, nil
 }
 
 /*
@@ -143,22 +97,19 @@ func (c *Client) ListDevices(q DeviceQuery) (*Devices, error) {
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Device/#tag/Device/operation/listDevices
  */
 func (c *Client) ListUsersForDevice(deviceID string) (*DeviceUsers, error) {
-
-	// url := fmt.Sprintf("%s/devices/%s/users", c.BaseURL, deviceID)
 	url := c.BuildURL(OktaDevices, deviceID, "users")
-	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
+
+	var cache DeviceUsers
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	deviceUsers, err := do[DeviceUsers](c, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debug("Response Body:", string(body))
 
-	deviceUsers := DeviceUsers{}
-	err = json.Unmarshal(body, &deviceUsers)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling device: %w", err)
-	}
-
+	c.SetCache(url, deviceUsers, 5*time.Minute)
 	return &deviceUsers, nil
 }
 

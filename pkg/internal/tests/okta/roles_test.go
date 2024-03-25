@@ -43,12 +43,12 @@ func TestListAllRoles(t *testing.T) {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	if len(roles.Roles) != 2 {
-		t.Fatalf("Expected 2 roles, got %d", len(roles.Roles))
+	if len(*roles.Roles) != 2 {
+		t.Fatalf("Expected 2 roles, got %d", len(*roles.Roles))
 	}
 
-	if roles.Roles[0].ID != "role1" {
-		t.Errorf("Expected role ID `role1`, got `%s`", roles.Roles[0].ID)
+	if (*roles.Roles)[0].ID != "role1" {
+		t.Errorf("Expected role ID `role1`, got `%s`", (*roles.Roles)[0].ID)
 	}
 }
 
@@ -100,11 +100,11 @@ func TestGetUserRoles(t *testing.T) {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	if len(userRoles.Roles) != 2 {
-		t.Fatalf("Expected 2 roles, got %d", len(userRoles.Roles))
+	if len(*userRoles) != 2 {
+		t.Fatalf("Expected 2 roles, got %d", len(*userRoles))
 	}
 
-	if userRoles.Roles[0].ID != "role1" {
-		t.Errorf("Expected role ID `role1`, got `%s`", userRoles.Roles[0].ID)
+	if (*userRoles)[0].ID != "role1" {
+		t.Errorf("Expected role ID `role1`, got `%s`", (*userRoles)[0].ID)
 	}
 }

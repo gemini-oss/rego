@@ -48,12 +48,12 @@ func (c *Client) OktaRoleReportToGoogleSheet() error {
 		Range:          "A:Z",
 		MajorDimension: "ROWS",
 	}
-	headers := []string{"ID", "Name", "Email", "Status", "Role", "Last Login"}
+	headers := []string{"ID", "Name", "Email", "Status", "Role ID", "Role Label", "Role AssignmentType", "Last Login"}
 	vr.Values = append(vr.Values, headers)
 
-	for _, report := range roleReports {
-		for _, user := range report.Users {
-			vr.Values = append(vr.Values, []string{user.ID, user.Profile.Email, user.Profile.Login, user.Status, report.Role.ID, user.LastLogin.String()})
+	for _, report := range *roleReports {
+		for _, user := range *report.Users {
+			vr.Values = append(vr.Values, []string{user.ID, user.Profile.Email, user.Profile.Login, user.Status, report.Role.ID, report.Role.Label, report.Role.AssignmentType, user.LastLogin.String()})
 		}
 	}
 

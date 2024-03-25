@@ -12,6 +12,7 @@ This package contains many structs for handling responses from the Okta API:
 package okta
 
 import (
+	"strings"
 	"time"
 
 	"github.com/gemini-oss/rego/pkg/common/cache"
@@ -19,7 +20,7 @@ import (
 	"github.com/gemini-oss/rego/pkg/common/requests"
 )
 
-// ### Okta Client Structs
+// ### Okta Client Entities
 // ---------------------------------------------------------------------
 type Client struct {
 	BaseURL string           // BaseURL is the base URL for Okta API requests.
@@ -71,12 +72,74 @@ type Hints struct {
 	Allow []string `json:"allow,omitempty"` // Allow is a list of allowed methods.
 }
 
-// END OF OKTA CLIENT STRUCTS
+/*
+ * OktaPage
+ * @param Self string
+ * @param NextPage string
+ * @param Paged bool
+ */
+type OktaPage struct {
+	Self          string   `json:"self"`
+	NextPageLink  string   `json:"next"`
+	NextPageToken string   `json:"next_page_token"`
+	Paged         bool     `json:"paged"`
+	Links         []string `json:"links"`
+}
+
+func (p *OktaPage) HasNextPage(links []string) bool {
+	for _, link := range links {
+		rawLink := strings.Split(link, ";")[0]
+		rawLink = strings.Trim(rawLink, "<>")
+
+		if strings.Contains(link, `rel="self"`) {
+			p.Self = rawLink
+		}
+		if strings.Contains(link, `rel="next"`) {
+			p.NextPageLink = rawLink
+			p.Paged = true
+			return true
+		}
+	}
+	return false
+}
+
+func (p *OktaPage) NextPage(links []string) string {
+	if p.HasNextPage(links) {
+		return p.NextPageLink
+	}
+	return ""
+}
+
+// PagedSlice represents a page of slice results from the Okta API.
+// It's a generic type that can handle any kind of slice (`T`) of elements (`E`).
+type PagedSlice[T Slice[E], E any] struct {
+	Results *T
+	*OktaPage
+}
+
+// Slice is an interface that ensures T is a slice type.
+type Slice[T any] interface {
+	~[]T
+}
+
+// PagedStruct represents a page of struct results from the Okta API.
+type PagedStruct[T any] struct {
+	Results *T
+	*OktaPage
+}
+
+// Struct is an interface that ensures T is a struct type.
+type Struct[T any] interface {
+	Init() *T
+	Append(interface{})
+}
+
+// END OF OKTA CLIENT ENTITIES
 //---------------------------------------------------------------------
 
 // ### Okta Application Structs
 // ---------------------------------------------------------------------
-type Applications []Application
+type Applications []*Application
 
 type Application struct {
 	Accessibility Accessibility       `json:"accessibility,omitempty"` // The accessibility of the application.
@@ -121,6 +184,8 @@ type ApplicationEmbedded struct {
 	Users *Users `json:"users,omitempty"`
 }
 
+type AppLinks []*AppLink
+
 // AppLink represents an app link object.
 type AppLink struct {
 	AppAssignmentID  string `json:"appAssignmentId,omitempty"`  // The ID of the app assignment.
@@ -140,7 +205,7 @@ type AppLink struct {
 
 // ### Okta Device Structs
 // ---------------------------------------------------------------------
-type Devices []Device
+type Devices []*Device
 
 type Device struct {
 	Created             string          `json:"created,omitempty"`             // The timestamp when the device was created.
@@ -174,7 +239,7 @@ type DisplayName struct {
 	Sensitive bool   `json:"sensitive"` // Indicates whether the display name is sensitive.
 }
 
-type DeviceUsers []DeviceUser
+type DeviceUsers []*DeviceUser
 
 type DeviceUser struct {
 	Created          time.Time `json:"created,omitempty"`          // The timestamp when the device user was created.
@@ -191,9 +256,26 @@ type DeviceEmbedded struct {
 
 // ### Okta Roles Structs
 // ---------------------------------------------------------------------
-type Roles struct {
-	Roles []Role `json:"roles,omitempty"`
+type RolesList struct {
+	Roles *Roles `json:"roles,omitempty"`
 }
+
+func (r RolesList) Init() *RolesList {
+	return &RolesList{
+		Roles: &Roles{},
+	}
+}
+
+func (r RolesList) Append(result interface{}) {
+	more, ok := result.(*RolesList)
+	if !ok {
+		return
+	}
+
+	*r.Roles = append(*r.Roles, *more.Roles...)
+}
+
+type Roles []*Role
 
 type Role struct {
 	AssignmentType string    `json:"assignmentType,omitempty"` // The assignment type of the role.
@@ -214,9 +296,11 @@ type Permission struct {
 	Links       *Links    `json:"_links,omitempty"`      // Links related to the permission.
 }
 
+type RoleReports []*RoleReport
+
 type RoleReport struct {
-	Role  *Role   // The role.
-	Users []*User // The users assigned to the role.
+	Role  *Role // The role.
+	Users *Users // The users assigned to the role.
 }
 
 // END OF OKTA ROLES STRUCTS
