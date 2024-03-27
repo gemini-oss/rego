@@ -3,7 +3,7 @@
     "baseUrl": "https://abusiveexperiencereport.googleapis.com/",
     "description": "Views Abusive Experience Report data, and gets a list of sites that have a significant number of abusive experiences.",
     "name": "abusiveexperiencereport",
-    "revision": "20230508",
+    "revision": "20240207",
     "title": "Abusive Experience Report API",
     "version": "v1",
     "auth": {
@@ -14,7 +14,7 @@
     "baseUrl": "https://acceleratedmobilepageurl.googleapis.com/",
     "description": "Retrieves the list of AMP URLs (and equivalent AMP Cache URLs) for a given list of public URL(s). ",
     "name": "acceleratedmobilepageurl",
-    "revision": "20230627",
+    "revision": "20240213",
     "title": "Accelerated Mobile Pages (AMP) URL API",
     "version": "v1",
     "auth": {
@@ -25,7 +25,7 @@
     "baseUrl": "https://accessapproval.googleapis.com/",
     "description": "An API for controlling access to data by Google personnel.",
     "name": "accessapproval",
-    "revision": "20230606",
+    "revision": "20240209",
     "title": "Access Approval API",
     "version": "v1",
     "auth": {
@@ -42,24 +42,7 @@
     "baseUrl": "https://accesscontextmanager.googleapis.com/",
     "description": "An API for setting attribute based access control to requests to Google Cloud services.",
     "name": "accesscontextmanager",
-    "revision": "20230625",
-    "title": "Access Context Manager API",
-    "version": "v1beta",
-    "auth": {
-      "oauth2": {
-        "scopes": {
-          "https://www.googleapis.com/auth/cloud-platform": {
-            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
-          }
-        }
-      }
-    }
-  },
-  {
-    "baseUrl": "https://accesscontextmanager.googleapis.com/",
-    "description": "An API for setting attribute based access control to requests to Google Cloud services.",
-    "name": "accesscontextmanager",
-    "revision": "20230625",
+    "revision": "20240205",
     "title": "Access Context Manager API",
     "version": "v1",
     "auth": {
@@ -76,7 +59,7 @@
     "baseUrl": "https://acmedns.googleapis.com/",
     "description": "Google Domains ACME DNS API that allows users to complete ACME DNS-01 challenges for a domain.",
     "name": "acmedns",
-    "revision": "20230627",
+    "revision": "20240213",
     "title": "ACME DNS API",
     "version": "v1",
     "auth": {
@@ -87,7 +70,7 @@
     "baseUrl": "https://adexchangebuyer.googleapis.com/",
     "description": "Accesses the latest features for managing Authorized Buyers accounts, Real-Time Bidding configurations and auction metrics, and Marketplace programmatic deals.",
     "name": "adexchangebuyer2",
-    "revision": "20230628",
+    "revision": "20240215",
     "title": "Ad Exchange Buyer API II",
     "version": "v2beta1",
     "auth": {
@@ -104,7 +87,7 @@
     "baseUrl": "https://adexperiencereport.googleapis.com/",
     "description": "Views Ad Experience Report data, and gets a list of sites that have a significant number of annoying ads.",
     "name": "adexperiencereport",
-    "revision": "20230508",
+    "revision": "20240207",
     "title": "Ad Experience Report API",
     "version": "v1",
     "auth": {
@@ -115,7 +98,7 @@
     "baseUrl": "https://admin.googleapis.com/",
     "description": "Admin SDK lets administrators of enterprise domains to view and manage resources like user, groups etc. It also provides audit and usage reports of domain.",
     "name": "admin",
-    "revision": "20230626",
+    "revision": "20240206",
     "title": "Admin SDK API",
     "version": "datatransfer_v1",
     "auth": {
@@ -135,7 +118,7 @@
     "baseUrl": "https://admin.googleapis.com/",
     "description": "Admin SDK lets administrators of enterprise domains to view and manage resources like user, groups etc. It also provides audit and usage reports of domain.",
     "name": "admin",
-    "revision": "20230626",
+    "revision": "20240206",
     "title": "Admin SDK API",
     "version": "directory_v1",
     "auth": {
@@ -236,7 +219,7 @@
     "baseUrl": "https://admin.googleapis.com/",
     "description": "Admin SDK lets administrators of enterprise domains to view and manage resources like user, groups etc. It also provides audit and usage reports of domain.",
     "name": "admin",
-    "revision": "20230626",
+    "revision": "20240206",
     "title": "Admin SDK API",
     "version": "reports_v1",
     "auth": {
@@ -256,7 +239,7 @@
     "baseUrl": "https://admob.googleapis.com/",
     "description": "The AdMob API allows publishers to programmatically get information about their AdMob account. ",
     "name": "admob",
-    "revision": "20230628",
+    "revision": "20240215",
     "title": "AdMob API",
     "version": "v1beta",
     "auth": {
@@ -276,7 +259,7 @@
     "baseUrl": "https://admob.googleapis.com/",
     "description": "The AdMob API allows publishers to programmatically get information about their AdMob account. ",
     "name": "admob",
-    "revision": "20230628",
+    "revision": "20240215",
     "title": "AdMob API",
     "version": "v1",
     "auth": {
@@ -296,7 +279,7 @@
     "baseUrl": "https://adsense.googleapis.com/",
     "description": "The AdSense Management API allows publishers to access their inventory and run earnings and performance reports.",
     "name": "adsense",
-    "revision": "20230628",
+    "revision": "20240215",
     "title": "AdSense Management API",
     "version": "v2",
     "auth": {
@@ -334,7 +317,7 @@
     "baseUrl": "https://advisorynotifications.googleapis.com/",
     "description": "An API for accessing Advisory Notifications in Google Cloud",
     "name": "advisorynotifications",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "Advisory Notifications API",
     "version": "v1",
     "auth": {
@@ -348,10 +331,50 @@
     }
   },
   {
+    "baseUrl": "https://aiplatform.googleapis.com/",
+    "description": "Train high-quality custom machine learning models with minimal machine learning expertise and effort.",
+    "name": "aiplatform",
+    "revision": "20240209",
+    "title": "Vertex AI API",
+    "version": "v1beta1",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          },
+          "https://www.googleapis.com/auth/cloud-platform.read-only": {
+            "description": "View your data across Google Cloud services and see the email address of your Google Account"
+          }
+        }
+      }
+    }
+  },
+  {
+    "baseUrl": "https://aiplatform.googleapis.com/",
+    "description": "Train high-quality custom machine learning models with minimal machine learning expertise and effort.",
+    "name": "aiplatform",
+    "revision": "20240209",
+    "title": "Vertex AI API",
+    "version": "v1",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          },
+          "https://www.googleapis.com/auth/cloud-platform.read-only": {
+            "description": "View your data across Google Cloud services and see the email address of your Google Account"
+          }
+        }
+      }
+    }
+  },
+  {
     "baseUrl": "https://alertcenter.googleapis.com/",
     "description": "Manages alerts on issues affecting your domain. Note: The current version of this API (v1beta1) is available to all Google Workspace customers. ",
     "name": "alertcenter",
-    "revision": "20230626",
+    "revision": "20240212",
     "title": "Google Workspace Alert Center API",
     "version": "v1beta1",
     "auth": {
@@ -359,6 +382,57 @@
         "scopes": {
           "https://www.googleapis.com/auth/apps.alerts": {
             "description": "See and delete your domain's G Suite alerts, and send alert feedback"
+          }
+        }
+      }
+    }
+  },
+  {
+    "baseUrl": "https://alloydb.googleapis.com/",
+    "description": "AlloyDB for PostgreSQL is an open source-compatible database service that provides a powerful option for migrating, modernizing, or building commercial-grade applications. It offers full compatibility with standard PostgreSQL, and is more than 4x faster for transactional workloads and up to 100x faster for analytical queries than standard PostgreSQL in our performance tests. AlloyDB for PostgreSQL offers a 99.99 percent availability SLA inclusive of maintenance. AlloyDB is optimized for the most demanding use cases, allowing you to build new applications that require high transaction throughput, large database sizes, or multiple read resources; scale existing PostgreSQL workloads with no application changes; and modernize legacy proprietary databases. ",
+    "name": "alloydb",
+    "revision": "20240118",
+    "title": "AlloyDB API",
+    "version": "v1alpha",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          }
+        }
+      }
+    }
+  },
+  {
+    "baseUrl": "https://alloydb.googleapis.com/",
+    "description": "AlloyDB for PostgreSQL is an open source-compatible database service that provides a powerful option for migrating, modernizing, or building commercial-grade applications. It offers full compatibility with standard PostgreSQL, and is more than 4x faster for transactional workloads and up to 100x faster for analytical queries than standard PostgreSQL in our performance tests. AlloyDB for PostgreSQL offers a 99.99 percent availability SLA inclusive of maintenance. AlloyDB is optimized for the most demanding use cases, allowing you to build new applications that require high transaction throughput, large database sizes, or multiple read resources; scale existing PostgreSQL workloads with no application changes; and modernize legacy proprietary databases. ",
+    "name": "alloydb",
+    "revision": "20240118",
+    "title": "AlloyDB API",
+    "version": "v1beta",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          }
+        }
+      }
+    }
+  },
+  {
+    "baseUrl": "https://alloydb.googleapis.com/",
+    "description": "AlloyDB for PostgreSQL is an open source-compatible database service that provides a powerful option for migrating, modernizing, or building commercial-grade applications. It offers full compatibility with standard PostgreSQL, and is more than 4x faster for transactional workloads and up to 100x faster for analytical queries than standard PostgreSQL in our performance tests. AlloyDB for PostgreSQL offers a 99.99 percent availability SLA inclusive of maintenance. AlloyDB is optimized for the most demanding use cases, allowing you to build new applications that require high transaction throughput, large database sizes, or multiple read resources; scale existing PostgreSQL workloads with no application changes; and modernize legacy proprietary databases. ",
+    "name": "alloydb",
+    "revision": "20240118",
+    "title": "AlloyDB API",
+    "version": "v1",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
           }
         }
       }
@@ -402,8 +476,9 @@
   },
   {
     "baseUrl": "https://analyticsadmin.googleapis.com/",
+    "description": "Manage properties in Google Analytics. Warning: Creating multiple Customer Applications, Accounts, or Projects to simulate or act as a single Customer Application, Account, or Project (respectively) or to circumvent Service-specific usage limits or quotas is a direct violation of Google Cloud Platform Terms of Service as well as Google APIs Terms of Service. These actions can result in immediate termination of your GCP project(s) without any warning.",
     "name": "analyticsadmin",
-    "revision": "20230628",
+    "revision": "20240213",
     "title": "Google Analytics Admin API",
     "version": "v1alpha",
     "auth": {
@@ -427,8 +502,9 @@
   },
   {
     "baseUrl": "https://analyticsadmin.googleapis.com/",
+    "description": "Manage properties in Google Analytics. Warning: Creating multiple Customer Applications, Accounts, or Projects to simulate or act as a single Customer Application, Account, or Project (respectively) or to circumvent Service-specific usage limits or quotas is a direct violation of Google Cloud Platform Terms of Service as well as Google APIs Terms of Service. These actions can result in immediate termination of your GCP project(s) without any warning.",
     "name": "analyticsadmin",
-    "revision": "20230628",
+    "revision": "20240213",
     "title": "Google Analytics Admin API",
     "version": "v1beta",
     "auth": {
@@ -448,7 +524,7 @@
     "baseUrl": "https://analyticsdata.googleapis.com/",
     "description": "Accesses report data in Google Analytics. Warning: Creating multiple Customer Applications, Accounts, or Projects to simulate or act as a single Customer Application, Account, or Project (respectively) or to circumvent Service-specific usage limits or quotas is a direct violation of Google Cloud Platform Terms of Service as well as Google APIs Terms of Service. These actions can result in immediate termination of your GCP project(s) without any warning. ",
     "name": "analyticsdata",
-    "revision": "20230627",
+    "revision": "20240214",
     "title": "Google Analytics Data API",
     "version": "v1beta",
     "auth": {
@@ -468,7 +544,7 @@
     "baseUrl": "https://analyticshub.googleapis.com/",
     "description": "Exchange data and analytics assets securely and efficiently.",
     "name": "analyticshub",
-    "revision": "20230619",
+    "revision": "20240212",
     "title": "Analytics Hub API",
     "version": "v1beta1",
     "auth": {
@@ -488,7 +564,7 @@
     "baseUrl": "https://analyticshub.googleapis.com/",
     "description": "Exchange data and analytics assets securely and efficiently.",
     "name": "analyticshub",
-    "revision": "20230619",
+    "revision": "20240212",
     "title": "Analytics Hub API",
     "version": "v1",
     "auth": {
@@ -508,7 +584,7 @@
     "baseUrl": "https://analyticsreporting.googleapis.com/",
     "description": "Accesses Analytics report data.",
     "name": "analyticsreporting",
-    "revision": "20230626",
+    "revision": "20240123",
     "title": "Analytics Reporting API",
     "version": "v4",
     "auth": {
@@ -528,7 +604,7 @@
     "baseUrl": "https://androiddeviceprovisioning.googleapis.com/",
     "description": "Automates Android zero-touch enrollment for device resellers, customers, and EMMs.",
     "name": "androiddeviceprovisioning",
-    "revision": "20230627",
+    "revision": "20240205",
     "title": "Android Device Provisioning Partner API",
     "version": "v1",
     "auth": {
@@ -539,7 +615,7 @@
     "baseUrl": "https://androidenterprise.googleapis.com/",
     "description": "Manages the deployment of apps to Android Enterprise devices.",
     "name": "androidenterprise",
-    "revision": "20230627",
+    "revision": "20240214",
     "title": "Google Play EMM API",
     "version": "v1",
     "auth": {
@@ -556,7 +632,7 @@
     "baseUrl": "https://androidmanagement.googleapis.com/",
     "description": "The Android Management API provides remote enterprise management of Android devices and apps.",
     "name": "androidmanagement",
-    "revision": "20230619",
+    "revision": "20240207",
     "title": "Android Management API",
     "version": "v1",
     "auth": {
@@ -573,7 +649,7 @@
     "baseUrl": "https://androidpublisher.googleapis.com/",
     "description": "Lets Android application developers access their Google Play accounts. At a high level, the expected workflow is to \"insert\" an Edit, make changes as necessary, and then \"commit\" it. ",
     "name": "androidpublisher",
-    "revision": "20230628",
+    "revision": "20240215",
     "title": "Google Play Android Developer API",
     "version": "v3",
     "auth": {
@@ -589,7 +665,7 @@
   {
     "baseUrl": "https://apigateway.googleapis.com/",
     "name": "apigateway",
-    "revision": "20230607",
+    "revision": "20240207",
     "title": "API Gateway API",
     "version": "v1beta",
     "auth": {
@@ -605,7 +681,7 @@
   {
     "baseUrl": "https://apigateway.googleapis.com/",
     "name": "apigateway",
-    "revision": "20230607",
+    "revision": "20240207",
     "title": "API Gateway API",
     "version": "v1",
     "auth": {
@@ -622,7 +698,7 @@
     "baseUrl": "https://apigee.googleapis.com/",
     "description": "Use the Apigee API to programmatically develop and manage APIs with a set of RESTful operations. Develop and secure API proxies, deploy and undeploy API proxy revisions, monitor APIs, configure environments, manage users, and more. Note: This product is available as a free trial for a time period of 60 days.",
     "name": "apigee",
-    "revision": "20230615",
+    "revision": "20240209",
     "title": "Apigee API",
     "version": "v1",
     "auth": {
@@ -638,7 +714,7 @@
   {
     "baseUrl": "https://apigeeregistry.googleapis.com/",
     "name": "apigeeregistry",
-    "revision": "20230127",
+    "revision": "20231204",
     "title": "Apigee Registry API",
     "version": "v1",
     "auth": {
@@ -655,7 +731,7 @@
     "baseUrl": "https://apikeys.googleapis.com/",
     "description": "Manages the API keys associated with developer projects.",
     "name": "apikeys",
-    "revision": "20230627",
+    "revision": "20240211",
     "title": "API Keys API",
     "version": "v2",
     "auth": {
@@ -675,7 +751,7 @@
     "baseUrl": "https://appengine.googleapis.com/",
     "description": "Provisions and manages developers' App Engine applications.",
     "name": "appengine",
-    "revision": "20230609",
+    "revision": "20240212",
     "title": "App Engine Admin API",
     "version": "v1alpha",
     "auth": {
@@ -698,7 +774,7 @@
     "baseUrl": "https://appengine.googleapis.com/",
     "description": "Provisions and manages developers' App Engine applications.",
     "name": "appengine",
-    "revision": "20230609",
+    "revision": "20240212",
     "title": "App Engine Admin API",
     "version": "v1beta",
     "auth": {
@@ -721,7 +797,7 @@
     "baseUrl": "https://appengine.googleapis.com/",
     "description": "Provisions and manages developers' App Engine applications.",
     "name": "appengine",
-    "revision": "20230609",
+    "revision": "20240212",
     "title": "App Engine Admin API",
     "version": "v1",
     "auth": {
@@ -741,9 +817,41 @@
     }
   },
   {
+    "baseUrl": "https://apphub.googleapis.com/",
+    "name": "apphub",
+    "revision": "20240211",
+    "title": "App Hub API",
+    "version": "v1alpha",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          }
+        }
+      }
+    }
+  },
+  {
+    "baseUrl": "https://apphub.googleapis.com/",
+    "name": "apphub",
+    "revision": "20240211",
+    "title": "App Hub API",
+    "version": "v1",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          }
+        }
+      }
+    }
+  },
+  {
     "baseUrl": "https://area120tables.googleapis.com/",
     "name": "area120tables",
-    "revision": "20230627",
+    "revision": "20240214",
     "title": "Area120 Tables API",
     "version": "v1alpha1",
     "auth": {
@@ -775,7 +883,7 @@
     "baseUrl": "https://artifactregistry.googleapis.com/",
     "description": "Store and manage build artifacts in a scalable and integrated service built on Google infrastructure.",
     "name": "artifactregistry",
-    "revision": "20230626",
+    "revision": "20240202",
     "title": "Artifact Registry API",
     "version": "v1beta1",
     "auth": {
@@ -795,7 +903,7 @@
     "baseUrl": "https://artifactregistry.googleapis.com/",
     "description": "Store and manage build artifacts in a scalable and integrated service built on Google infrastructure.",
     "name": "artifactregistry",
-    "revision": "20230626",
+    "revision": "20240202",
     "title": "Artifact Registry API",
     "version": "v1beta2",
     "auth": {
@@ -815,7 +923,7 @@
     "baseUrl": "https://artifactregistry.googleapis.com/",
     "description": "Store and manage build artifacts in a scalable and integrated service built on Google infrastructure.",
     "name": "artifactregistry",
-    "revision": "20230626",
+    "revision": "20240202",
     "title": "Artifact Registry API",
     "version": "v1",
     "auth": {
@@ -834,7 +942,7 @@
   {
     "baseUrl": "https://assuredworkloads.googleapis.com/",
     "name": "assuredworkloads",
-    "revision": "20230619",
+    "revision": "20240208",
     "title": "Assured Workloads API",
     "version": "v1beta1",
     "auth": {
@@ -850,7 +958,7 @@
   {
     "baseUrl": "https://assuredworkloads.googleapis.com/",
     "name": "assuredworkloads",
-    "revision": "20230619",
+    "revision": "20240208",
     "title": "Assured Workloads API",
     "version": "v1",
     "auth": {
@@ -867,7 +975,7 @@
     "baseUrl": "https://authorizedbuyersmarketplace.googleapis.com/",
     "description": "The Authorized Buyers Marketplace API lets buyers programmatically discover inventory; propose, retrieve and negotiate deals with publishers.",
     "name": "authorizedbuyersmarketplace",
-    "revision": "20230628",
+    "revision": "20240215",
     "title": "Authorized Buyers Marketplace API",
     "version": "v1",
     "auth": {
@@ -881,10 +989,26 @@
     }
   },
   {
+    "baseUrl": "https://backupdr.googleapis.com/",
+    "name": "backupdr",
+    "revision": "20240207",
+    "title": "Backup and DR Service API",
+    "version": "v1",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          }
+        }
+      }
+    }
+  },
+  {
     "baseUrl": "https://baremetalsolution.googleapis.com/",
     "description": "Provides ways to manage Bare Metal Solution hardware installed in a regional extension located near a Google Cloud data center.",
     "name": "baremetalsolution",
-    "revision": "20230613",
+    "revision": "20240126",
     "title": "Bare Metal Solution API",
     "version": "v2",
     "auth": {
@@ -899,9 +1023,9 @@
   },
   {
     "baseUrl": "https://batch.googleapis.com/",
-    "description": "An API to manage the running of batch jobs on Google Cloud Platform.",
+    "description": "An API to manage the running of batch resources on Google Cloud Platform.",
     "name": "batch",
-    "revision": "20230618",
+    "revision": "20240206",
     "title": "Batch API",
     "version": "v1",
     "auth": {
@@ -918,7 +1042,7 @@
     "baseUrl": "https://beyondcorp.googleapis.com/",
     "description": "Beyondcorp Enterprise provides identity and context aware access controls for enterprise resources and enables zero-trust access. Using the Beyondcorp Enterprise APIs, enterprises can set up multi-cloud and on-prem connectivity solutions.",
     "name": "beyondcorp",
-    "revision": "20230616",
+    "revision": "20240207",
     "title": "BeyondCorp API",
     "version": "v1alpha",
     "auth": {
@@ -935,7 +1059,7 @@
     "baseUrl": "https://beyondcorp.googleapis.com/",
     "description": "Beyondcorp Enterprise provides identity and context aware access controls for enterprise resources and enables zero-trust access. Using the Beyondcorp Enterprise APIs, enterprises can set up multi-cloud and on-prem connectivity solutions.",
     "name": "beyondcorp",
-    "revision": "20230616",
+    "revision": "20240207",
     "title": "BeyondCorp API",
     "version": "v1",
     "auth": {
@@ -949,11 +1073,31 @@
     }
   },
   {
+    "baseUrl": "https://biglake.googleapis.com/",
+    "description": "The BigLake API provides access to BigLake Metastore, a serverless, fully managed, and highly available metastore for open-source data that can be used for querying Apache Iceberg tables in BigQuery.",
+    "name": "biglake",
+    "revision": "20240204",
+    "title": "BigLake API",
+    "version": "v1",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/bigquery": {
+            "description": "View and manage your data in Google BigQuery and see the email address for your Google Account"
+          },
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          }
+        }
+      }
+    }
+  },
+  {
     "basePath": "/bigquery/v2/",
     "baseUrl": "https://bigquery.googleapis.com/bigquery/v2/",
     "description": "A data platform for customers to create, manage, share and query data.",
     "name": "bigquery",
-    "revision": "20230617",
+    "revision": "20240203",
     "title": "BigQuery API",
     "version": "v2",
     "auth": {
@@ -988,9 +1132,49 @@
     "baseUrl": "https://bigqueryconnection.googleapis.com/",
     "description": "Allows users to manage BigQuery connections to external data sources.",
     "name": "bigqueryconnection",
-    "revision": "20230618",
+    "revision": "20240124",
     "title": "BigQuery Connection API",
     "version": "v1beta1",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/bigquery": {
+            "description": "View and manage your data in Google BigQuery and see the email address for your Google Account"
+          },
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          }
+        }
+      }
+    }
+  },
+  {
+    "baseUrl": "https://bigqueryconnection.googleapis.com/",
+    "description": "Allows users to manage BigQuery connections to external data sources.",
+    "name": "bigqueryconnection",
+    "revision": "20240124",
+    "title": "BigQuery Connection API",
+    "version": "v1",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/bigquery": {
+            "description": "View and manage your data in Google BigQuery and see the email address for your Google Account"
+          },
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          }
+        }
+      }
+    }
+  },
+  {
+    "baseUrl": "https://bigquerydatapolicy.googleapis.com/",
+    "description": "Allows users to manage BigQuery data policies.",
+    "name": "bigquerydatapolicy",
+    "revision": "20240212",
+    "title": "BigQuery Data Policy API",
+    "version": "v1",
     "auth": {
       "oauth2": {
         "scopes": {
@@ -1008,7 +1192,7 @@
     "baseUrl": "https://bigquerydatatransfer.googleapis.com/",
     "description": "Schedule queries or transfer external data from SaaS applications to Google BigQuery on a regular basis.",
     "name": "bigquerydatatransfer",
-    "revision": "20230619",
+    "revision": "20240212",
     "title": "BigQuery Data Transfer API",
     "version": "v1",
     "auth": {
@@ -1031,7 +1215,7 @@
     "baseUrl": "https://bigqueryreservation.googleapis.com/",
     "description": "A service to modify your BigQuery flat-rate reservations.",
     "name": "bigqueryreservation",
-    "revision": "20230621",
+    "revision": "20240203",
     "title": "BigQuery Reservation API",
     "version": "v1",
     "auth": {
@@ -1051,7 +1235,7 @@
     "baseUrl": "https://bigtableadmin.googleapis.com/",
     "description": "Administer your Cloud Bigtable tables and instances.",
     "name": "bigtableadmin",
-    "revision": "20230610",
+    "revision": "20240201",
     "title": "Cloud Bigtable Admin API",
     "version": "v2",
     "auth": {
@@ -1092,7 +1276,7 @@
     "baseUrl": "https://billingbudgets.googleapis.com/",
     "description": "The Cloud Billing Budget API stores Cloud Billing budgets, which define a budget plan and the rules to execute as spend is tracked against that plan.",
     "name": "billingbudgets",
-    "revision": "20230621",
+    "revision": "20240211",
     "title": "Cloud Billing Budget API",
     "version": "v1beta1",
     "auth": {
@@ -1112,7 +1296,7 @@
     "baseUrl": "https://billingbudgets.googleapis.com/",
     "description": "The Cloud Billing Budget API stores Cloud Billing budgets, which define a budget plan and the rules to execute as spend is tracked against that plan.",
     "name": "billingbudgets",
-    "revision": "20230621",
+    "revision": "20240211",
     "title": "Cloud Billing Budget API",
     "version": "v1",
     "auth": {
@@ -1132,7 +1316,7 @@
     "baseUrl": "https://binaryauthorization.googleapis.com/",
     "description": "The management interface for Binary Authorization, a service that provides policy-based deployment validation and control for images deployed to Google Kubernetes Engine (GKE), Anthos Service Mesh, Anthos Clusters, and Cloud Run. ",
     "name": "binaryauthorization",
-    "revision": "20230620",
+    "revision": "20240209",
     "title": "Binary Authorization API",
     "version": "v1beta1",
     "auth": {
@@ -1149,7 +1333,7 @@
     "baseUrl": "https://binaryauthorization.googleapis.com/",
     "description": "The management interface for Binary Authorization, a service that provides policy-based deployment validation and control for images deployed to Google Kubernetes Engine (GKE), Anthos Service Mesh, Anthos Clusters, and Cloud Run. ",
     "name": "binaryauthorization",
-    "revision": "20230620",
+    "revision": "20240209",
     "title": "Binary Authorization API",
     "version": "v1",
     "auth": {
@@ -1165,7 +1349,7 @@
   {
     "baseUrl": "https://blockchainnodeengine.googleapis.com/",
     "name": "blockchainnodeengine",
-    "revision": "20230621",
+    "revision": "20240207",
     "title": "Blockchain Node Engine API",
     "version": "v1",
     "auth": {
@@ -1182,7 +1366,7 @@
     "baseUrl": "https://blogger.googleapis.com/",
     "description": "The Blogger API provides access to posts, comments and pages of a Blogger blog.",
     "name": "blogger",
-    "revision": "20230627",
+    "revision": "20240214",
     "title": "Blogger API",
     "version": "v2",
     "auth": {
@@ -1199,7 +1383,7 @@
     "baseUrl": "https://blogger.googleapis.com/",
     "description": "The Blogger API provides access to posts, comments and pages of a Blogger blog.",
     "name": "blogger",
-    "revision": "20230627",
+    "revision": "20240214",
     "title": "Blogger API",
     "version": "v3",
     "auth": {
@@ -1219,7 +1403,7 @@
     "baseUrl": "https://books.googleapis.com/",
     "description": "The Google Books API allows clients to access the Google Books repository.",
     "name": "books",
-    "revision": "20230622",
+    "revision": "20240214",
     "title": "Books API",
     "version": "v1",
     "auth": {
@@ -1236,7 +1420,7 @@
     "baseUrl": "https://businessprofileperformance.googleapis.com/",
     "description": "The Business Profile Performance API allows merchants to fetch performance reports about their business profile on Google. Note - If you have a quota of 0 after enabling the API, please request for GBP API access.",
     "name": "businessprofileperformance",
-    "revision": "20230627",
+    "revision": "20240110",
     "title": "Business Profile Performance API",
     "version": "v1",
     "auth": {
@@ -1248,7 +1432,7 @@
     "baseUrl": "https://www.googleapis.com/calendar/v3/",
     "description": "Manipulates events and other calendar data.",
     "name": "calendar",
-    "revision": "20230623",
+    "revision": "20240201",
     "title": "Calendar API",
     "version": "v3",
     "auth": {
@@ -1276,7 +1460,7 @@
   {
     "baseUrl": "https://certificatemanager.googleapis.com/",
     "name": "certificatemanager",
-    "revision": "20230619",
+    "revision": "20240209",
     "title": "Certificate Manager API",
     "version": "v1",
     "auth": {
@@ -1293,7 +1477,7 @@
     "baseUrl": "https://chat.googleapis.com/",
     "description": "Enables apps to fetch information and perform actions in Google Chat. Authentication is a prerequisite for using the Google Chat REST API.",
     "name": "chat",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "Google Chat API",
     "version": "v1",
     "auth": {
@@ -1336,7 +1520,7 @@
             "description": "View messages and reactions in Google Chat"
           },
           "https://www.googleapis.com/auth/chat.spaces": {
-            "description": "Create conversations and spaces and view or update metadata (including history settings) in Google Chat"
+            "description": "Create conversations and spaces and see or edit metadata (including history settings and access settings) in Google Chat"
           },
           "https://www.googleapis.com/auth/chat.spaces.create": {
             "description": "Create new conversations in Google Chat"
@@ -1352,24 +1536,18 @@
     "baseUrl": "https://checks.googleapis.com/",
     "description": "The Checks API contains powerful and easy-to-use privacy and compliance APIs that interact with the Checks product and its underlying technology.",
     "name": "checks",
-    "revision": "20230627",
+    "revision": "20240213",
     "title": "Checks API",
     "version": "v1alpha",
     "auth": {
-      "oauth2": {
-        "scopes": {
-          "https://www.googleapis.com/auth/xapi.zoo": {
-            "description": "Test scope for access to the Zoo service"
-          }
-        }
-      }
+      "oauth2": {}
     }
   },
   {
     "baseUrl": "https://chromemanagement.googleapis.com/",
     "description": "The Chrome Management API is a suite of services that allows Chrome administrators to view, manage and gain insights on their Chrome OS and Chrome Browser devices.",
     "name": "chromemanagement",
-    "revision": "20230627",
+    "revision": "20240213",
     "title": "Chrome Management API",
     "version": "v1",
     "auth": {
@@ -1392,7 +1570,7 @@
     "baseUrl": "https://chromepolicy.googleapis.com/",
     "description": "The Chrome Policy API is a suite of services that allows Chrome administrators to control the policies applied to their managed Chrome OS devices and Chrome browsers.",
     "name": "chromepolicy",
-    "revision": "20230627",
+    "revision": "20240213",
     "title": "Chrome Policy API",
     "version": "v1",
     "auth": {
@@ -1412,7 +1590,7 @@
     "baseUrl": "https://chromeuxreport.googleapis.com/",
     "description": "The Chrome UX Report API lets you view real user experience data for millions of websites. ",
     "name": "chromeuxreport",
-    "revision": "20230622",
+    "revision": "20240213",
     "title": "Chrome UX Report API",
     "version": "v1",
     "auth": {
@@ -1423,7 +1601,7 @@
     "baseUrl": "https://civicinfo.googleapis.com/",
     "description": "Provides polling places, early vote locations, contest data, election officials, and government representatives for U.S. residential addresses.",
     "name": "civicinfo",
-    "revision": "20230627",
+    "revision": "20240213",
     "title": "Google Civic Information API",
     "version": "v2",
     "auth": {
@@ -1434,7 +1612,7 @@
     "baseUrl": "https://classroom.googleapis.com/",
     "description": "Manages classes, rosters, and invitations in Google Classroom.",
     "name": "classroom",
-    "revision": "20230626",
+    "revision": "20240213",
     "title": "Google Classroom API",
     "version": "v1",
     "auth": {
@@ -1514,7 +1692,7 @@
     "baseUrl": "https://cloudasset.googleapis.com/",
     "description": "The Cloud Asset API manages the history and inventory of Google Cloud resources.",
     "name": "cloudasset",
-    "revision": "20230626",
+    "revision": "20240209",
     "title": "Cloud Asset API",
     "version": "v1p1beta1",
     "auth": {
@@ -1531,7 +1709,7 @@
     "baseUrl": "https://cloudasset.googleapis.com/",
     "description": "The Cloud Asset API manages the history and inventory of Google Cloud resources.",
     "name": "cloudasset",
-    "revision": "20230626",
+    "revision": "20240209",
     "title": "Cloud Asset API",
     "version": "v1p5beta1",
     "auth": {
@@ -1548,7 +1726,7 @@
     "baseUrl": "https://cloudasset.googleapis.com/",
     "description": "The Cloud Asset API manages the history and inventory of Google Cloud resources.",
     "name": "cloudasset",
-    "revision": "20230626",
+    "revision": "20240209",
     "title": "Cloud Asset API",
     "version": "v1p7beta1",
     "auth": {
@@ -1565,7 +1743,7 @@
     "baseUrl": "https://cloudasset.googleapis.com/",
     "description": "The Cloud Asset API manages the history and inventory of Google Cloud resources.",
     "name": "cloudasset",
-    "revision": "20230626",
+    "revision": "20240209",
     "title": "Cloud Asset API",
     "version": "v1beta1",
     "auth": {
@@ -1582,7 +1760,7 @@
     "baseUrl": "https://cloudasset.googleapis.com/",
     "description": "The Cloud Asset API manages the history and inventory of Google Cloud resources.",
     "name": "cloudasset",
-    "revision": "20230626",
+    "revision": "20240209",
     "title": "Cloud Asset API",
     "version": "v1",
     "auth": {
@@ -1599,7 +1777,7 @@
     "baseUrl": "https://cloudbilling.googleapis.com/",
     "description": "Allows developers to manage billing for their Google Cloud Platform projects programmatically.",
     "name": "cloudbilling",
-    "revision": "20230616",
+    "revision": "20240206",
     "title": "Cloud Billing API",
     "version": "v1beta",
     "auth": {
@@ -1622,7 +1800,7 @@
     "baseUrl": "https://cloudbilling.googleapis.com/",
     "description": "Allows developers to manage billing for their Google Cloud Platform projects programmatically.",
     "name": "cloudbilling",
-    "revision": "20230616",
+    "revision": "20240206",
     "title": "Cloud Billing API",
     "version": "v1",
     "auth": {
@@ -1645,9 +1823,26 @@
     "baseUrl": "https://cloudbuild.googleapis.com/",
     "description": "Creates and manages builds on Google Cloud Platform.",
     "name": "cloudbuild",
-    "revision": "20230626",
+    "revision": "20240207",
     "title": "Cloud Build API",
     "version": "v1",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          }
+        }
+      }
+    }
+  },
+  {
+    "baseUrl": "https://cloudbuild.googleapis.com/",
+    "description": "Creates and manages builds on Google Cloud Platform.",
+    "name": "cloudbuild",
+    "revision": "20240207",
+    "title": "Cloud Build API",
+    "version": "v2",
     "auth": {
       "oauth2": {
         "scopes": {
@@ -1662,7 +1857,7 @@
     "baseUrl": "https://cloudchannel.googleapis.com/",
     "description": "The Cloud Channel API enables Google Cloud partners to have a single unified resale platform and APIs across all of Google Cloud including GCP, Workspace, Maps and Chrome.",
     "name": "cloudchannel",
-    "revision": "20230627",
+    "revision": "20240213",
     "title": "Cloud Channel API",
     "version": "v1",
     "auth": {
@@ -1679,30 +1874,10 @@
     }
   },
   {
-    "baseUrl": "https://clouddebugger.googleapis.com/",
-    "description": "Examines the call stack and variables of a running application without stopping or slowing it down. (Deprecated) ",
-    "name": "clouddebugger",
-    "revision": "20230621",
-    "title": "Cloud Debugger API (Deprecated)",
-    "version": "v2",
-    "auth": {
-      "oauth2": {
-        "scopes": {
-          "https://www.googleapis.com/auth/cloud-platform": {
-            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
-          },
-          "https://www.googleapis.com/auth/cloud_debugger": {
-            "description": "Use Stackdriver Debugger"
-          }
-        }
-      }
-    }
-  },
-  {
     "baseUrl": "https://clouddeploy.googleapis.com/",
     "name": "clouddeploy",
-    "revision": "20230621",
-    "title": "Google Cloud Deploy API",
+    "revision": "20240207",
+    "title": "Cloud Deploy API",
     "version": "v1",
     "auth": {
       "oauth2": {
@@ -1718,7 +1893,7 @@
     "baseUrl": "https://clouderrorreporting.googleapis.com/",
     "description": "Groups and counts similar errors from cloud services and applications, reports new errors, and provides access to error groups and their associated errors. ",
     "name": "clouderrorreporting",
-    "revision": "20230620",
+    "revision": "20240207",
     "title": "Error Reporting API",
     "version": "v1beta1",
     "auth": {
@@ -1735,7 +1910,7 @@
     "baseUrl": "https://cloudfunctions.googleapis.com/",
     "description": "Manages lightweight user-provided functions executed in response to events.",
     "name": "cloudfunctions",
-    "revision": "20230622",
+    "revision": "20240207",
     "title": "Cloud Functions API",
     "version": "v2alpha",
     "auth": {
@@ -1752,7 +1927,7 @@
     "baseUrl": "https://cloudfunctions.googleapis.com/",
     "description": "Manages lightweight user-provided functions executed in response to events.",
     "name": "cloudfunctions",
-    "revision": "20230622",
+    "revision": "20240207",
     "title": "Cloud Functions API",
     "version": "v2beta",
     "auth": {
@@ -1769,7 +1944,7 @@
     "baseUrl": "https://cloudfunctions.googleapis.com/",
     "description": "Manages lightweight user-provided functions executed in response to events.",
     "name": "cloudfunctions",
-    "revision": "20230622",
+    "revision": "20240207",
     "title": "Cloud Functions API",
     "version": "v1",
     "auth": {
@@ -1786,7 +1961,7 @@
     "baseUrl": "https://cloudfunctions.googleapis.com/",
     "description": "Manages lightweight user-provided functions executed in response to events.",
     "name": "cloudfunctions",
-    "revision": "20230622",
+    "revision": "20240207",
     "title": "Cloud Functions API",
     "version": "v2",
     "auth": {
@@ -1803,7 +1978,7 @@
     "baseUrl": "https://cloudidentity.googleapis.com/",
     "description": "API for provisioning and managing identity resources.",
     "name": "cloudidentity",
-    "revision": "20230627",
+    "revision": "20240214",
     "title": "Cloud Identity API",
     "version": "v1beta1",
     "auth": {
@@ -1835,7 +2010,7 @@
     "baseUrl": "https://cloudidentity.googleapis.com/",
     "description": "API for provisioning and managing identity resources.",
     "name": "cloudidentity",
-    "revision": "20230627",
+    "revision": "20240214",
     "title": "Cloud Identity API",
     "version": "v1",
     "auth": {
@@ -1867,7 +2042,7 @@
     "baseUrl": "https://cloudkms.googleapis.com/",
     "description": "Manages keys and performs cryptographic operations in a central cloud service, for direct use by other cloud resources and applications. ",
     "name": "cloudkms",
-    "revision": "20230620",
+    "revision": "20240212",
     "title": "Cloud Key Management Service (KMS) API",
     "version": "v1",
     "auth": {
@@ -1887,7 +2062,7 @@
     "baseUrl": "https://cloudprofiler.googleapis.com/",
     "description": "Manages continuous profiling information.",
     "name": "cloudprofiler",
-    "revision": "20230612",
+    "revision": "20240122",
     "title": "Cloud Profiler API",
     "version": "v2",
     "auth": {
@@ -1910,7 +2085,7 @@
     "baseUrl": "https://cloudresourcemanager.googleapis.com/",
     "description": "Creates, reads, and updates metadata for Google Cloud Platform resource containers.",
     "name": "cloudresourcemanager",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "Cloud Resource Manager API",
     "version": "v1beta1",
     "auth": {
@@ -1930,7 +2105,7 @@
     "baseUrl": "https://cloudresourcemanager.googleapis.com/",
     "description": "Creates, reads, and updates metadata for Google Cloud Platform resource containers.",
     "name": "cloudresourcemanager",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "Cloud Resource Manager API",
     "version": "v2beta1",
     "auth": {
@@ -1950,7 +2125,7 @@
     "baseUrl": "https://cloudresourcemanager.googleapis.com/",
     "description": "Creates, reads, and updates metadata for Google Cloud Platform resource containers.",
     "name": "cloudresourcemanager",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "Cloud Resource Manager API",
     "version": "v1",
     "auth": {
@@ -1970,7 +2145,7 @@
     "baseUrl": "https://cloudresourcemanager.googleapis.com/",
     "description": "Creates, reads, and updates metadata for Google Cloud Platform resource containers.",
     "name": "cloudresourcemanager",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "Cloud Resource Manager API",
     "version": "v2",
     "auth": {
@@ -1990,7 +2165,7 @@
     "baseUrl": "https://cloudresourcemanager.googleapis.com/",
     "description": "Creates, reads, and updates metadata for Google Cloud Platform resource containers.",
     "name": "cloudresourcemanager",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "Cloud Resource Manager API",
     "version": "v3",
     "auth": {
@@ -2010,7 +2185,7 @@
     "baseUrl": "https://cloudscheduler.googleapis.com/",
     "description": "Creates and manages jobs run on a regular recurring schedule.",
     "name": "cloudscheduler",
-    "revision": "20230612",
+    "revision": "20240206",
     "title": "Cloud Scheduler API",
     "version": "v1beta1",
     "auth": {
@@ -2027,7 +2202,7 @@
     "baseUrl": "https://cloudscheduler.googleapis.com/",
     "description": "Creates and manages jobs run on a regular recurring schedule.",
     "name": "cloudscheduler",
-    "revision": "20230612",
+    "revision": "20240206",
     "title": "Cloud Scheduler API",
     "version": "v1",
     "auth": {
@@ -2044,7 +2219,7 @@
     "baseUrl": "https://cloudsearch.googleapis.com/",
     "description": "Cloud Search provides cloud-based search capabilities over Google Workspace data. The Cloud Search API allows indexing of non-Google Workspace data into Cloud Search.",
     "name": "cloudsearch",
-    "revision": "20230621",
+    "revision": "20240103",
     "title": "Cloud Search API",
     "version": "v1",
     "auth": {
@@ -2085,7 +2260,7 @@
     "baseUrl": "https://cloudshell.googleapis.com/",
     "description": "Allows users to start, configure, and connect to interactive shell sessions running in the cloud. ",
     "name": "cloudshell",
-    "revision": "20230623",
+    "revision": "20240212",
     "title": "Cloud Shell API",
     "version": "v1",
     "auth": {
@@ -2102,7 +2277,7 @@
     "baseUrl": "https://cloudsupport.googleapis.com/",
     "description": "Manages Google Cloud technical support cases for Customer Care support offerings. ",
     "name": "cloudsupport",
-    "revision": "20230627",
+    "revision": "20240214",
     "title": "Google Cloud Support API",
     "version": "v2beta",
     "auth": {
@@ -2119,7 +2294,7 @@
     "baseUrl": "https://cloudsupport.googleapis.com/",
     "description": "Manages Google Cloud technical support cases for Customer Care support offerings. ",
     "name": "cloudsupport",
-    "revision": "20230627",
+    "revision": "20240214",
     "title": "Google Cloud Support API",
     "version": "v2",
     "auth": {
@@ -2136,7 +2311,7 @@
     "baseUrl": "https://cloudtasks.googleapis.com/",
     "description": "Manages the execution of large numbers of distributed requests.",
     "name": "cloudtasks",
-    "revision": "20230526",
+    "revision": "20240205",
     "title": "Cloud Tasks API",
     "version": "v2beta2",
     "auth": {
@@ -2153,7 +2328,7 @@
     "baseUrl": "https://cloudtasks.googleapis.com/",
     "description": "Manages the execution of large numbers of distributed requests.",
     "name": "cloudtasks",
-    "revision": "20230526",
+    "revision": "20240205",
     "title": "Cloud Tasks API",
     "version": "v2beta3",
     "auth": {
@@ -2170,7 +2345,7 @@
     "baseUrl": "https://cloudtasks.googleapis.com/",
     "description": "Manages the execution of large numbers of distributed requests.",
     "name": "cloudtasks",
-    "revision": "20230526",
+    "revision": "20240205",
     "title": "Cloud Tasks API",
     "version": "v2",
     "auth": {
@@ -2187,7 +2362,7 @@
     "baseUrl": "https://cloudtrace.googleapis.com/",
     "description": "Sends application trace data to Cloud Trace for viewing. Trace data is collected for all App Engine applications by default. Trace data from other applications can be provided using this API. This library is used to interact with the Cloud Trace API directly. If you are looking to instrument your application for Cloud Trace, we recommend using OpenTelemetry. ",
     "name": "cloudtrace",
-    "revision": "20230622",
+    "revision": "20240209",
     "title": "Cloud Trace API",
     "version": "v2beta1",
     "auth": {
@@ -2210,7 +2385,7 @@
     "baseUrl": "https://cloudtrace.googleapis.com/",
     "description": "Sends application trace data to Cloud Trace for viewing. Trace data is collected for all App Engine applications by default. Trace data from other applications can be provided using this API. This library is used to interact with the Cloud Trace API directly. If you are looking to instrument your application for Cloud Trace, we recommend using OpenTelemetry. ",
     "name": "cloudtrace",
-    "revision": "20230622",
+    "revision": "20240209",
     "title": "Cloud Trace API",
     "version": "v1",
     "auth": {
@@ -2233,7 +2408,7 @@
     "baseUrl": "https://cloudtrace.googleapis.com/",
     "description": "Sends application trace data to Cloud Trace for viewing. Trace data is collected for all App Engine applications by default. Trace data from other applications can be provided using this API. This library is used to interact with the Cloud Trace API directly. If you are looking to instrument your application for Cloud Trace, we recommend using OpenTelemetry. ",
     "name": "cloudtrace",
-    "revision": "20230622",
+    "revision": "20240209",
     "title": "Cloud Trace API",
     "version": "v2",
     "auth": {
@@ -2253,7 +2428,7 @@
     "baseUrl": "https://composer.googleapis.com/",
     "description": "Manages Apache Airflow environments on Google Cloud Platform.",
     "name": "composer",
-    "revision": "20230619",
+    "revision": "20240204",
     "title": "Cloud Composer API",
     "version": "v1beta1",
     "auth": {
@@ -2270,7 +2445,7 @@
     "baseUrl": "https://composer.googleapis.com/",
     "description": "Manages Apache Airflow environments on Google Cloud Platform.",
     "name": "composer",
-    "revision": "20230619",
+    "revision": "20240204",
     "title": "Cloud Composer API",
     "version": "v1",
     "auth": {
@@ -2288,7 +2463,7 @@
     "baseUrl": "https://compute.googleapis.com/compute/alpha/",
     "description": "Creates and runs virtual machines on Google Cloud Platform. ",
     "name": "compute",
-    "revision": "20230610",
+    "revision": "20240130",
     "title": "Compute Engine API",
     "version": "alpha",
     "auth": {
@@ -2321,7 +2496,7 @@
     "baseUrl": "https://compute.googleapis.com/compute/beta/",
     "description": "Creates and runs virtual machines on Google Cloud Platform. ",
     "name": "compute",
-    "revision": "20230610",
+    "revision": "20240130",
     "title": "Compute Engine API",
     "version": "beta",
     "auth": {
@@ -2354,7 +2529,7 @@
     "baseUrl": "https://compute.googleapis.com/compute/v1/",
     "description": "Creates and runs virtual machines on Google Cloud Platform. ",
     "name": "compute",
-    "revision": "20230610",
+    "revision": "20240130",
     "title": "Compute Engine API",
     "version": "v1",
     "auth": {
@@ -2386,7 +2561,7 @@
     "baseUrl": "https://connectors.googleapis.com/",
     "description": "Enables users to create and manage connections to Google Cloud services and third-party business applications using the Connectors interface.",
     "name": "connectors",
-    "revision": "20230614",
+    "revision": "20240131",
     "title": "Connectors API",
     "version": "v1",
     "auth": {
@@ -2403,7 +2578,7 @@
     "baseUrl": "https://connectors.googleapis.com/",
     "description": "Enables users to create and manage connections to Google Cloud services and third-party business applications using the Connectors interface.",
     "name": "connectors",
-    "revision": "20230614",
+    "revision": "20240131",
     "title": "Connectors API",
     "version": "v2",
     "auth": {
@@ -2419,7 +2594,7 @@
   {
     "baseUrl": "https://contactcenteraiplatform.googleapis.com/",
     "name": "contactcenteraiplatform",
-    "revision": "20230621",
+    "revision": "20240207",
     "title": "Contact Center AI Platform API",
     "version": "v1alpha1",
     "auth": {
@@ -2435,7 +2610,7 @@
   {
     "baseUrl": "https://contactcenterinsights.googleapis.com/",
     "name": "contactcenterinsights",
-    "revision": "20230621",
+    "revision": "20240212",
     "title": "Contact Center AI Insights API",
     "version": "v1",
     "auth": {
@@ -2452,7 +2627,7 @@
     "baseUrl": "https://container.googleapis.com/",
     "description": "Builds and manages container-based applications, powered by the open source Kubernetes technology.",
     "name": "container",
-    "revision": "20230524",
+    "revision": "20240130",
     "title": "Kubernetes Engine API",
     "version": "v1beta1",
     "auth": {
@@ -2469,7 +2644,7 @@
     "baseUrl": "https://container.googleapis.com/",
     "description": "Builds and manages container-based applications, powered by the open source Kubernetes technology.",
     "name": "container",
-    "revision": "20230613",
+    "revision": "20240118",
     "title": "Kubernetes Engine API",
     "version": "v1",
     "auth": {
@@ -2484,9 +2659,9 @@
   },
   {
     "baseUrl": "https://containeranalysis.googleapis.com/",
-    "description": "An implementation of the Grafeas API, which stores, and enables querying and retrieval of critical metadata about all of your software artifacts.",
+    "description": "This API is a prerequisite for leveraging Artifact Analysis scanning capabilities in both Artifact Registry and with Advanced Vulnerability Insights (runtime scanning) in GKE. In addition, the Container Analysis API is an implementation of the Grafeas API, which enables storing, querying, and retrieval of critical metadata about all of your software artifacts.",
     "name": "containeranalysis",
-    "revision": "20230612",
+    "revision": "20240105",
     "title": "Container Analysis API",
     "version": "v1alpha1",
     "auth": {
@@ -2501,9 +2676,9 @@
   },
   {
     "baseUrl": "https://containeranalysis.googleapis.com/",
-    "description": "An implementation of the Grafeas API, which stores, and enables querying and retrieval of critical metadata about all of your software artifacts.",
+    "description": "This API is a prerequisite for leveraging Artifact Analysis scanning capabilities in both Artifact Registry and with Advanced Vulnerability Insights (runtime scanning) in GKE. In addition, the Container Analysis API is an implementation of the Grafeas API, which enables storing, querying, and retrieval of critical metadata about all of your software artifacts.",
     "name": "containeranalysis",
-    "revision": "20230612",
+    "revision": "20240105",
     "title": "Container Analysis API",
     "version": "v1beta1",
     "auth": {
@@ -2518,9 +2693,9 @@
   },
   {
     "baseUrl": "https://containeranalysis.googleapis.com/",
-    "description": "An implementation of the Grafeas API, which stores, and enables querying and retrieval of critical metadata about all of your software artifacts.",
+    "description": "This API is a prerequisite for leveraging Artifact Analysis scanning capabilities in both Artifact Registry and with Advanced Vulnerability Insights (runtime scanning) in GKE. In addition, the Container Analysis API is an implementation of the Grafeas API, which enables storing, querying, and retrieval of critical metadata about all of your software artifacts.",
     "name": "containeranalysis",
-    "revision": "20230612",
+    "revision": "20240105",
     "title": "Container Analysis API",
     "version": "v1",
     "auth": {
@@ -2538,7 +2713,7 @@
     "baseUrl": "https://shoppingcontent.googleapis.com/content/v2.1/",
     "description": "Manage your product listings and accounts for Google Shopping",
     "name": "content",
-    "revision": "20230613",
+    "revision": "20240214",
     "title": "Content API for Shopping",
     "version": "v2.1",
     "auth": {
@@ -2554,7 +2729,7 @@
   {
     "baseUrl": "https://contentwarehouse.googleapis.com/",
     "name": "contentwarehouse",
-    "revision": "20230627",
+    "revision": "20231106",
     "title": "Document AI Warehouse API",
     "version": "v1",
     "auth": {
@@ -2571,7 +2746,7 @@
     "baseUrl": "https://customsearch.googleapis.com/",
     "description": "Searches over a website or collection of websites",
     "name": "customsearch",
-    "revision": "20230627",
+    "revision": "20240214",
     "title": "Custom Search API",
     "version": "v1",
     "auth": {
@@ -2582,7 +2757,7 @@
     "baseUrl": "https://datacatalog.googleapis.com/",
     "description": "A fully managed and highly scalable data discovery and metadata management service. ",
     "name": "datacatalog",
-    "revision": "20230619",
+    "revision": "20240206",
     "title": "Google Cloud Data Catalog API",
     "version": "v1beta1",
     "auth": {
@@ -2599,7 +2774,7 @@
     "baseUrl": "https://datacatalog.googleapis.com/",
     "description": "A fully managed and highly scalable data discovery and metadata management service. ",
     "name": "datacatalog",
-    "revision": "20230619",
+    "revision": "20240206",
     "title": "Google Cloud Data Catalog API",
     "version": "v1",
     "auth": {
@@ -2616,7 +2791,7 @@
     "baseUrl": "https://dataflow.googleapis.com/",
     "description": "Manages Google Cloud Dataflow projects on Google Cloud Platform.",
     "name": "dataflow",
-    "revision": "20230619",
+    "revision": "20240207",
     "title": "Dataflow API",
     "version": "v1b3",
     "auth": {
@@ -2640,8 +2815,9 @@
   },
   {
     "baseUrl": "https://dataform.googleapis.com/",
+    "description": "Service to develop, version control, and operationalize SQL pipelines in BigQuery.",
     "name": "dataform",
-    "revision": "20230616",
+    "revision": "20240211",
     "title": "Dataform API",
     "version": "v1beta1",
     "auth": {
@@ -2658,7 +2834,7 @@
     "baseUrl": "https://datafusion.googleapis.com/",
     "description": "Cloud Data Fusion is a fully-managed, cloud native, enterprise data integration service for quickly building and managing data pipelines. It provides a graphical interface to increase time efficiency and reduce complexity, and allows business users, developers, and data scientists to easily and reliably build scalable data integration solutions to cleanse, prepare, blend, transfer and transform data without having to wrestle with infrastructure.",
     "name": "datafusion",
-    "revision": "20230526",
+    "revision": "20240111",
     "title": "Cloud Data Fusion API",
     "version": "v1beta1",
     "auth": {
@@ -2675,7 +2851,7 @@
     "baseUrl": "https://datafusion.googleapis.com/",
     "description": "Cloud Data Fusion is a fully-managed, cloud native, enterprise data integration service for quickly building and managing data pipelines. It provides a graphical interface to increase time efficiency and reduce complexity, and allows business users, developers, and data scientists to easily and reliably build scalable data integration solutions to cleanse, prepare, blend, transfer and transform data without having to wrestle with infrastructure.",
     "name": "datafusion",
-    "revision": "20230526",
+    "revision": "20240111",
     "title": "Cloud Data Fusion API",
     "version": "v1",
     "auth": {
@@ -2692,7 +2868,7 @@
     "baseUrl": "https://datalabeling.googleapis.com/",
     "description": "Public API for Google Cloud AI Data Labeling Service.",
     "name": "datalabeling",
-    "revision": "20230626",
+    "revision": "20240207",
     "title": "Data Labeling API",
     "version": "v1beta1",
     "auth": {
@@ -2708,7 +2884,7 @@
   {
     "baseUrl": "https://datalineage.googleapis.com/",
     "name": "datalineage",
-    "revision": "20230519",
+    "revision": "20240205",
     "title": "Data Lineage API",
     "version": "v1",
     "auth": {
@@ -2725,7 +2901,7 @@
     "baseUrl": "https://datamigration.googleapis.com/",
     "description": "Manage Cloud Database Migration Service resources on Google Cloud Platform.",
     "name": "datamigration",
-    "revision": "20230621",
+    "revision": "20240207",
     "title": "Database Migration API",
     "version": "v1beta1",
     "auth": {
@@ -2742,7 +2918,7 @@
     "baseUrl": "https://datamigration.googleapis.com/",
     "description": "Manage Cloud Database Migration Service resources on Google Cloud Platform.",
     "name": "datamigration",
-    "revision": "20230621",
+    "revision": "20240207",
     "title": "Database Migration API",
     "version": "v1",
     "auth": {
@@ -2759,7 +2935,7 @@
     "baseUrl": "https://datapipelines.googleapis.com/",
     "description": "Data Pipelines provides an interface for creating, updating, and managing recurring Data Analytics jobs.",
     "name": "datapipelines",
-    "revision": "20230618",
+    "revision": "20240128",
     "title": "Data pipelines API",
     "version": "v1",
     "auth": {
@@ -2776,7 +2952,7 @@
     "baseUrl": "https://dataplex.googleapis.com/",
     "description": "Dataplex API is used to manage the lifecycle of data lakes.",
     "name": "dataplex",
-    "revision": "20230626",
+    "revision": "20240207",
     "title": "Cloud Dataplex API",
     "version": "v1",
     "auth": {
@@ -2790,10 +2966,102 @@
     }
   },
   {
+    "baseUrl": "https://dataportability.googleapis.com/",
+    "description": "The Data Portability API lets you build applications that request authorization from a user to move a copy of data from Google services into your application. This enables data portability and facilitates switching services.",
+    "name": "dataportability",
+    "revision": "20240213",
+    "title": "Data Portability API",
+    "version": "v1beta",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/dataportability.businessmessaging.conversations": {
+            "description": "Move a copy of messages between you and the businesses you have conversations with across Google services."
+          },
+          "https://www.googleapis.com/auth/dataportability.maps.commute_routes": {
+            "description": "Move a copy of your pinned trips on Maps."
+          },
+          "https://www.googleapis.com/auth/dataportability.maps.commute_settings": {
+            "description": "Move a copy of your commute settings on Maps."
+          },
+          "https://www.googleapis.com/auth/dataportability.maps.ev_profile": {
+            "description": "Move a copy of your electric vehicle profile on Maps."
+          },
+          "https://www.googleapis.com/auth/dataportability.maps.offering_contributions": {
+            "description": "Move a copy of your updates to places on Maps."
+          },
+          "https://www.googleapis.com/auth/dataportability.maps.photos_videos": {
+            "description": "Move a copy of the photos and videos you posted on Maps."
+          },
+          "https://www.googleapis.com/auth/dataportability.maps.reviews": {
+            "description": "Move a copy of your reviews and posts on Maps."
+          },
+          "https://www.googleapis.com/auth/dataportability.maps.starred_places": {
+            "description": "Move a copy of your Starred places list on Maps."
+          },
+          "https://www.googleapis.com/auth/dataportability.myactivity.maps": {
+            "description": "Move a copy of your Maps activity."
+          },
+          "https://www.googleapis.com/auth/dataportability.myactivity.search": {
+            "description": "Move a copy of your Google Search activity."
+          },
+          "https://www.googleapis.com/auth/dataportability.myactivity.shopping": {
+            "description": "Move a copy of your Shopping activity."
+          },
+          "https://www.googleapis.com/auth/dataportability.myactivity.youtube": {
+            "description": "Move a copy of your YouTube activity."
+          },
+          "https://www.googleapis.com/auth/dataportability.shopping.addresses": {
+            "description": "Move a copy of your shipping information on Shopping."
+          },
+          "https://www.googleapis.com/auth/dataportability.shopping.reviews": {
+            "description": "Move a copy of reviews you wrote about products or online stores on Google Search."
+          },
+          "https://www.googleapis.com/auth/dataportability.youtube.channel": {
+            "description": "Move a copy of information about your YouTube channel."
+          },
+          "https://www.googleapis.com/auth/dataportability.youtube.comments": {
+            "description": "Move a copy of your YouTube comments."
+          },
+          "https://www.googleapis.com/auth/dataportability.youtube.live_chat": {
+            "description": "Move a copy of your YouTube messages in live chat."
+          },
+          "https://www.googleapis.com/auth/dataportability.youtube.music": {
+            "description": "Move a copy of your uploaded YouTube music tracks and your YouTube music library."
+          },
+          "https://www.googleapis.com/auth/dataportability.youtube.private_playlists": {
+            "description": "Move a copy of your YouTube private playlists."
+          },
+          "https://www.googleapis.com/auth/dataportability.youtube.private_videos": {
+            "description": "Move a copy of your private YouTube videos and information about them."
+          },
+          "https://www.googleapis.com/auth/dataportability.youtube.public_playlists": {
+            "description": "Move a copy of your public YouTube playlists."
+          },
+          "https://www.googleapis.com/auth/dataportability.youtube.public_videos": {
+            "description": "Move a copy of your public YouTube videos and information about them."
+          },
+          "https://www.googleapis.com/auth/dataportability.youtube.shopping": {
+            "description": "Move a copy of your YouTube shopping wishlists, and wishlist items."
+          },
+          "https://www.googleapis.com/auth/dataportability.youtube.subscriptions": {
+            "description": "Move a copy of your YouTube channel subscriptions, even if they're private."
+          },
+          "https://www.googleapis.com/auth/dataportability.youtube.unlisted_playlists": {
+            "description": "Move a copy of your unlisted YouTube playlists."
+          },
+          "https://www.googleapis.com/auth/dataportability.youtube.unlisted_videos": {
+            "description": "Move a copy of your unlisted YouTube videos and information about them."
+          }
+        }
+      }
+    }
+  },
+  {
     "baseUrl": "https://dataproc.googleapis.com/",
     "description": "Manages Hadoop-based clusters and jobs on Google Cloud Platform.",
     "name": "dataproc",
-    "revision": "20230622",
+    "revision": "20240209",
     "title": "Cloud Dataproc API",
     "version": "v1",
     "auth": {
@@ -2810,7 +3078,7 @@
     "baseUrl": "https://datastore.googleapis.com/",
     "description": "Accesses the schemaless NoSQL database to provide fully managed, robust, scalable storage for your application. ",
     "name": "datastore",
-    "revision": "20230621",
+    "revision": "20240208",
     "title": "Cloud Datastore API",
     "version": "v1beta1",
     "auth": {
@@ -2830,7 +3098,7 @@
     "baseUrl": "https://datastore.googleapis.com/",
     "description": "Accesses the schemaless NoSQL database to provide fully managed, robust, scalable storage for your application. ",
     "name": "datastore",
-    "revision": "20230621",
+    "revision": "20240208",
     "title": "Cloud Datastore API",
     "version": "v1beta3",
     "auth": {
@@ -2850,7 +3118,7 @@
     "baseUrl": "https://datastore.googleapis.com/",
     "description": "Accesses the schemaless NoSQL database to provide fully managed, robust, scalable storage for your application. ",
     "name": "datastore",
-    "revision": "20230621",
+    "revision": "20240208",
     "title": "Cloud Datastore API",
     "version": "v1",
     "auth": {
@@ -2869,7 +3137,7 @@
   {
     "baseUrl": "https://datastream.googleapis.com/",
     "name": "datastream",
-    "revision": "20230611",
+    "revision": "20240124",
     "title": "Datastream API",
     "version": "v1alpha1",
     "auth": {
@@ -2885,7 +3153,7 @@
   {
     "baseUrl": "https://datastream.googleapis.com/",
     "name": "datastream",
-    "revision": "20230620",
+    "revision": "20240124",
     "title": "Datastream API",
     "version": "v1",
     "auth": {
@@ -2902,7 +3170,7 @@
     "baseUrl": "https://deploymentmanager.googleapis.com/",
     "description": "The Google Cloud Deployment Manager v2 API provides services for configuring, deploying, and viewing Google Cloud services and APIs via templates which specify deployments of Cloud resources.",
     "name": "deploymentmanager",
-    "revision": "20230608",
+    "revision": "20240214",
     "title": "Cloud Deployment Manager V2 API",
     "version": "alpha",
     "auth": {
@@ -2928,7 +3196,7 @@
     "baseUrl": "https://deploymentmanager.googleapis.com/",
     "description": "The Google Cloud Deployment Manager v2 API provides services for configuring, deploying, and viewing Google Cloud services and APIs via templates which specify deployments of Cloud resources.",
     "name": "deploymentmanager",
-    "revision": "20230608",
+    "revision": "20240214",
     "title": "Cloud Deployment Manager V2 API",
     "version": "v2beta",
     "auth": {
@@ -2954,7 +3222,7 @@
     "baseUrl": "https://deploymentmanager.googleapis.com/",
     "description": "The Google Cloud Deployment Manager v2 API provides services for configuring, deploying, and viewing Google Cloud services and APIs via templates which specify deployments of Cloud resources.",
     "name": "deploymentmanager",
-    "revision": "20230608",
+    "revision": "20240111",
     "title": "Cloud Deployment Manager V2 API",
     "version": "v2",
     "auth": {
@@ -2981,7 +3249,7 @@
     "baseUrl": "https://dfareporting.googleapis.com/dfareporting/v3.5/",
     "description": "Build applications to efficiently manage large or complex trafficking, reporting, and attribution workflows for Campaign Manager 360.",
     "name": "dfareporting",
-    "revision": "20230523",
+    "revision": "20240201",
     "title": "Campaign Manager 360 API",
     "version": "v3.5",
     "auth": {
@@ -2999,7 +3267,7 @@
     "baseUrl": "https://dfareporting.googleapis.com/dfareporting/v4/",
     "description": "Build applications to efficiently manage large or complex trafficking, reporting, and attribution workflows for Campaign Manager 360.",
     "name": "dfareporting",
-    "revision": "20230523",
+    "revision": "20240201",
     "title": "Campaign Manager 360 API",
     "version": "v4",
     "auth": {
@@ -3022,7 +3290,7 @@
     "baseUrl": "https://dialogflow.googleapis.com/",
     "description": "Builds conversational interfaces (for example, chatbots, and voice-powered apps and devices).",
     "name": "dialogflow",
-    "revision": "20230626",
+    "revision": "20240131",
     "title": "Dialogflow API",
     "version": "v2beta1",
     "auth": {
@@ -3042,7 +3310,7 @@
     "baseUrl": "https://dialogflow.googleapis.com/",
     "description": "Builds conversational interfaces (for example, chatbots, and voice-powered apps and devices).",
     "name": "dialogflow",
-    "revision": "20230626",
+    "revision": "20240131",
     "title": "Dialogflow API",
     "version": "v3beta1",
     "auth": {
@@ -3062,7 +3330,7 @@
     "baseUrl": "https://dialogflow.googleapis.com/",
     "description": "Builds conversational interfaces (for example, chatbots, and voice-powered apps and devices).",
     "name": "dialogflow",
-    "revision": "20230626",
+    "revision": "20240131",
     "title": "Dialogflow API",
     "version": "v2",
     "auth": {
@@ -3082,7 +3350,7 @@
     "baseUrl": "https://dialogflow.googleapis.com/",
     "description": "Builds conversational interfaces (for example, chatbots, and voice-powered apps and devices).",
     "name": "dialogflow",
-    "revision": "20230626",
+    "revision": "20240131",
     "title": "Dialogflow API",
     "version": "v3",
     "auth": {
@@ -3102,7 +3370,7 @@
     "baseUrl": "https://digitalassetlinks.googleapis.com/",
     "description": "Discovers relationships between online assets such as websites or mobile apps.",
     "name": "digitalassetlinks",
-    "revision": "20230624",
+    "revision": "20240210",
     "title": "Digital Asset Links API",
     "version": "v1",
     "auth": {
@@ -3125,7 +3393,7 @@
     "baseUrl": "https://discoveryengine.googleapis.com/",
     "description": "Discovery Engine API.",
     "name": "discoveryengine",
-    "revision": "20230623",
+    "revision": "20240213",
     "title": "Discovery Engine API",
     "version": "v1alpha",
     "auth": {
@@ -3142,7 +3410,7 @@
     "baseUrl": "https://discoveryengine.googleapis.com/",
     "description": "Discovery Engine API.",
     "name": "discoveryengine",
-    "revision": "20230623",
+    "revision": "20240213",
     "title": "Discovery Engine API",
     "version": "v1beta",
     "auth": {
@@ -3159,9 +3427,9 @@
     "baseUrl": "https://displayvideo.googleapis.com/",
     "description": "Display \u0026 Video 360 API allows users to automate complex Display \u0026 Video 360 workflows, such as creating insertion orders and setting targeting options for individual line items.",
     "name": "displayvideo",
-    "revision": "20230627",
+    "revision": "20240208",
     "title": "Display \u0026 Video 360 API",
-    "version": "v1",
+    "version": "v2",
     "auth": {
       "oauth2": {
         "scopes": {
@@ -3185,9 +3453,9 @@
     "baseUrl": "https://displayvideo.googleapis.com/",
     "description": "Display \u0026 Video 360 API allows users to automate complex Display \u0026 Video 360 workflows, such as creating insertion orders and setting targeting options for individual line items.",
     "name": "displayvideo",
-    "revision": "20230627",
+    "revision": "20240208",
     "title": "Display \u0026 Video 360 API",
-    "version": "v2",
+    "version": "v3",
     "auth": {
       "oauth2": {
         "scopes": {
@@ -3209,10 +3477,10 @@
   },
   {
     "baseUrl": "https://dlp.googleapis.com/",
-    "description": "Provides methods for detection, risk analysis, and de-identification of privacy-sensitive fragments in text, images, and Google Cloud Platform storage repositories.",
+    "description": "Discover and protect your sensitive data. A fully managed service designed to help you discover, classify, and protect your valuable data assets with ease.",
     "name": "dlp",
-    "revision": "20230618",
-    "title": "Cloud Data Loss Prevention (DLP)",
+    "revision": "20240204",
+    "title": "Sensitive Data Protection (DLP)",
     "version": "v2",
     "auth": {
       "oauth2": {
@@ -3227,7 +3495,7 @@
   {
     "baseUrl": "https://dns.googleapis.com/",
     "name": "dns",
-    "revision": "20230628",
+    "revision": "20240129",
     "title": "Cloud DNS API",
     "version": "v1beta2",
     "auth": {
@@ -3252,7 +3520,7 @@
   {
     "baseUrl": "https://dns.googleapis.com/",
     "name": "dns",
-    "revision": "20230628",
+    "revision": "20240129",
     "title": "Cloud DNS API",
     "version": "v1",
     "auth": {
@@ -3278,7 +3546,7 @@
     "baseUrl": "https://docs.googleapis.com/",
     "description": "Reads and writes Google Docs documents.",
     "name": "docs",
-    "revision": "20230620",
+    "revision": "20240209",
     "title": "Google Docs API",
     "version": "v1",
     "auth": {
@@ -3307,7 +3575,7 @@
     "baseUrl": "https://documentai.googleapis.com/",
     "description": "Service to parse structured information from unstructured or semi-structured documents using state-of-the-art Google AI such as natural language, computer vision, translation, and AutoML.",
     "name": "documentai",
-    "revision": "20230627",
+    "revision": "20240212",
     "title": "Cloud Document AI API",
     "version": "v1beta2",
     "auth": {
@@ -3324,7 +3592,7 @@
     "baseUrl": "https://documentai.googleapis.com/",
     "description": "Service to parse structured information from unstructured or semi-structured documents using state-of-the-art Google AI such as natural language, computer vision, translation, and AutoML.",
     "name": "documentai",
-    "revision": "20230627",
+    "revision": "20240212",
     "title": "Cloud Document AI API",
     "version": "v1beta3",
     "auth": {
@@ -3341,7 +3609,7 @@
     "baseUrl": "https://documentai.googleapis.com/",
     "description": "Service to parse structured information from unstructured or semi-structured documents using state-of-the-art Google AI such as natural language, computer vision, translation, and AutoML.",
     "name": "documentai",
-    "revision": "20230627",
+    "revision": "20240212",
     "title": "Cloud Document AI API",
     "version": "v1",
     "auth": {
@@ -3358,7 +3626,7 @@
     "baseUrl": "https://domains.googleapis.com/",
     "description": "Enables management and configuration of domain names.",
     "name": "domains",
-    "revision": "20230619",
+    "revision": "20240204",
     "title": "Cloud Domains API",
     "version": "v1alpha2",
     "auth": {
@@ -3375,7 +3643,7 @@
     "baseUrl": "https://domains.googleapis.com/",
     "description": "Enables management and configuration of domain names.",
     "name": "domains",
-    "revision": "20230619",
+    "revision": "20240131",
     "title": "Cloud Domains API",
     "version": "v1beta1",
     "auth": {
@@ -3392,7 +3660,7 @@
     "baseUrl": "https://domains.googleapis.com/",
     "description": "Enables management and configuration of domain names.",
     "name": "domains",
-    "revision": "20230510",
+    "revision": "20240204",
     "title": "Cloud Domains API",
     "version": "v1",
     "auth": {
@@ -3409,7 +3677,7 @@
     "baseUrl": "https://domainsrdap.googleapis.com/",
     "description": "Read-only public API that lets users search for information about domain names.",
     "name": "domainsrdap",
-    "revision": "20230628",
+    "revision": "20240215",
     "title": "Domains RDAP API",
     "version": "v1",
     "auth": {
@@ -3421,7 +3689,7 @@
     "baseUrl": "https://doubleclickbidmanager.googleapis.com/v2/",
     "description": "DoubleClick Bid Manager API allows users to manage and create campaigns and reports.",
     "name": "doubleclickbidmanager",
-    "revision": "20230613",
+    "revision": "20240206",
     "title": "DoubleClick Bid Manager API",
     "version": "v2",
     "auth": {
@@ -3438,7 +3706,7 @@
     "baseUrl": "https://doubleclicksearch.googleapis.com/",
     "description": "The Search Ads 360 API allows developers to automate uploading conversions and downloading reports from Search Ads 360.",
     "name": "doubleclicksearch",
-    "revision": "20230626",
+    "revision": "20240206",
     "title": "Search Ads 360 API",
     "version": "v2",
     "auth": {
@@ -3456,7 +3724,7 @@
     "baseUrl": "https://www.googleapis.com/drive/v2/",
     "description": "The Google Drive API allows clients to access resources from Google Drive.",
     "name": "drive",
-    "revision": "20230626",
+    "revision": "20240211",
     "title": "Google Drive API",
     "version": "v2",
     "auth": {
@@ -3498,7 +3766,7 @@
     "baseUrl": "https://www.googleapis.com/drive/v3/",
     "description": "The Google Drive API allows clients to access resources from Google Drive.",
     "name": "drive",
-    "revision": "20230626",
+    "revision": "20240211",
     "title": "Google Drive API",
     "version": "v3",
     "auth": {
@@ -3509,6 +3777,9 @@
           },
           "https://www.googleapis.com/auth/drive.appdata": {
             "description": "See, create, and delete its own configuration data in your Google Drive"
+          },
+          "https://www.googleapis.com/auth/drive.apps.readonly": {
+            "description": "View your Google Drive apps"
           },
           "https://www.googleapis.com/auth/drive.file": {
             "description": "See, edit, create, and delete only the specific Google Drive files you use with this app"
@@ -3536,7 +3807,7 @@
     "baseUrl": "https://driveactivity.googleapis.com/",
     "description": "Provides a historical view of activity in Google Drive.",
     "name": "driveactivity",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "Drive Activity API",
     "version": "v2",
     "auth": {
@@ -3556,28 +3827,58 @@
     "baseUrl": "https://drivelabels.googleapis.com/",
     "description": "An API for managing Drive Labels",
     "name": "drivelabels",
-    "revision": "20230621",
+    "revision": "20240202",
     "title": "Drive Labels API",
     "version": "v2beta",
     "auth": {
-      "oauth2": {}
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/drive.admin.labels": {
+            "description": "See, edit, create, and delete all Google Drive labels in your organization, and see your organization's label-related admin policies"
+          },
+          "https://www.googleapis.com/auth/drive.admin.labels.readonly": {
+            "description": "See all Google Drive labels and label-related admin policies in your organization"
+          },
+          "https://www.googleapis.com/auth/drive.labels": {
+            "description": "See, edit, create, and delete your Google Drive labels"
+          },
+          "https://www.googleapis.com/auth/drive.labels.readonly": {
+            "description": "See your Google Drive labels"
+          }
+        }
+      }
     }
   },
   {
     "baseUrl": "https://drivelabels.googleapis.com/",
     "description": "An API for managing Drive Labels",
     "name": "drivelabels",
-    "revision": "20230621",
+    "revision": "20240202",
     "title": "Drive Labels API",
     "version": "v2",
     "auth": {
-      "oauth2": {}
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/drive.admin.labels": {
+            "description": "See, edit, create, and delete all Google Drive labels in your organization, and see your organization's label-related admin policies"
+          },
+          "https://www.googleapis.com/auth/drive.admin.labels.readonly": {
+            "description": "See all Google Drive labels and label-related admin policies in your organization"
+          },
+          "https://www.googleapis.com/auth/drive.labels": {
+            "description": "See, edit, create, and delete your Google Drive labels"
+          },
+          "https://www.googleapis.com/auth/drive.labels.readonly": {
+            "description": "See your Google Drive labels"
+          }
+        }
+      }
     }
   },
   {
     "baseUrl": "https://essentialcontacts.googleapis.com/",
     "name": "essentialcontacts",
-    "revision": "20230614",
+    "revision": "20240211",
     "title": "Essential Contacts API",
     "version": "v1",
     "auth": {
@@ -3594,7 +3895,7 @@
     "baseUrl": "https://eventarc.googleapis.com/",
     "description": "Build event-driven applications on Google Cloud Platform.",
     "name": "eventarc",
-    "revision": "20230623",
+    "revision": "20240202",
     "title": "Eventarc API",
     "version": "v1beta1",
     "auth": {
@@ -3611,7 +3912,7 @@
     "baseUrl": "https://eventarc.googleapis.com/",
     "description": "Build event-driven applications on Google Cloud Platform.",
     "name": "eventarc",
-    "revision": "20230616",
+    "revision": "20240209",
     "title": "Eventarc API",
     "version": "v1",
     "auth": {
@@ -3627,7 +3928,7 @@
   {
     "baseUrl": "https://factchecktools.googleapis.com/",
     "name": "factchecktools",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "Fact Check Tools API",
     "version": "v1alpha1",
     "auth": {
@@ -3644,7 +3945,7 @@
     "baseUrl": "https://fcm.googleapis.com/",
     "description": "FCM send API that provides a cross-platform messaging solution to reliably deliver messages at no cost.",
     "name": "fcm",
-    "revision": "20230626",
+    "revision": "20240213",
     "title": "Firebase Cloud Messaging API",
     "version": "v1",
     "auth": {
@@ -3664,7 +3965,7 @@
     "baseUrl": "https://fcmdata.googleapis.com/",
     "description": "Provides additional information about Firebase Cloud Messaging (FCM) message sends and deliveries.",
     "name": "fcmdata",
-    "revision": "20230627",
+    "revision": "20240213",
     "title": "Firebase Cloud Messaging Data API",
     "version": "v1beta1",
     "auth": {
@@ -3681,7 +3982,7 @@
     "baseUrl": "https://file.googleapis.com/",
     "description": "The Cloud Filestore API is used for creating and managing cloud file servers.",
     "name": "file",
-    "revision": "20230614",
+    "revision": "20240126",
     "title": "Cloud Filestore API",
     "version": "v1beta1",
     "auth": {
@@ -3698,7 +3999,7 @@
     "baseUrl": "https://file.googleapis.com/",
     "description": "The Cloud Filestore API is used for creating and managing cloud file servers.",
     "name": "file",
-    "revision": "20230614",
+    "revision": "20240126",
     "title": "Cloud Filestore API",
     "version": "v1",
     "auth": {
@@ -3715,7 +4016,7 @@
     "baseUrl": "https://firebase.googleapis.com/",
     "description": "The Firebase Management API enables programmatic setup and management of Firebase projects, including a project's Firebase resources and Firebase apps.",
     "name": "firebase",
-    "revision": "20230627",
+    "revision": "20240214",
     "title": "Firebase Management API",
     "version": "v1beta1",
     "auth": {
@@ -3741,7 +4042,7 @@
     "baseUrl": "https://firebaseappcheck.googleapis.com/",
     "description": "Firebase App Check works alongside other Firebase services to help protect your backend resources from abuse, such as billing fraud or phishing.",
     "name": "firebaseappcheck",
-    "revision": "20230626",
+    "revision": "20240212",
     "title": "Firebase App Check API",
     "version": "v1beta",
     "auth": {
@@ -3761,7 +4062,7 @@
     "baseUrl": "https://firebaseappcheck.googleapis.com/",
     "description": "Firebase App Check works alongside other Firebase services to help protect your backend resources from abuse, such as billing fraud or phishing.",
     "name": "firebaseappcheck",
-    "revision": "20230626",
+    "revision": "20240212",
     "title": "Firebase App Check API",
     "version": "v1",
     "auth": {
@@ -3780,7 +4081,23 @@
   {
     "baseUrl": "https://firebaseappdistribution.googleapis.com/",
     "name": "firebaseappdistribution",
-    "revision": "20230628",
+    "revision": "20240215",
+    "title": "Firebase App Distribution API",
+    "version": "v1alpha",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          }
+        }
+      }
+    }
+  },
+  {
+    "baseUrl": "https://firebaseappdistribution.googleapis.com/",
+    "name": "firebaseappdistribution",
+    "revision": "20240215",
     "title": "Firebase App Distribution API",
     "version": "v1",
     "auth": {
@@ -3797,7 +4114,7 @@
     "baseUrl": "https://firebasedatabase.googleapis.com/",
     "description": "The Firebase Realtime Database API enables programmatic provisioning and management of Realtime Database instances.",
     "name": "firebasedatabase",
-    "revision": "20230627",
+    "revision": "20240213",
     "title": "Firebase Realtime Database API",
     "version": "v1beta",
     "auth": {
@@ -3823,7 +4140,7 @@
     "baseUrl": "https://firebasedynamiclinks.googleapis.com/",
     "description": "Programmatically creates and manages Firebase Dynamic Links.",
     "name": "firebasedynamiclinks",
-    "revision": "20230626",
+    "revision": "20240207",
     "title": "Firebase Dynamic Links API",
     "version": "v1",
     "auth": {
@@ -3840,7 +4157,7 @@
     "baseUrl": "https://firebasehosting.googleapis.com/",
     "description": "The Firebase Hosting REST API enables programmatic and customizable management and deployments to your Firebase-hosted sites. Use this REST API to create and manage channels and sites as well as to deploy new or updated hosting configurations and content files.",
     "name": "firebasehosting",
-    "revision": "20230627",
+    "revision": "20240110",
     "title": "Firebase Hosting API",
     "version": "v1beta1",
     "auth": {
@@ -3866,18 +4183,27 @@
     "baseUrl": "https://firebasehosting.googleapis.com/",
     "description": "The Firebase Hosting REST API enables programmatic and customizable management and deployments to your Firebase-hosted sites. Use this REST API to create and manage channels and sites as well as to deploy new or updated hosting configurations and content files.",
     "name": "firebasehosting",
-    "revision": "20230627",
+    "revision": "20240110",
     "title": "Firebase Hosting API",
     "version": "v1",
     "auth": {
-      "oauth2": {}
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          },
+          "https://www.googleapis.com/auth/firebase": {
+            "description": "View and administer all your Firebase data and settings"
+          }
+        }
+      }
     }
   },
   {
     "baseUrl": "https://firebaseml.googleapis.com/",
     "description": "Access custom machine learning models hosted via Firebase ML.",
     "name": "firebaseml",
-    "revision": "20230626",
+    "revision": "20240207",
     "title": "Firebase ML API",
     "version": "v1beta2",
     "auth": {
@@ -3894,7 +4220,7 @@
     "baseUrl": "https://firebaseml.googleapis.com/",
     "description": "Access custom machine learning models hosted via Firebase ML.",
     "name": "firebaseml",
-    "revision": "20230626",
+    "revision": "20240207",
     "title": "Firebase ML API",
     "version": "v1",
     "auth": {
@@ -3911,7 +4237,7 @@
     "baseUrl": "https://firebaserules.googleapis.com/",
     "description": "Creates and manages rules that determine when a Firebase Rules-enabled service should permit a request. ",
     "name": "firebaserules",
-    "revision": "20230608",
+    "revision": "20240129",
     "title": "Firebase Rules API",
     "version": "v1",
     "auth": {
@@ -3934,7 +4260,7 @@
     "baseUrl": "https://firebasestorage.googleapis.com/",
     "description": "The Cloud Storage for Firebase API enables programmatic management of Cloud Storage buckets for use in Firebase projects",
     "name": "firebasestorage",
-    "revision": "20230605",
+    "revision": "20240126",
     "title": "Cloud Storage for Firebase API",
     "version": "v1beta",
     "auth": {
@@ -3954,7 +4280,7 @@
     "baseUrl": "https://firestore.googleapis.com/",
     "description": "Accesses the NoSQL document database built for automatic scaling, high performance, and ease of application development. ",
     "name": "firestore",
-    "revision": "20230621",
+    "revision": "20240208",
     "title": "Cloud Firestore API",
     "version": "v1beta1",
     "auth": {
@@ -3974,7 +4300,7 @@
     "baseUrl": "https://firestore.googleapis.com/",
     "description": "Accesses the NoSQL document database built for automatic scaling, high performance, and ease of application development. ",
     "name": "firestore",
-    "revision": "20230621",
+    "revision": "20240208",
     "title": "Cloud Firestore API",
     "version": "v1beta2",
     "auth": {
@@ -3994,7 +4320,7 @@
     "baseUrl": "https://firestore.googleapis.com/",
     "description": "Accesses the NoSQL document database built for automatic scaling, high performance, and ease of application development. ",
     "name": "firestore",
-    "revision": "20230621",
+    "revision": "20240208",
     "title": "Cloud Firestore API",
     "version": "v1",
     "auth": {
@@ -4015,7 +4341,7 @@
     "baseUrl": "https://fitness.googleapis.com/fitness/v1/users/",
     "description": "The Fitness API for managing users' fitness tracking data.",
     "name": "fitness",
-    "revision": "20230626",
+    "revision": "20240213",
     "title": "Fitness API",
     "version": "v1",
     "auth": {
@@ -4095,7 +4421,7 @@
     "baseUrl": "https://forms.googleapis.com/",
     "description": "Reads and writes Google Forms and responses.",
     "name": "forms",
-    "revision": "20230622",
+    "revision": "20240130",
     "title": "Google Forms API",
     "version": "v1",
     "auth": {
@@ -4127,12 +4453,15 @@
     "baseUrl": "https://games.googleapis.com/",
     "description": "The Google Play games service allows developers to enhance games with social leaderboards, achievements, game state, sign-in with Google, and more.",
     "name": "games",
-    "revision": "20230621",
+    "revision": "20240213",
     "title": "Google Play Game Services",
     "version": "v1",
     "auth": {
       "oauth2": {
         "scopes": {
+          "https://www.googleapis.com/auth/androidpublisher": {
+            "description": "View and manage your Google Play Developer account"
+          },
           "https://www.googleapis.com/auth/drive.appdata": {
             "description": "See, create, and delete its own configuration data in your Google Drive"
           },
@@ -4147,7 +4476,7 @@
     "baseUrl": "https://gamesconfiguration.googleapis.com/",
     "description": "The Google Play Game Services Publishing API allows developers to configure their games in Game Services.",
     "name": "gamesConfiguration",
-    "revision": "20230621",
+    "revision": "20240213",
     "title": "Google Play Game Services Publishing API",
     "version": "v1configuration",
     "auth": {
@@ -4164,7 +4493,7 @@
     "baseUrl": "https://gamesmanagement.googleapis.com/",
     "description": "The Google Play Game Management API allows developers to manage resources from the Google Play Game service.",
     "name": "gamesManagement",
-    "revision": "20230621",
+    "revision": "20240213",
     "title": "Google Play Game Management",
     "version": "v1management",
     "auth": {
@@ -4178,44 +4507,10 @@
     }
   },
   {
-    "baseUrl": "https://gameservices.googleapis.com/",
-    "description": "Deploy and manage infrastructure for global multiplayer gaming experiences.",
-    "name": "gameservices",
-    "revision": "20230607",
-    "title": "Game Services API",
-    "version": "v1beta",
-    "auth": {
-      "oauth2": {
-        "scopes": {
-          "https://www.googleapis.com/auth/cloud-platform": {
-            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
-          }
-        }
-      }
-    }
-  },
-  {
-    "baseUrl": "https://gameservices.googleapis.com/",
-    "description": "Deploy and manage infrastructure for global multiplayer gaming experiences.",
-    "name": "gameservices",
-    "revision": "20230621",
-    "title": "Game Services API",
-    "version": "v1",
-    "auth": {
-      "oauth2": {
-        "scopes": {
-          "https://www.googleapis.com/auth/cloud-platform": {
-            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
-          }
-        }
-      }
-    }
-  },
-  {
     "baseUrl": "https://gkebackup.googleapis.com/",
     "description": "Backup for GKE is a managed Kubernetes workload backup and restore service for GKE clusters.",
     "name": "gkebackup",
-    "revision": "20230609",
+    "revision": "20240207",
     "title": "Backup for GKE API",
     "version": "v1",
     "auth": {
@@ -4231,7 +4526,7 @@
   {
     "baseUrl": "https://gkehub.googleapis.com/",
     "name": "gkehub",
-    "revision": "20230620",
+    "revision": "20240209",
     "title": "GKE Hub API",
     "version": "v1alpha",
     "auth": {
@@ -4247,7 +4542,7 @@
   {
     "baseUrl": "https://gkehub.googleapis.com/",
     "name": "gkehub",
-    "revision": "20230620",
+    "revision": "20240201",
     "title": "GKE Hub API",
     "version": "v1alpha2",
     "auth": {
@@ -4263,7 +4558,7 @@
   {
     "baseUrl": "https://gkehub.googleapis.com/",
     "name": "gkehub",
-    "revision": "20230620",
+    "revision": "20240201",
     "title": "GKE Hub API",
     "version": "v2alpha",
     "auth": {
@@ -4279,7 +4574,7 @@
   {
     "baseUrl": "https://gkehub.googleapis.com/",
     "name": "gkehub",
-    "revision": "20230620",
+    "revision": "20240209",
     "title": "GKE Hub API",
     "version": "v1beta",
     "auth": {
@@ -4295,7 +4590,7 @@
   {
     "baseUrl": "https://gkehub.googleapis.com/",
     "name": "gkehub",
-    "revision": "20230620",
+    "revision": "20240201",
     "title": "GKE Hub API",
     "version": "v1beta1",
     "auth": {
@@ -4311,7 +4606,7 @@
   {
     "baseUrl": "https://gkehub.googleapis.com/",
     "name": "gkehub",
-    "revision": "20230620",
+    "revision": "20240209",
     "title": "GKE Hub API",
     "version": "v1",
     "auth": {
@@ -4327,7 +4622,7 @@
   {
     "baseUrl": "https://gkeonprem.googleapis.com/",
     "name": "gkeonprem",
-    "revision": "20230620",
+    "revision": "20240124",
     "title": "Anthos On-Prem API",
     "version": "v1",
     "auth": {
@@ -4344,7 +4639,7 @@
     "baseUrl": "https://gmail.googleapis.com/",
     "description": "The Gmail API lets you view and manage Gmail mailbox data like threads, messages, and labels.",
     "name": "gmail",
-    "revision": "20230619",
+    "revision": "20240205",
     "title": "Gmail API",
     "version": "v1",
     "auth": {
@@ -4400,7 +4695,7 @@
     "baseUrl": "https://gmailpostmastertools.googleapis.com/",
     "description": "The Postmaster Tools API is a RESTful API that provides programmatic access to email traffic metrics (like spam reports, delivery errors etc) otherwise available through the Gmail Postmaster Tools UI currently.",
     "name": "gmailpostmastertools",
-    "revision": "20230627",
+    "revision": "20240213",
     "title": "Gmail Postmaster Tools API",
     "version": "v1beta1",
     "auth": {
@@ -4417,7 +4712,7 @@
     "baseUrl": "https://gmailpostmastertools.googleapis.com/",
     "description": "The Postmaster Tools API is a RESTful API that provides programmatic access to email traffic metrics (like spam reports, delivery errors etc) otherwise available through the Gmail Postmaster Tools UI currently.",
     "name": "gmailpostmastertools",
-    "revision": "20230627",
+    "revision": "20240213",
     "title": "Gmail Postmaster Tools API",
     "version": "v1",
     "auth": {
@@ -4434,7 +4729,7 @@
     "baseUrl": "https://groupsmigration.googleapis.com/",
     "description": "The Groups Migration API allows domain administrators to archive emails into Google groups.",
     "name": "groupsmigration",
-    "revision": "20230626",
+    "revision": "20240129",
     "title": "Groups Migration API",
     "version": "v1",
     "auth": {
@@ -4469,12 +4764,15 @@
     "baseUrl": "https://healthcare.googleapis.com/",
     "description": "Manage, store, and access healthcare data in Google Cloud Platform.",
     "name": "healthcare",
-    "revision": "20230616",
+    "revision": "20240206",
     "title": "Cloud Healthcare API",
     "version": "v1beta1",
     "auth": {
       "oauth2": {
         "scopes": {
+          "https://www.googleapis.com/auth/cloud-healthcare": {
+            "description": "Read, write and manage healthcare data"
+          },
           "https://www.googleapis.com/auth/cloud-platform": {
             "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
           }
@@ -4486,12 +4784,15 @@
     "baseUrl": "https://healthcare.googleapis.com/",
     "description": "Manage, store, and access healthcare data in Google Cloud Platform.",
     "name": "healthcare",
-    "revision": "20230616",
+    "revision": "20240206",
     "title": "Cloud Healthcare API",
     "version": "v1",
     "auth": {
       "oauth2": {
         "scopes": {
+          "https://www.googleapis.com/auth/cloud-healthcare": {
+            "description": "Read, write and manage healthcare data"
+          },
           "https://www.googleapis.com/auth/cloud-platform": {
             "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
           }
@@ -4502,7 +4803,7 @@
   {
     "baseUrl": "https://homegraph.googleapis.com/",
     "name": "homegraph",
-    "revision": "20230623",
+    "revision": "20240211",
     "title": "HomeGraph API",
     "version": "v1",
     "auth": {
@@ -4519,7 +4820,7 @@
     "baseUrl": "https://iam.googleapis.com/",
     "description": "Manages identity and access control for Google Cloud Platform resources, including the creation of service accounts, which you can use to authenticate to Google and make API calls. ",
     "name": "iam",
-    "revision": "20230608",
+    "revision": "20240118",
     "title": "Identity and Access Management (IAM) API",
     "version": "v2beta",
     "auth": {
@@ -4536,7 +4837,7 @@
     "baseUrl": "https://iam.googleapis.com/",
     "description": "Manages identity and access control for Google Cloud Platform resources, including the creation of service accounts, which you can use to authenticate to Google and make API calls. ",
     "name": "iam",
-    "revision": "20230608",
+    "revision": "20240118",
     "title": "Identity and Access Management (IAM) API",
     "version": "v1",
     "auth": {
@@ -4553,7 +4854,7 @@
     "baseUrl": "https://iam.googleapis.com/",
     "description": "Manages identity and access control for Google Cloud Platform resources, including the creation of service accounts, which you can use to authenticate to Google and make API calls. ",
     "name": "iam",
-    "revision": "20230608",
+    "revision": "20240118",
     "title": "Identity and Access Management (IAM) API",
     "version": "v2",
     "auth": {
@@ -4570,7 +4871,7 @@
     "baseUrl": "https://iamcredentials.googleapis.com/",
     "description": "Creates short-lived credentials for impersonating IAM service accounts. To enable this API, you must enable the IAM API (iam.googleapis.com). ",
     "name": "iamcredentials",
-    "revision": "20230623",
+    "revision": "20240207",
     "title": "IAM Service Account Credentials API",
     "version": "v1",
     "auth": {
@@ -4587,7 +4888,7 @@
     "baseUrl": "https://iap.googleapis.com/",
     "description": "Controls access to cloud applications running on Google Cloud Platform.",
     "name": "iap",
-    "revision": "20230627",
+    "revision": "20240212",
     "title": "Cloud Identity-Aware Proxy API",
     "version": "v1beta1",
     "auth": {
@@ -4604,7 +4905,7 @@
     "baseUrl": "https://iap.googleapis.com/",
     "description": "Controls access to cloud applications running on Google Cloud Platform.",
     "name": "iap",
-    "revision": "20230627",
+    "revision": "20240212",
     "title": "Cloud Identity-Aware Proxy API",
     "version": "v1",
     "auth": {
@@ -4621,7 +4922,7 @@
     "baseUrl": "https://identitytoolkit.googleapis.com/",
     "description": "The Google Identity Toolkit API lets you use open standards to verify a user's identity.",
     "name": "identitytoolkit",
-    "revision": "20230627",
+    "revision": "20240201",
     "title": "Identity Toolkit API",
     "version": "v1",
     "auth": {
@@ -4641,7 +4942,7 @@
     "baseUrl": "https://identitytoolkit.googleapis.com/",
     "description": "The Google Identity Toolkit API lets you use open standards to verify a user's identity.",
     "name": "identitytoolkit",
-    "revision": "20230627",
+    "revision": "20240201",
     "title": "Identity Toolkit API",
     "version": "v2",
     "auth": {
@@ -4682,7 +4983,7 @@
     "baseUrl": "https://ids.googleapis.com/",
     "description": "Cloud IDS (Cloud Intrusion Detection System) detects malware, spyware, command-and-control attacks, and other network-based threats. Its security efficacy is industry leading, built with Palo Alto Networks technologies. When you use this product, your organization name and consumption levels will be shared with Palo Alto Networks.",
     "name": "ids",
-    "revision": "20230612",
+    "revision": "20231203",
     "title": "Cloud IDS API",
     "version": "v1",
     "auth": {
@@ -4697,10 +4998,10 @@
   },
   {
     "baseUrl": "https://indexing.googleapis.com/",
-    "description": "Notifies Google when your web pages change.",
+    "description": "Notifies Google Web Search when your web pages change.",
     "name": "indexing",
-    "revision": "20230620",
-    "title": "Indexing API",
+    "revision": "20240206",
+    "title": "Web Search Indexing API",
     "version": "v3",
     "auth": {
       "oauth2": {
@@ -4715,7 +5016,7 @@
   {
     "baseUrl": "https://integrations.googleapis.com/",
     "name": "integrations",
-    "revision": "20230613",
+    "revision": "20240125",
     "title": "Application Integration API",
     "version": "v1alpha",
     "auth": {
@@ -4732,7 +5033,7 @@
     "baseUrl": "https://jobs.googleapis.com/",
     "description": "Cloud Talent Solution provides the capability to create, read, update, and delete job postings, as well as search jobs based on keywords and filters. ",
     "name": "jobs",
-    "revision": "20230531",
+    "revision": "20240202",
     "title": "Cloud Talent Solution API",
     "version": "v3p1beta1",
     "auth": {
@@ -4752,7 +5053,7 @@
     "baseUrl": "https://jobs.googleapis.com/",
     "description": "Cloud Talent Solution provides the capability to create, read, update, and delete job postings, as well as search jobs based on keywords and filters. ",
     "name": "jobs",
-    "revision": "20230531",
+    "revision": "20240202",
     "title": "Cloud Talent Solution API",
     "version": "v3",
     "auth": {
@@ -4772,7 +5073,7 @@
     "baseUrl": "https://jobs.googleapis.com/",
     "description": "Cloud Talent Solution provides the capability to create, read, update, and delete job postings, as well as search jobs based on keywords and filters. ",
     "name": "jobs",
-    "revision": "20230531",
+    "revision": "20240202",
     "title": "Cloud Talent Solution API",
     "version": "v4",
     "auth": {
@@ -4792,7 +5093,7 @@
     "baseUrl": "https://keep.googleapis.com/",
     "description": "The Google Keep API is used in an enterprise environment to manage Google Keep content and resolve issues identified by cloud security software.",
     "name": "keep",
-    "revision": "20230620",
+    "revision": "20240206",
     "title": "Google Keep API",
     "version": "v1",
     "auth": {
@@ -4812,7 +5113,7 @@
     "baseUrl": "https://kgsearch.googleapis.com/",
     "description": "Searches the Google Knowledge Graph for entities.",
     "name": "kgsearch",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "Knowledge Graph Search API",
     "version": "v1",
     "auth": {
@@ -4822,7 +5123,7 @@
   {
     "baseUrl": "https://kmsinventory.googleapis.com/",
     "name": "kmsinventory",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "KMS Inventory API",
     "version": "v1",
     "auth": {
@@ -4839,7 +5140,7 @@
     "baseUrl": "https://language.googleapis.com/",
     "description": "Provides natural language understanding technologies, such as sentiment analysis, entity recognition, entity sentiment analysis, and other text annotations, to developers.",
     "name": "language",
-    "revision": "20230626",
+    "revision": "20240210",
     "title": "Cloud Natural Language API",
     "version": "v1beta2",
     "auth": {
@@ -4859,9 +5160,29 @@
     "baseUrl": "https://language.googleapis.com/",
     "description": "Provides natural language understanding technologies, such as sentiment analysis, entity recognition, entity sentiment analysis, and other text annotations, to developers.",
     "name": "language",
-    "revision": "20230626",
+    "revision": "20240210",
     "title": "Cloud Natural Language API",
     "version": "v1",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-language": {
+            "description": "Apply machine learning models to reveal the structure and meaning of text"
+          },
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          }
+        }
+      }
+    }
+  },
+  {
+    "baseUrl": "https://language.googleapis.com/",
+    "description": "Provides natural language understanding technologies, such as sentiment analysis, entity recognition, entity sentiment analysis, and other text annotations, to developers.",
+    "name": "language",
+    "revision": "20240210",
+    "title": "Cloud Natural Language API",
+    "version": "v2",
     "auth": {
       "oauth2": {
         "scopes": {
@@ -4879,7 +5200,7 @@
     "baseUrl": "https://libraryagent.googleapis.com/",
     "description": "A simple Google Example Library API.",
     "name": "libraryagent",
-    "revision": "20230627",
+    "revision": "20240213",
     "title": "Library Agent API",
     "version": "v1",
     "auth": {
@@ -4896,7 +5217,7 @@
     "baseUrl": "https://licensing.googleapis.com/",
     "description": "The Google Enterprise License Manager API lets you manage Google Workspace and related licenses for all users of a customer that you manage.",
     "name": "licensing",
-    "revision": "20230626",
+    "revision": "20240210",
     "title": "Enterprise License Manager API",
     "version": "v1",
     "auth": {
@@ -4913,7 +5234,7 @@
     "baseUrl": "https://lifesciences.googleapis.com/",
     "description": "Cloud Life Sciences is a suite of services and tools for managing, processing, and transforming life sciences data.",
     "name": "lifesciences",
-    "revision": "20230620",
+    "revision": "20240205",
     "title": "Cloud Life Sciences API",
     "version": "v2beta",
     "auth": {
@@ -4929,7 +5250,7 @@
   {
     "baseUrl": "https://localservices.googleapis.com/",
     "name": "localservices",
-    "revision": "20230627",
+    "revision": "20240213",
     "title": "Local Services API",
     "version": "v1",
     "auth": {
@@ -4946,7 +5267,7 @@
     "baseUrl": "https://logging.googleapis.com/",
     "description": "Writes log entries and manages your Cloud Logging configuration.",
     "name": "logging",
-    "revision": "20230531",
+    "revision": "20240112",
     "title": "Cloud Logging API",
     "version": "v2",
     "auth": {
@@ -4972,10 +5293,26 @@
     }
   },
   {
+    "baseUrl": "https://looker.googleapis.com/",
+    "name": "looker",
+    "revision": "20240208",
+    "title": "Looker (Google Cloud core) API",
+    "version": "v1",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          }
+        }
+      }
+    }
+  },
+  {
     "baseUrl": "https://managedidentities.googleapis.com/",
     "description": "The Managed Service for Microsoft Active Directory API is used for managing a highly available, hardened service running Microsoft Active Directory (AD).",
     "name": "managedidentities",
-    "revision": "20230505",
+    "revision": "20240112",
     "title": "Managed Service for Microsoft Active Directory API",
     "version": "v1alpha1",
     "auth": {
@@ -4992,7 +5329,7 @@
     "baseUrl": "https://managedidentities.googleapis.com/",
     "description": "The Managed Service for Microsoft Active Directory API is used for managing a highly available, hardened service running Microsoft Active Directory (AD).",
     "name": "managedidentities",
-    "revision": "20230505",
+    "revision": "20240112",
     "title": "Managed Service for Microsoft Active Directory API",
     "version": "v1beta1",
     "auth": {
@@ -5009,7 +5346,7 @@
     "baseUrl": "https://managedidentities.googleapis.com/",
     "description": "The Managed Service for Microsoft Active Directory API is used for managing a highly available, hardened service running Microsoft Active Directory (AD).",
     "name": "managedidentities",
-    "revision": "20230505",
+    "revision": "20240112",
     "title": "Managed Service for Microsoft Active Directory API",
     "version": "v1",
     "auth": {
@@ -5026,7 +5363,7 @@
     "baseUrl": "https://manufacturers.googleapis.com/",
     "description": "Public API for managing Manufacturer Center related data.",
     "name": "manufacturers",
-    "revision": "20230602",
+    "revision": "20240205",
     "title": "Manufacturer Center API",
     "version": "v1",
     "auth": {
@@ -5043,7 +5380,7 @@
     "baseUrl": "https://memcache.googleapis.com/",
     "description": "Google Cloud Memorystore for Memcached API is used for creating and managing Memcached instances in GCP.",
     "name": "memcache",
-    "revision": "20230622",
+    "revision": "20240208",
     "title": "Cloud Memorystore for Memcached API",
     "version": "v1beta2",
     "auth": {
@@ -5060,7 +5397,7 @@
     "baseUrl": "https://memcache.googleapis.com/",
     "description": "Google Cloud Memorystore for Memcached API is used for creating and managing Memcached instances in GCP.",
     "name": "memcache",
-    "revision": "20230622",
+    "revision": "20240208",
     "title": "Cloud Memorystore for Memcached API",
     "version": "v1",
     "auth": {
@@ -5077,7 +5414,7 @@
     "baseUrl": "https://metastore.googleapis.com/",
     "description": "The Dataproc Metastore API is used to manage the lifecycle and configuration of metastore services.",
     "name": "metastore",
-    "revision": "20230622",
+    "revision": "20240207",
     "title": "Dataproc Metastore API",
     "version": "v1alpha",
     "auth": {
@@ -5094,7 +5431,7 @@
     "baseUrl": "https://metastore.googleapis.com/",
     "description": "The Dataproc Metastore API is used to manage the lifecycle and configuration of metastore services.",
     "name": "metastore",
-    "revision": "20230622",
+    "revision": "20240207",
     "title": "Dataproc Metastore API",
     "version": "v1beta",
     "auth": {
@@ -5111,7 +5448,7 @@
     "baseUrl": "https://metastore.googleapis.com/",
     "description": "The Dataproc Metastore API is used to manage the lifecycle and configuration of metastore services.",
     "name": "metastore",
-    "revision": "20230622",
+    "revision": "20240207",
     "title": "Dataproc Metastore API",
     "version": "v1",
     "auth": {
@@ -5128,9 +5465,26 @@
     "baseUrl": "https://migrationcenter.googleapis.com/",
     "description": "A unified platform that helps you accelerate your end-to-end cloud journey from your current on-premises or cloud environments to Google Cloud.",
     "name": "migrationcenter",
-    "revision": "20230619",
+    "revision": "20240211",
     "title": "Migration Center API",
     "version": "v1alpha1",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          }
+        }
+      }
+    }
+  },
+  {
+    "baseUrl": "https://migrationcenter.googleapis.com/",
+    "description": "A unified platform that helps you accelerate your end-to-end cloud journey from your current on-premises or cloud environments to Google Cloud.",
+    "name": "migrationcenter",
+    "revision": "20240211",
+    "title": "Migration Center API",
+    "version": "v1",
     "auth": {
       "oauth2": {
         "scopes": {
@@ -5145,7 +5499,7 @@
     "baseUrl": "https://ml.googleapis.com/",
     "description": "An API to enable creating and using machine learning models.",
     "name": "ml",
-    "revision": "20230621",
+    "revision": "20240127",
     "title": "AI Platform Training \u0026 Prediction API",
     "version": "v1",
     "auth": {
@@ -5165,7 +5519,7 @@
     "baseUrl": "https://monitoring.googleapis.com/",
     "description": "Manages your Cloud Monitoring data and configurations.",
     "name": "monitoring",
-    "revision": "20230618",
+    "revision": "20240211",
     "title": "Cloud Monitoring API",
     "version": "v1",
     "auth": {
@@ -5191,7 +5545,7 @@
     "baseUrl": "https://monitoring.googleapis.com/",
     "description": "Manages your Cloud Monitoring data and configurations.",
     "name": "monitoring",
-    "revision": "20230618",
+    "revision": "20240211",
     "title": "Cloud Monitoring API",
     "version": "v3",
     "auth": {
@@ -5217,7 +5571,7 @@
     "baseUrl": "https://mybusinessaccountmanagement.googleapis.com/",
     "description": "The My Business Account Management API provides an interface for managing access to a location on Google. Note - If you have a quota of 0 after enabling the API, please request for GBP API access.",
     "name": "mybusinessaccountmanagement",
-    "revision": "20230627",
+    "revision": "20240110",
     "title": "My Business Account Management API",
     "version": "v1",
     "auth": {
@@ -5228,7 +5582,7 @@
     "baseUrl": "https://mybusinessbusinessinformation.googleapis.com/",
     "description": "The My Business Business Information API provides an interface for managing business information. Note - If you have a quota of 0 after enabling the API, please request for GBP API access.",
     "name": "mybusinessbusinessinformation",
-    "revision": "20230627",
+    "revision": "20240110",
     "title": "My Business Business Information API",
     "version": "v1",
     "auth": {
@@ -5239,7 +5593,7 @@
     "baseUrl": "https://mybusinesslodging.googleapis.com/",
     "description": "The My Business Lodging API enables managing lodging business information on Google. Note - If you have a quota of 0 after enabling the API, please request for GBP API access.",
     "name": "mybusinesslodging",
-    "revision": "20230627",
+    "revision": "20240110",
     "title": "My Business Lodging API",
     "version": "v1",
     "auth": {
@@ -5250,7 +5604,7 @@
     "baseUrl": "https://mybusinessnotifications.googleapis.com/",
     "description": "The My Business Notification Settings API enables managing notification settings for business accounts. Note - If you have a quota of 0 after enabling the API, please request for GBP API access.",
     "name": "mybusinessnotifications",
-    "revision": "20230627",
+    "revision": "20240110",
     "title": "My Business Notifications API",
     "version": "v1",
     "auth": {
@@ -5261,7 +5615,7 @@
     "baseUrl": "https://mybusinessplaceactions.googleapis.com/",
     "description": "The My Business Place Actions API provides an interface for managing place action links of a location on Google. Note - If you have a quota of 0 after enabling the API, please request for GBP API access.",
     "name": "mybusinessplaceactions",
-    "revision": "20230627",
+    "revision": "20240110",
     "title": "My Business Place Actions API",
     "version": "v1",
     "auth": {
@@ -5272,7 +5626,7 @@
     "baseUrl": "https://mybusinessqanda.googleapis.com/",
     "description": "The My Business Q\u0026A API allows questions and answers to be posted for specific listings. Note - If you have a quota of 0 after enabling the API, please request for GBP API access.",
     "name": "mybusinessqanda",
-    "revision": "20230627",
+    "revision": "20240110",
     "title": "My Business Q\u0026A API",
     "version": "v1",
     "auth": {
@@ -5283,7 +5637,7 @@
     "baseUrl": "https://mybusinessverifications.googleapis.com/",
     "description": "The My Business Verifications API provides an interface for taking verifications related actions for locations.",
     "name": "mybusinessverifications",
-    "revision": "20230627",
+    "revision": "20240110",
     "title": "My Business Verifications API",
     "version": "v1",
     "auth": {
@@ -5294,7 +5648,7 @@
     "baseUrl": "https://networkconnectivity.googleapis.com/",
     "description": "This API enables connectivity with and between Google Cloud resources.",
     "name": "networkconnectivity",
-    "revision": "20230627",
+    "revision": "20240131",
     "title": "Network Connectivity API",
     "version": "v1alpha1",
     "auth": {
@@ -5311,7 +5665,7 @@
     "baseUrl": "https://networkconnectivity.googleapis.com/",
     "description": "This API enables connectivity with and between Google Cloud resources.",
     "name": "networkconnectivity",
-    "revision": "20230621",
+    "revision": "20240131",
     "title": "Network Connectivity API",
     "version": "v1",
     "auth": {
@@ -5328,7 +5682,7 @@
     "baseUrl": "https://networkmanagement.googleapis.com/",
     "description": "The Network Management API provides a collection of network performance monitoring and diagnostic capabilities.",
     "name": "networkmanagement",
-    "revision": "20230607",
+    "revision": "20240131",
     "title": "Network Management API",
     "version": "v1beta1",
     "auth": {
@@ -5345,7 +5699,7 @@
     "baseUrl": "https://networkmanagement.googleapis.com/",
     "description": "The Network Management API provides a collection of network performance monitoring and diagnostic capabilities.",
     "name": "networkmanagement",
-    "revision": "20230607",
+    "revision": "20240207",
     "title": "Network Management API",
     "version": "v1",
     "auth": {
@@ -5361,7 +5715,7 @@
   {
     "baseUrl": "https://networksecurity.googleapis.com/",
     "name": "networksecurity",
-    "revision": "20230619",
+    "revision": "20240201",
     "title": "Network Security API",
     "version": "v1beta1",
     "auth": {
@@ -5377,7 +5731,7 @@
   {
     "baseUrl": "https://networksecurity.googleapis.com/",
     "name": "networksecurity",
-    "revision": "20230619",
+    "revision": "20240201",
     "title": "Network Security API",
     "version": "v1",
     "auth": {
@@ -5393,7 +5747,7 @@
   {
     "baseUrl": "https://networkservices.googleapis.com/",
     "name": "networkservices",
-    "revision": "20230619",
+    "revision": "20240207",
     "title": "Network Services API",
     "version": "v1beta1",
     "auth": {
@@ -5409,7 +5763,7 @@
   {
     "baseUrl": "https://networkservices.googleapis.com/",
     "name": "networkservices",
-    "revision": "20230619",
+    "revision": "20240207",
     "title": "Network Services API",
     "version": "v1",
     "auth": {
@@ -5426,7 +5780,7 @@
     "baseUrl": "https://notebooks.googleapis.com/",
     "description": "Notebooks API is used to manage notebook resources in Google Cloud.",
     "name": "notebooks",
-    "revision": "20230606",
+    "revision": "20231227",
     "title": "Notebooks API",
     "version": "v1",
     "auth": {
@@ -5443,7 +5797,7 @@
     "baseUrl": "https://notebooks.googleapis.com/",
     "description": "Notebooks API is used to manage notebook resources in Google Cloud.",
     "name": "notebooks",
-    "revision": "20230613",
+    "revision": "20231227",
     "title": "Notebooks API",
     "version": "v2",
     "auth": {
@@ -5484,7 +5838,7 @@
     "baseUrl": "https://ondemandscanning.googleapis.com/",
     "description": "A service to scan container images for vulnerabilities.",
     "name": "ondemandscanning",
-    "revision": "20230626",
+    "revision": "20240212",
     "title": "On-Demand Scanning API",
     "version": "v1beta1",
     "auth": {
@@ -5501,7 +5855,7 @@
     "baseUrl": "https://ondemandscanning.googleapis.com/",
     "description": "A service to scan container images for vulnerabilities.",
     "name": "ondemandscanning",
-    "revision": "20230626",
+    "revision": "20240212",
     "title": "On-Demand Scanning API",
     "version": "v1",
     "auth": {
@@ -5518,7 +5872,7 @@
     "baseUrl": "https://orgpolicy.googleapis.com/",
     "description": "The Organization Policy API allows users to configure governance rules on their Google Cloud resources across the resource hierarchy.",
     "name": "orgpolicy",
-    "revision": "20230627",
+    "revision": "20240211",
     "title": "Organization Policy API",
     "version": "v2",
     "auth": {
@@ -5535,7 +5889,7 @@
     "baseUrl": "https://osconfig.googleapis.com/",
     "description": "OS management tools that can be used for patch management, patch compliance, and configuration management on VM instances.",
     "name": "osconfig",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "OS Config API",
     "version": "v1alpha",
     "auth": {
@@ -5552,7 +5906,7 @@
     "baseUrl": "https://osconfig.googleapis.com/",
     "description": "OS management tools that can be used for patch management, patch compliance, and configuration management on VM instances.",
     "name": "osconfig",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "OS Config API",
     "version": "v1beta",
     "auth": {
@@ -5569,7 +5923,7 @@
     "baseUrl": "https://osconfig.googleapis.com/",
     "description": "OS management tools that can be used for patch management, patch compliance, and configuration management on VM instances.",
     "name": "osconfig",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "OS Config API",
     "version": "v1",
     "auth": {
@@ -5586,7 +5940,7 @@
     "baseUrl": "https://oslogin.googleapis.com/",
     "description": "You can use OS Login to manage access to your VM instances using IAM roles.",
     "name": "oslogin",
-    "revision": "20230603",
+    "revision": "20240211",
     "title": "Cloud OS Login API",
     "version": "v1alpha",
     "auth": {
@@ -5612,7 +5966,7 @@
     "baseUrl": "https://oslogin.googleapis.com/",
     "description": "You can use OS Login to manage access to your VM instances using IAM roles.",
     "name": "oslogin",
-    "revision": "20230603",
+    "revision": "20240211",
     "title": "Cloud OS Login API",
     "version": "v1beta",
     "auth": {
@@ -5638,7 +5992,7 @@
     "baseUrl": "https://oslogin.googleapis.com/",
     "description": "You can use OS Login to manage access to your VM instances using IAM roles.",
     "name": "oslogin",
-    "revision": "20230603",
+    "revision": "20240211",
     "title": "Cloud OS Login API",
     "version": "v1",
     "auth": {
@@ -5664,7 +6018,7 @@
     "baseUrl": "https://pagespeedonline.googleapis.com/",
     "description": "The PageSpeed Insights API lets you analyze the performance of your website with a simple API. It offers tailored suggestions for how you can optimize your site, and lets you easily integrate PageSpeed Insights analysis into your development tools and workflow. ",
     "name": "pagespeedonline",
-    "revision": "20230627",
+    "revision": "20240209",
     "title": "PageSpeed Insights API",
     "version": "v5",
     "auth": {
@@ -5680,18 +6034,24 @@
   {
     "baseUrl": "https://paymentsresellersubscription.googleapis.com/",
     "name": "paymentsresellersubscription",
-    "revision": "20230627",
+    "revision": "20240213",
     "title": "Payments Reseller Subscription API",
     "version": "v1",
     "auth": {
-      "oauth2": {}
+      "oauth2": {
+        "scopes": {
+          "openid": {
+            "description": "Associate you with your personal info on Google"
+          }
+        }
+      }
     }
   },
   {
     "baseUrl": "https://people.googleapis.com/",
     "description": "Provides access to information about profiles and contacts.",
     "name": "people",
-    "revision": "20230626",
+    "revision": "20240211",
     "title": "People API",
     "version": "v1",
     "auth": {
@@ -5738,10 +6098,38 @@
     }
   },
   {
+    "baseUrl": "https://places.googleapis.com/",
+    "name": "places",
+    "revision": "20240213",
+    "title": "Places API (New)",
+    "version": "v1",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          },
+          "https://www.googleapis.com/auth/maps-platform.places": {
+            "description": "Private Service: https://www.googleapis.com/auth/maps-platform.places"
+          },
+          "https://www.googleapis.com/auth/maps-platform.places.details": {
+            "description": "Private Service: https://www.googleapis.com/auth/maps-platform.places.details"
+          },
+          "https://www.googleapis.com/auth/maps-platform.places.nearbysearch": {
+            "description": "Private Service: https://www.googleapis.com/auth/maps-platform.places.nearbysearch"
+          },
+          "https://www.googleapis.com/auth/maps-platform.places.textsearch": {
+            "description": "Private Service: https://www.googleapis.com/auth/maps-platform.places.textsearch"
+          }
+        }
+      }
+    }
+  },
+  {
     "baseUrl": "https://playcustomapp.googleapis.com/",
     "description": "API to create and publish custom Android apps",
     "name": "playcustomapp",
-    "revision": "20230627",
+    "revision": "20240214",
     "title": "Google Play Custom App Publishing API",
     "version": "v1",
     "auth": {
@@ -5757,7 +6145,7 @@
   {
     "baseUrl": "https://playdeveloperreporting.googleapis.com/",
     "name": "playdeveloperreporting",
-    "revision": "20230627",
+    "revision": "20240214",
     "title": "Google Play Developer Reporting API",
     "version": "v1alpha1",
     "auth": {
@@ -5773,7 +6161,7 @@
   {
     "baseUrl": "https://playdeveloperreporting.googleapis.com/",
     "name": "playdeveloperreporting",
-    "revision": "20230627",
+    "revision": "20240214",
     "title": "Google Play Developer Reporting API",
     "version": "v1beta1",
     "auth": {
@@ -5787,10 +6175,21 @@
     }
   },
   {
+    "baseUrl": "https://playgrouping.googleapis.com/",
+    "description": "playgrouping.googleapis.com API.",
+    "name": "playgrouping",
+    "revision": "20240215",
+    "title": "Google Play Grouping API",
+    "version": "v1alpha1",
+    "auth": {
+      "oauth2": {}
+    }
+  },
+  {
     "baseUrl": "https://playintegrity.googleapis.com/",
     "description": "The Play Integrity API helps you check that you're interacting with your genuine app on a genuine Android device powered by Google Play services. The Play Integrity API has replaced SafetyNet Attestation and Android Device Verification.",
     "name": "playintegrity",
-    "revision": "20230627",
+    "revision": "20240212",
     "title": "Google Play Integrity API",
     "version": "v1",
     "auth": {
@@ -5806,7 +6205,7 @@
   {
     "baseUrl": "https://policyanalyzer.googleapis.com/",
     "name": "policyanalyzer",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "Policy Analyzer API",
     "version": "v1beta1",
     "auth": {
@@ -5822,7 +6221,7 @@
   {
     "baseUrl": "https://policyanalyzer.googleapis.com/",
     "name": "policyanalyzer",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "Policy Analyzer API",
     "version": "v1",
     "auth": {
@@ -5839,7 +6238,7 @@
     "baseUrl": "https://policysimulator.googleapis.com/",
     "description": " Policy Simulator is a collection of endpoints for creating, running, and viewing a Replay. A `Replay` is a type of simulation that lets you see how your members' access to resources might change if you changed your IAM policy. During a `Replay`, Policy Simulator re-evaluates, or replays, past access attempts under both the current policy and your proposed policy, and compares those results to determine how your members' access might change under the proposed policy.",
     "name": "policysimulator",
-    "revision": "20230625",
+    "revision": "20240121",
     "title": "Policy Simulator API",
     "version": "v1alpha",
     "auth": {
@@ -5856,7 +6255,7 @@
     "baseUrl": "https://policysimulator.googleapis.com/",
     "description": " Policy Simulator is a collection of endpoints for creating, running, and viewing a Replay. A `Replay` is a type of simulation that lets you see how your members' access to resources might change if you changed your IAM policy. During a `Replay`, Policy Simulator re-evaluates, or replays, past access attempts under both the current policy and your proposed policy, and compares those results to determine how your members' access might change under the proposed policy.",
     "name": "policysimulator",
-    "revision": "20230625",
+    "revision": "20240121",
     "title": "Policy Simulator API",
     "version": "v1beta",
     "auth": {
@@ -5873,7 +6272,7 @@
     "baseUrl": "https://policysimulator.googleapis.com/",
     "description": " Policy Simulator is a collection of endpoints for creating, running, and viewing a Replay. A `Replay` is a type of simulation that lets you see how your members' access to resources might change if you changed your IAM policy. During a `Replay`, Policy Simulator re-evaluates, or replays, past access attempts under both the current policy and your proposed policy, and compares those results to determine how your members' access might change under the proposed policy.",
     "name": "policysimulator",
-    "revision": "20230625",
+    "revision": "20240121",
     "title": "Policy Simulator API",
     "version": "v1",
     "auth": {
@@ -5889,7 +6288,7 @@
   {
     "baseUrl": "https://policytroubleshooter.googleapis.com/",
     "name": "policytroubleshooter",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "Policy Troubleshooter API",
     "version": "v1beta",
     "auth": {
@@ -5905,7 +6304,7 @@
   {
     "baseUrl": "https://policytroubleshooter.googleapis.com/",
     "name": "policytroubleshooter",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "Policy Troubleshooter API",
     "version": "v1",
     "auth": {
@@ -5919,21 +6318,10 @@
     }
   },
   {
-    "baseUrl": "https://poly.googleapis.com/",
-    "description": "The Poly API provides read access to assets hosted on poly.google.com to all, and upload access to poly.google.com for whitelisted accounts. ",
-    "name": "poly",
-    "revision": "20230206",
-    "title": "Poly API",
-    "version": "v1",
-    "auth": {
-      "oauth2": {}
-    }
-  },
-  {
     "baseUrl": "https://privateca.googleapis.com/",
     "description": "The Certificate Authority Service API is a highly-available, scalable service that enables you to simplify and automate the management of private certificate authorities (CAs) while staying in control of your private keys. ",
     "name": "privateca",
-    "revision": "20230620",
+    "revision": "20240212",
     "title": "Certificate Authority API",
     "version": "v1beta1",
     "auth": {
@@ -5950,7 +6338,7 @@
     "baseUrl": "https://privateca.googleapis.com/",
     "description": "The Certificate Authority Service API is a highly-available, scalable service that enables you to simplify and automate the management of private certificate authorities (CAs) while staying in control of your private keys. ",
     "name": "privateca",
-    "revision": "20230620",
+    "revision": "20240212",
     "title": "Certificate Authority API",
     "version": "v1",
     "auth": {
@@ -5966,7 +6354,7 @@
   {
     "baseUrl": "https://prod-tt-sasportal.googleapis.com/",
     "name": "prod_tt_sasportal",
-    "revision": "20230626",
+    "revision": "20240213",
     "title": "SAS Portal API (Testing)",
     "version": "v1alpha1",
     "auth": {
@@ -5986,7 +6374,7 @@
     "baseUrl": "https://publicca.googleapis.com/",
     "description": "The Public Certificate Authority API may be used to create and manage ACME external account binding keys associated with Google Trust Services' publicly trusted certificate authority. ",
     "name": "publicca",
-    "revision": "20230626",
+    "revision": "20240214",
     "title": "Public Certificate Authority API",
     "version": "v1alpha1",
     "auth": {
@@ -6003,7 +6391,7 @@
     "baseUrl": "https://publicca.googleapis.com/",
     "description": "The Public Certificate Authority API may be used to create and manage ACME external account binding keys associated with Google Trust Services' publicly trusted certificate authority. ",
     "name": "publicca",
-    "revision": "20230626",
+    "revision": "20240214",
     "title": "Public Certificate Authority API",
     "version": "v1beta1",
     "auth": {
@@ -6020,7 +6408,7 @@
     "baseUrl": "https://publicca.googleapis.com/",
     "description": "The Public Certificate Authority API may be used to create and manage ACME external account binding keys associated with Google Trust Services' publicly trusted certificate authority. ",
     "name": "publicca",
-    "revision": "20230626",
+    "revision": "20240214",
     "title": "Public Certificate Authority API",
     "version": "v1",
     "auth": {
@@ -6037,7 +6425,7 @@
     "baseUrl": "https://pubsub.googleapis.com/",
     "description": "Provides reliable, many-to-many, asynchronous messaging between applications. ",
     "name": "pubsub",
-    "revision": "20230620",
+    "revision": "20240208",
     "title": "Cloud Pub/Sub API",
     "version": "v1beta1a",
     "auth": {
@@ -6057,7 +6445,7 @@
     "baseUrl": "https://pubsub.googleapis.com/",
     "description": "Provides reliable, many-to-many, asynchronous messaging between applications. ",
     "name": "pubsub",
-    "revision": "20230620",
+    "revision": "20240208",
     "title": "Cloud Pub/Sub API",
     "version": "v1beta2",
     "auth": {
@@ -6077,7 +6465,7 @@
     "baseUrl": "https://pubsub.googleapis.com/",
     "description": "Provides reliable, many-to-many, asynchronous messaging between applications. ",
     "name": "pubsub",
-    "revision": "20230620",
+    "revision": "20240208",
     "title": "Cloud Pub/Sub API",
     "version": "v1",
     "auth": {
@@ -6096,8 +6484,25 @@
   {
     "baseUrl": "https://pubsublite.googleapis.com/",
     "name": "pubsublite",
-    "revision": "20230609",
+    "revision": "20240203",
     "title": "Pub/Sub Lite API",
+    "version": "v1",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          }
+        }
+      }
+    }
+  },
+  {
+    "baseUrl": "https://rapidmigrationassessment.googleapis.com/",
+    "description": "The Rapid Migration Assessment service is our first-party migration assessment and planning tool.",
+    "name": "rapidmigrationassessment",
+    "revision": "20240203",
+    "title": "Rapid Migration Assessment API",
     "version": "v1",
     "auth": {
       "oauth2": {
@@ -6113,7 +6518,7 @@
     "baseUrl": "https://readerrevenuesubscriptionlinking.googleapis.com/",
     "description": "readerrevenuesubscriptionlinking.googleapis.com API.",
     "name": "readerrevenuesubscriptionlinking",
-    "revision": "20230626",
+    "revision": "20240211",
     "title": "Reader Revenue Subscription Linking API",
     "version": "v1",
     "auth": {
@@ -6124,7 +6529,7 @@
     "baseUrl": "https://realtimebidding.googleapis.com/",
     "description": "Allows external bidders to manage their RTB integration with Google. This includes managing bidder endpoints, QPS quotas, configuring what ad inventory to receive via pretargeting, submitting creatives for verification, and accessing creative metadata such as approval status.",
     "name": "realtimebidding",
-    "revision": "20230628",
+    "revision": "20240215",
     "title": "Real-time Bidding API",
     "version": "v1",
     "auth": {
@@ -6141,7 +6546,7 @@
     "baseUrl": "https://recaptchaenterprise.googleapis.com/",
     "description": "Help protect your website from fraudulent activity, spam, and abuse without creating friction.",
     "name": "recaptchaenterprise",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "reCAPTCHA Enterprise API",
     "version": "v1",
     "auth": {
@@ -6158,7 +6563,7 @@
     "baseUrl": "https://recommendationengine.googleapis.com/",
     "description": "Note that we now highly recommend new customers to use Retail API, which incorporates the GA version of the Recommendations AI funtionalities. To enable Retail API, please visit https://console.cloud.google.com/apis/library/retail.googleapis.com. The Recommendations AI service enables customers to build end-to-end personalized recommendation systems without requiring a high level of expertise in machine learning, recommendation system, or Google Cloud.",
     "name": "recommendationengine",
-    "revision": "20230622",
+    "revision": "20240201",
     "title": "Recommendations AI (Beta)",
     "version": "v1beta1",
     "auth": {
@@ -6174,7 +6579,7 @@
   {
     "baseUrl": "https://recommender.googleapis.com/",
     "name": "recommender",
-    "revision": "20230612",
+    "revision": "20240211",
     "title": "Recommender API",
     "version": "v1beta1",
     "auth": {
@@ -6190,7 +6595,7 @@
   {
     "baseUrl": "https://recommender.googleapis.com/",
     "name": "recommender",
-    "revision": "20230612",
+    "revision": "20240211",
     "title": "Recommender API",
     "version": "v1",
     "auth": {
@@ -6207,7 +6612,7 @@
     "baseUrl": "https://redis.googleapis.com/",
     "description": "Creates and manages Redis instances on the Google Cloud Platform.",
     "name": "redis",
-    "revision": "20230620",
+    "revision": "20240208",
     "title": "Google Cloud Memorystore for Redis API",
     "version": "v1beta1",
     "auth": {
@@ -6224,7 +6629,7 @@
     "baseUrl": "https://redis.googleapis.com/",
     "description": "Creates and manages Redis instances on the Google Cloud Platform.",
     "name": "redis",
-    "revision": "20230620",
+    "revision": "20240201",
     "title": "Google Cloud Memorystore for Redis API",
     "version": "v1",
     "auth": {
@@ -6241,7 +6646,7 @@
     "baseUrl": "https://reseller.googleapis.com/",
     "description": "Perform common functions that are available on the Channel Services console at scale, like placing orders and viewing customer information",
     "name": "reseller",
-    "revision": "20230625",
+    "revision": "20240204",
     "title": "Google Workspace Reseller API",
     "version": "v1",
     "auth": {
@@ -6261,7 +6666,7 @@
     "baseUrl": "https://resourcesettings.googleapis.com/",
     "description": "The Resource Settings API allows users to control and modify the behavior of their GCP resources (e.g., VM, firewall, Project, etc.) across the Cloud Resource Hierarchy.",
     "name": "resourcesettings",
-    "revision": "20230627",
+    "revision": "20240213",
     "title": "Resource Settings API",
     "version": "v1",
     "auth": {
@@ -6276,10 +6681,10 @@
   },
   {
     "baseUrl": "https://retail.googleapis.com/",
-    "description": "Cloud Retail service enables customers to build end-to-end personalized recommendation systems without requiring a high level of expertise in machine learning, recommendation system, or Google Cloud.",
+    "description": "Vertex AI Search for Retail API is made up of Retail Search, Browse and Recommendations. These discovery AI solutions help you implement personalized search, browse and recommendations, based on machine learning models, across your websites and mobile applications.",
     "name": "retail",
-    "revision": "20230622",
-    "title": "Retail API",
+    "revision": "20240212",
+    "title": "Vertex AI Search for Retail API",
     "version": "v2alpha",
     "auth": {
       "oauth2": {
@@ -6293,10 +6698,10 @@
   },
   {
     "baseUrl": "https://retail.googleapis.com/",
-    "description": "Cloud Retail service enables customers to build end-to-end personalized recommendation systems without requiring a high level of expertise in machine learning, recommendation system, or Google Cloud.",
+    "description": "Vertex AI Search for Retail API is made up of Retail Search, Browse and Recommendations. These discovery AI solutions help you implement personalized search, browse and recommendations, based on machine learning models, across your websites and mobile applications.",
     "name": "retail",
-    "revision": "20230622",
-    "title": "Retail API",
+    "revision": "20240212",
+    "title": "Vertex AI Search for Retail API",
     "version": "v2beta",
     "auth": {
       "oauth2": {
@@ -6310,10 +6715,10 @@
   },
   {
     "baseUrl": "https://retail.googleapis.com/",
-    "description": "Cloud Retail service enables customers to build end-to-end personalized recommendation systems without requiring a high level of expertise in machine learning, recommendation system, or Google Cloud.",
+    "description": "Vertex AI Search for Retail API is made up of Retail Search, Browse and Recommendations. These discovery AI solutions help you implement personalized search, browse and recommendations, based on machine learning models, across your websites and mobile applications.",
     "name": "retail",
-    "revision": "20230622",
-    "title": "Retail API",
+    "revision": "20240212",
+    "title": "Vertex AI Search for Retail API",
     "version": "v2",
     "auth": {
       "oauth2": {
@@ -6329,7 +6734,7 @@
     "baseUrl": "https://run.googleapis.com/",
     "description": "Deploy and manage user provided container images that scale automatically based on incoming requests. The Cloud Run Admin API v1 follows the Knative Serving API specification, while v2 is aligned with Google Cloud AIP-based API standards, as described in https://google.aip.dev/.",
     "name": "run",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "Cloud Run Admin API",
     "version": "v1",
     "auth": {
@@ -6346,7 +6751,7 @@
     "baseUrl": "https://run.googleapis.com/",
     "description": "Deploy and manage user provided container images that scale automatically based on incoming requests. The Cloud Run Admin API v1 follows the Knative Serving API specification, while v2 is aligned with Google Cloud AIP-based API standards, as described in https://google.aip.dev/.",
     "name": "run",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "Cloud Run Admin API",
     "version": "v2",
     "auth": {
@@ -6363,7 +6768,7 @@
     "baseUrl": "https://runtimeconfig.googleapis.com/",
     "description": "The Runtime Configurator allows you to dynamically configure and expose variables through Google Cloud Platform. In addition, you can also set Watchers and Waiters that will watch for changes to your data and return based on certain conditions.",
     "name": "runtimeconfig",
-    "revision": "20230628",
+    "revision": "20231229",
     "title": "Cloud Runtime Configuration API",
     "version": "v1beta1",
     "auth": {
@@ -6383,7 +6788,7 @@
     "baseUrl": "https://runtimeconfig.googleapis.com/",
     "description": "The Runtime Configurator allows you to dynamically configure and expose variables through Google Cloud Platform. In addition, you can also set Watchers and Waiters that will watch for changes to your data and return based on certain conditions.",
     "name": "runtimeconfig",
-    "revision": "20230628",
+    "revision": "20231229",
     "title": "Cloud Runtime Configuration API",
     "version": "v1",
     "auth": {
@@ -6403,7 +6808,7 @@
     "baseUrl": "https://safebrowsing.googleapis.com/",
     "description": "Enables client applications to check web resources (most commonly URLs) against Google-generated lists of unsafe web resources. The Safe Browsing APIs are for non-commercial use only. If you need to use APIs to detect malicious URLs for commercial purposes – meaning “for sale or revenue-generating purposes” – please refer to the Web Risk API.",
     "name": "safebrowsing",
-    "revision": "20230619",
+    "revision": "20240211",
     "title": "Safe Browsing API",
     "version": "v4",
     "auth": {
@@ -6411,9 +6816,20 @@
     }
   },
   {
+    "baseUrl": "https://safebrowsing.googleapis.com/",
+    "description": "Enables client applications to check web resources (most commonly URLs) against Google-generated lists of unsafe web resources. The Safe Browsing APIs are for non-commercial use only. If you need to use APIs to detect malicious URLs for commercial purposes – meaning “for sale or revenue-generating purposes” – please refer to the Web Risk API.",
+    "name": "safebrowsing",
+    "revision": "20240211",
+    "title": "Safe Browsing API",
+    "version": "v5",
+    "auth": {
+      "oauth2": {}
+    }
+  },
+  {
     "baseUrl": "https://sasportal.googleapis.com/",
     "name": "sasportal",
-    "revision": "20230625",
+    "revision": "20240209",
     "title": "SAS Portal API",
     "version": "v1alpha1",
     "auth": {
@@ -6433,7 +6849,7 @@
     "baseUrl": "https://script.googleapis.com/",
     "description": "Manages and executes Google Apps Script projects. ",
     "name": "script",
-    "revision": "20230618",
+    "revision": "20240212",
     "title": "Apps Script API",
     "version": "v1",
     "auth": {
@@ -6501,7 +6917,7 @@
     "baseUrl": "https://searchads360.googleapis.com/",
     "description": "The Search Ads 360 API allows developers to automate downloading reports from Search Ads 360.",
     "name": "searchads360",
-    "revision": "20230625",
+    "revision": "20240208",
     "title": "Search Ads 360 Reporting API",
     "version": "v0",
     "auth": {
@@ -6518,7 +6934,7 @@
     "baseUrl": "https://searchconsole.googleapis.com/",
     "description": "The Search Console API provides access to both Search Console data (verified users only) and to public information on an URL basis (anyone)",
     "name": "searchconsole",
-    "revision": "20230626",
+    "revision": "20240214",
     "title": "Google Search Console API",
     "version": "v1",
     "auth": {
@@ -6538,7 +6954,7 @@
     "baseUrl": "https://secretmanager.googleapis.com/",
     "description": "Stores sensitive data such as API keys, passwords, and certificates. Provides convenience while improving security. ",
     "name": "secretmanager",
-    "revision": "20230619",
+    "revision": "20240126",
     "title": "Secret Manager API",
     "version": "v1beta1",
     "auth": {
@@ -6555,7 +6971,7 @@
     "baseUrl": "https://secretmanager.googleapis.com/",
     "description": "Stores sensitive data such as API keys, passwords, and certificates. Provides convenience while improving security. ",
     "name": "secretmanager",
-    "revision": "20230619",
+    "revision": "20240126",
     "title": "Secret Manager API",
     "version": "v1",
     "auth": {
@@ -6572,7 +6988,7 @@
     "baseUrl": "https://securitycenter.googleapis.com/",
     "description": "Security Command Center API provides access to temporal views of assets and findings within an organization.",
     "name": "securitycenter",
-    "revision": "20230626",
+    "revision": "20240213",
     "title": "Security Command Center API",
     "version": "v1beta1",
     "auth": {
@@ -6589,7 +7005,7 @@
     "baseUrl": "https://securitycenter.googleapis.com/",
     "description": "Security Command Center API provides access to temporal views of assets and findings within an organization.",
     "name": "securitycenter",
-    "revision": "20230626",
+    "revision": "20240213",
     "title": "Security Command Center API",
     "version": "v1beta2",
     "auth": {
@@ -6606,7 +7022,7 @@
     "baseUrl": "https://securitycenter.googleapis.com/",
     "description": "Security Command Center API provides access to temporal views of assets and findings within an organization.",
     "name": "securitycenter",
-    "revision": "20230626",
+    "revision": "20240213",
     "title": "Security Command Center API",
     "version": "v1",
     "auth": {
@@ -6623,7 +7039,7 @@
     "baseUrl": "https://serviceconsumermanagement.googleapis.com/",
     "description": "Manages the service consumers of a Service Infrastructure service.",
     "name": "serviceconsumermanagement",
-    "revision": "20230627",
+    "revision": "20240211",
     "title": "Service Consumer Management API",
     "version": "v1beta1",
     "auth": {
@@ -6640,7 +7056,7 @@
     "baseUrl": "https://serviceconsumermanagement.googleapis.com/",
     "description": "Manages the service consumers of a Service Infrastructure service.",
     "name": "serviceconsumermanagement",
-    "revision": "20230627",
+    "revision": "20240211",
     "title": "Service Consumer Management API",
     "version": "v1",
     "auth": {
@@ -6657,7 +7073,7 @@
     "baseUrl": "https://servicecontrol.googleapis.com/",
     "description": "Provides admission control and telemetry reporting for services integrated with Service Infrastructure. ",
     "name": "servicecontrol",
-    "revision": "20230619",
+    "revision": "20240203",
     "title": "Service Control API",
     "version": "v1",
     "auth": {
@@ -6677,7 +7093,7 @@
     "baseUrl": "https://servicecontrol.googleapis.com/",
     "description": "Provides admission control and telemetry reporting for services integrated with Service Infrastructure. ",
     "name": "servicecontrol",
-    "revision": "20230619",
+    "revision": "20240203",
     "title": "Service Control API",
     "version": "v2",
     "auth": {
@@ -6697,7 +7113,7 @@
     "baseUrl": "https://servicedirectory.googleapis.com/",
     "description": "Service Directory is a platform for discovering, publishing, and connecting services. ",
     "name": "servicedirectory",
-    "revision": "20230618",
+    "revision": "20240204",
     "title": "Service Directory API",
     "version": "v1beta1",
     "auth": {
@@ -6714,7 +7130,7 @@
     "baseUrl": "https://servicedirectory.googleapis.com/",
     "description": "Service Directory is a platform for discovering, publishing, and connecting services. ",
     "name": "servicedirectory",
-    "revision": "20230618",
+    "revision": "20240204",
     "title": "Service Directory API",
     "version": "v1",
     "auth": {
@@ -6731,7 +7147,7 @@
     "baseUrl": "https://servicemanagement.googleapis.com/",
     "description": "Google Service Management allows service producers to publish their services on Google Cloud Platform so that they can be discovered and used by service consumers.",
     "name": "servicemanagement",
-    "revision": "20230619",
+    "revision": "20240209",
     "title": "Service Management API",
     "version": "v1",
     "auth": {
@@ -6757,7 +7173,7 @@
     "baseUrl": "https://servicenetworking.googleapis.com/",
     "description": "Provides automatic management of network configurations necessary for certain services.",
     "name": "servicenetworking",
-    "revision": "20230627",
+    "revision": "20240215",
     "title": "Service Networking API",
     "version": "v1beta",
     "auth": {
@@ -6777,7 +7193,7 @@
     "baseUrl": "https://servicenetworking.googleapis.com/",
     "description": "Provides automatic management of network configurations necessary for certain services.",
     "name": "servicenetworking",
-    "revision": "20230627",
+    "revision": "20240215",
     "title": "Service Networking API",
     "version": "v1",
     "auth": {
@@ -6797,7 +7213,7 @@
     "baseUrl": "https://serviceusage.googleapis.com/",
     "description": "Enables services that service consumers want to use on Google Cloud Platform, lists the available or enabled services, or disables services that service consumers no longer use.",
     "name": "serviceusage",
-    "revision": "20230627",
+    "revision": "20240211",
     "title": "Service Usage API",
     "version": "v1beta1",
     "auth": {
@@ -6820,7 +7236,7 @@
     "baseUrl": "https://serviceusage.googleapis.com/",
     "description": "Enables services that service consumers want to use on Google Cloud Platform, lists the available or enabled services, or disables services that service consumers no longer use.",
     "name": "serviceusage",
-    "revision": "20230627",
+    "revision": "20240211",
     "title": "Service Usage API",
     "version": "v1",
     "auth": {
@@ -6843,7 +7259,7 @@
     "baseUrl": "https://sheets.googleapis.com/",
     "description": "Reads and writes Google Sheets.",
     "name": "sheets",
-    "revision": "20230620",
+    "revision": "20240209",
     "title": "Google Sheets API",
     "version": "v4",
     "auth": {
@@ -6893,7 +7309,7 @@
     "baseUrl": "https://slides.googleapis.com/",
     "description": "Reads and writes Google Slides presentations.",
     "name": "slides",
-    "revision": "20230620",
+    "revision": "20240209",
     "title": "Google Slides API",
     "version": "v1",
     "auth": {
@@ -6928,7 +7344,7 @@
     "baseUrl": "https://smartdevicemanagement.googleapis.com/",
     "description": "Allow select enterprise partners to access, control, and manage Google and Nest devices programmatically.",
     "name": "smartdevicemanagement",
-    "revision": "20230618",
+    "revision": "20240128",
     "title": "Smart Device Management API",
     "version": "v1",
     "auth": {
@@ -6945,7 +7361,7 @@
     "baseUrl": "https://sourcerepo.googleapis.com/",
     "description": "Accesses source code repositories hosted by Google.",
     "name": "sourcerepo",
-    "revision": "20230625",
+    "revision": "20240212",
     "title": "Cloud Source Repositories API",
     "version": "v1",
     "auth": {
@@ -6971,7 +7387,7 @@
     "baseUrl": "https://spanner.googleapis.com/",
     "description": "Cloud Spanner is a managed, mission-critical, globally consistent and scalable relational database service.",
     "name": "spanner",
-    "revision": "20230614",
+    "revision": "20240207",
     "title": "Cloud Spanner API",
     "version": "v1",
     "auth": {
@@ -6994,7 +7410,7 @@
     "baseUrl": "https://speech.googleapis.com/",
     "description": "Converts audio to text by applying powerful neural network models.",
     "name": "speech",
-    "revision": "20230608",
+    "revision": "20240205",
     "title": "Cloud Speech-to-Text API",
     "version": "v1p1beta1",
     "auth": {
@@ -7011,7 +7427,7 @@
     "baseUrl": "https://speech.googleapis.com/",
     "description": "Converts audio to text by applying powerful neural network models.",
     "name": "speech",
-    "revision": "20230608",
+    "revision": "20240205",
     "title": "Cloud Speech-to-Text API",
     "version": "v1",
     "auth": {
@@ -7028,7 +7444,7 @@
     "baseUrl": "https://sqladmin.googleapis.com/",
     "description": "API for Cloud SQL database instance management",
     "name": "sqladmin",
-    "revision": "20230607",
+    "revision": "20240205",
     "title": "Cloud SQL Admin API",
     "version": "v1beta4",
     "auth": {
@@ -7048,7 +7464,7 @@
     "baseUrl": "https://sqladmin.googleapis.com/",
     "description": "API for Cloud SQL database instance management",
     "name": "sqladmin",
-    "revision": "20230607",
+    "revision": "20240205",
     "title": "Cloud SQL Admin API",
     "version": "v1",
     "auth": {
@@ -7069,7 +7485,7 @@
     "baseUrl": "https://storage.googleapis.com/storage/v1/",
     "description": "Stores and retrieves potentially large, immutable data objects.",
     "name": "storage",
-    "revision": "20230625",
+    "revision": "20240209",
     "title": "Cloud Storage JSON API",
     "version": "v1",
     "auth": {
@@ -7098,7 +7514,7 @@
     "baseUrl": "https://storagetransfer.googleapis.com/",
     "description": "Transfers data from external data sources to a Google Cloud Storage bucket or between Google Cloud Storage buckets. ",
     "name": "storagetransfer",
-    "revision": "20230623",
+    "revision": "20240202",
     "title": "Storage Transfer API",
     "version": "v1",
     "auth": {
@@ -7115,7 +7531,7 @@
     "baseUrl": "https://streetviewpublish.googleapis.com/",
     "description": "Publishes 360 photos to Google Maps, along with position, orientation, and connectivity metadata. Apps can offer an interface for positioning, connecting, and uploading user-generated Street View images. ",
     "name": "streetviewpublish",
-    "revision": "20230627",
+    "revision": "20240213",
     "title": "Street View Publish API",
     "version": "v1",
     "auth": {
@@ -7132,7 +7548,7 @@
     "baseUrl": "https://sts.googleapis.com/",
     "description": "The Security Token Service exchanges Google or third-party credentials for a short-lived access token to Google Cloud resources.",
     "name": "sts",
-    "revision": "20230625",
+    "revision": "20240202",
     "title": "Security Token Service API",
     "version": "v1beta",
     "auth": {
@@ -7143,7 +7559,7 @@
     "baseUrl": "https://sts.googleapis.com/",
     "description": "The Security Token Service exchanges Google or third-party credentials for a short-lived access token to Google Cloud resources.",
     "name": "sts",
-    "revision": "20230625",
+    "revision": "20240202",
     "title": "Security Token Service API",
     "version": "v1",
     "auth": {
@@ -7154,7 +7570,7 @@
     "baseUrl": "https://tagmanager.googleapis.com/",
     "description": "This API allows clients to access and modify container and tag configuration.",
     "name": "tagmanager",
-    "revision": "20230626",
+    "revision": "20240214",
     "title": "Tag Manager API",
     "version": "v1",
     "auth": {
@@ -7189,7 +7605,7 @@
     "baseUrl": "https://tagmanager.googleapis.com/",
     "description": "This API allows clients to access and modify container and tag configuration.",
     "name": "tagmanager",
-    "revision": "20230626",
+    "revision": "20240214",
     "title": "Tag Manager API",
     "version": "v2",
     "auth": {
@@ -7224,7 +7640,7 @@
     "baseUrl": "https://tasks.googleapis.com/",
     "description": "The Google Tasks API lets you manage your tasks and task lists.",
     "name": "tasks",
-    "revision": "20230627",
+    "revision": "20240211",
     "title": "Google Tasks API",
     "version": "v1",
     "auth": {
@@ -7244,7 +7660,7 @@
     "baseUrl": "https://testing.googleapis.com/",
     "description": "Allows developers to run automated tests for their mobile applications on Google infrastructure.",
     "name": "testing",
-    "revision": "20230623",
+    "revision": "20240213",
     "title": "Cloud Testing API",
     "version": "v1",
     "auth": {
@@ -7264,7 +7680,7 @@
     "baseUrl": "https://texttospeech.googleapis.com/",
     "description": "Synthesizes natural-sounding speech by applying powerful neural network models.",
     "name": "texttospeech",
-    "revision": "20230626",
+    "revision": "20240207",
     "title": "Cloud Text-to-Speech API",
     "version": "v1beta1",
     "auth": {
@@ -7281,7 +7697,7 @@
     "baseUrl": "https://texttospeech.googleapis.com/",
     "description": "Synthesizes natural-sounding speech by applying powerful neural network models.",
     "name": "texttospeech",
-    "revision": "20230626",
+    "revision": "20240207",
     "title": "Cloud Text-to-Speech API",
     "version": "v1",
     "auth": {
@@ -7298,7 +7714,7 @@
     "baseUrl": "https://toolresults.googleapis.com/",
     "description": "API to publish and access results from developer tools.",
     "name": "toolresults",
-    "revision": "20230628",
+    "revision": "20240215",
     "title": "Cloud Tool Results API",
     "version": "v1beta3",
     "auth": {
@@ -7315,7 +7731,7 @@
     "baseUrl": "https://tpu.googleapis.com/",
     "description": "TPU API provides customers with access to Google TPU technology.",
     "name": "tpu",
-    "revision": "20230621",
+    "revision": "20240208",
     "title": "Cloud TPU API",
     "version": "v1alpha1",
     "auth": {
@@ -7332,7 +7748,7 @@
     "baseUrl": "https://tpu.googleapis.com/",
     "description": "TPU API provides customers with access to Google TPU technology.",
     "name": "tpu",
-    "revision": "20230621",
+    "revision": "20240208",
     "title": "Cloud TPU API",
     "version": "v2alpha1",
     "auth": {
@@ -7349,7 +7765,7 @@
     "baseUrl": "https://tpu.googleapis.com/",
     "description": "TPU API provides customers with access to Google TPU technology.",
     "name": "tpu",
-    "revision": "20230621",
+    "revision": "20240205",
     "title": "Cloud TPU API",
     "version": "v1",
     "auth": {
@@ -7366,7 +7782,7 @@
     "baseUrl": "https://tpu.googleapis.com/",
     "description": "TPU API provides customers with access to Google TPU technology.",
     "name": "tpu",
-    "revision": "20230621",
+    "revision": "20240205",
     "title": "Cloud TPU API",
     "version": "v2",
     "auth": {
@@ -7382,9 +7798,25 @@
   {
     "baseUrl": "https://trafficdirector.googleapis.com/",
     "name": "trafficdirector",
-    "revision": "20230526",
+    "revision": "20240213",
     "title": "Traffic Director API",
     "version": "v2",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          }
+        }
+      }
+    }
+  },
+  {
+    "baseUrl": "https://trafficdirector.googleapis.com/",
+    "name": "trafficdirector",
+    "revision": "20240213",
+    "title": "Traffic Director API",
+    "version": "v3",
     "auth": {
       "oauth2": {
         "scopes": {
@@ -7399,7 +7831,7 @@
     "baseUrl": "https://transcoder.googleapis.com/",
     "description": "This API converts video files into formats suitable for consumer distribution. For more information, see the Transcoder API overview. ",
     "name": "transcoder",
-    "revision": "20230607",
+    "revision": "20240124",
     "title": "Transcoder API",
     "version": "v1",
     "auth": {
@@ -7416,7 +7848,7 @@
     "baseUrl": "https://translation.googleapis.com/",
     "description": "Integrates text translation into your website or application.",
     "name": "translate",
-    "revision": "20230526",
+    "revision": "20240131",
     "title": "Cloud Translation API",
     "version": "v3beta1",
     "auth": {
@@ -7457,7 +7889,7 @@
     "baseUrl": "https://translation.googleapis.com/",
     "description": "Integrates text translation into your website or application.",
     "name": "translate",
-    "revision": "20230526",
+    "revision": "20240131",
     "title": "Cloud Translation API",
     "version": "v3",
     "auth": {
@@ -7477,7 +7909,7 @@
     "baseUrl": "https://travelimpactmodel.googleapis.com/",
     "description": "Travel Impact Model API lets you query travel carbon emission estimates.",
     "name": "travelimpactmodel",
-    "revision": "20230627",
+    "revision": "20240214",
     "title": "Travel Impact Model API",
     "version": "v1",
     "auth": {
@@ -7488,7 +7920,7 @@
     "baseUrl": "https://vault.googleapis.com/",
     "description": "Retention and eDiscovery for Google Workspace. To work with Vault resources, the account must have the [required Vault privileges](https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege. For example, to download an export, an account needs the **Manage Exports** privilege and the matter shared with them. ",
     "name": "vault",
-    "revision": "20230626",
+    "revision": "20240202",
     "title": "Google Vault API",
     "version": "v1",
     "auth": {
@@ -7508,7 +7940,7 @@
     "baseUrl": "https://verifiedaccess.googleapis.com/",
     "description": "API for Verified Access chrome extension to provide credential verification for chrome devices connecting to an enterprise network",
     "name": "verifiedaccess",
-    "revision": "20230622",
+    "revision": "20240213",
     "title": "Chrome Verified Access API",
     "version": "v1",
     "auth": {
@@ -7525,7 +7957,7 @@
     "baseUrl": "https://verifiedaccess.googleapis.com/",
     "description": "API for Verified Access chrome extension to provide credential verification for chrome devices connecting to an enterprise network",
     "name": "verifiedaccess",
-    "revision": "20230622",
+    "revision": "20240213",
     "title": "Chrome Verified Access API",
     "version": "v2",
     "auth": {
@@ -7542,7 +7974,7 @@
     "baseUrl": "https://versionhistory.googleapis.com/",
     "description": "Version History API - Prod",
     "name": "versionhistory",
-    "revision": "20230627",
+    "revision": "20240213",
     "title": "versionhistory.googleapis.com API",
     "version": "v1",
     "auth": {
@@ -7553,7 +7985,7 @@
     "baseUrl": "https://videointelligence.googleapis.com/",
     "description": "Detects objects, explicit content, and scene changes in videos. It also specifies the region for annotation and transcribes speech to text. Supports both asynchronous API and streaming API.",
     "name": "videointelligence",
-    "revision": "20230610",
+    "revision": "20240208",
     "title": "Cloud Video Intelligence API",
     "version": "v1p1beta1",
     "auth": {
@@ -7570,7 +8002,7 @@
     "baseUrl": "https://videointelligence.googleapis.com/",
     "description": "Detects objects, explicit content, and scene changes in videos. It also specifies the region for annotation and transcribes speech to text. Supports both asynchronous API and streaming API.",
     "name": "videointelligence",
-    "revision": "20230610",
+    "revision": "20240118",
     "title": "Cloud Video Intelligence API",
     "version": "v1p2beta1",
     "auth": {
@@ -7587,7 +8019,7 @@
     "baseUrl": "https://videointelligence.googleapis.com/",
     "description": "Detects objects, explicit content, and scene changes in videos. It also specifies the region for annotation and transcribes speech to text. Supports both asynchronous API and streaming API.",
     "name": "videointelligence",
-    "revision": "20230610",
+    "revision": "20240118",
     "title": "Cloud Video Intelligence API",
     "version": "v1p3beta1",
     "auth": {
@@ -7604,7 +8036,7 @@
     "baseUrl": "https://videointelligence.googleapis.com/",
     "description": "Detects objects, explicit content, and scene changes in videos. It also specifies the region for annotation and transcribes speech to text. Supports both asynchronous API and streaming API.",
     "name": "videointelligence",
-    "revision": "20230610",
+    "revision": "20240118",
     "title": "Cloud Video Intelligence API",
     "version": "v1beta2",
     "auth": {
@@ -7621,7 +8053,7 @@
     "baseUrl": "https://videointelligence.googleapis.com/",
     "description": "Detects objects, explicit content, and scene changes in videos. It also specifies the region for annotation and transcribes speech to text. Supports both asynchronous API and streaming API.",
     "name": "videointelligence",
-    "revision": "20230610",
+    "revision": "20240118",
     "title": "Cloud Video Intelligence API",
     "version": "v1",
     "auth": {
@@ -7638,7 +8070,7 @@
     "baseUrl": "https://vision.googleapis.com/",
     "description": "Integrates Google Vision features, including image labeling, face, logo, and landmark detection, optical character recognition (OCR), and detection of explicit content, into applications.",
     "name": "vision",
-    "revision": "20230608",
+    "revision": "20240207",
     "title": "Cloud Vision API",
     "version": "v1p1beta1",
     "auth": {
@@ -7658,7 +8090,7 @@
     "baseUrl": "https://vision.googleapis.com/",
     "description": "Integrates Google Vision features, including image labeling, face, logo, and landmark detection, optical character recognition (OCR), and detection of explicit content, into applications.",
     "name": "vision",
-    "revision": "20230608",
+    "revision": "20240207",
     "title": "Cloud Vision API",
     "version": "v1p2beta1",
     "auth": {
@@ -7678,7 +8110,7 @@
     "baseUrl": "https://vision.googleapis.com/",
     "description": "Integrates Google Vision features, including image labeling, face, logo, and landmark detection, optical character recognition (OCR), and detection of explicit content, into applications.",
     "name": "vision",
-    "revision": "20230608",
+    "revision": "20240207",
     "title": "Cloud Vision API",
     "version": "v1",
     "auth": {
@@ -7698,7 +8130,7 @@
     "baseUrl": "https://vmmigration.googleapis.com/",
     "description": "Use the Migrate to Virtual Machines API to programmatically migrate workloads. ",
     "name": "vmmigration",
-    "revision": "20230622",
+    "revision": "20240208",
     "title": "VM Migration API",
     "version": "v1alpha1",
     "auth": {
@@ -7715,8 +8147,25 @@
     "baseUrl": "https://vmmigration.googleapis.com/",
     "description": "Use the Migrate to Virtual Machines API to programmatically migrate workloads. ",
     "name": "vmmigration",
-    "revision": "20230622",
+    "revision": "20240208",
     "title": "VM Migration API",
+    "version": "v1",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          }
+        }
+      }
+    }
+  },
+  {
+    "baseUrl": "https://vmwareengine.googleapis.com/",
+    "description": "The Google VMware Engine API lets you programmatically manage VMware environments.",
+    "name": "vmwareengine",
+    "revision": "20240206",
+    "title": "VMware Engine API",
     "version": "v1",
     "auth": {
       "oauth2": {
@@ -7732,7 +8181,7 @@
     "baseUrl": "https://vpcaccess.googleapis.com/",
     "description": "API for managing VPC access connectors.",
     "name": "vpcaccess",
-    "revision": "20230518",
+    "revision": "20240111",
     "title": "Serverless VPC Access API",
     "version": "v1beta1",
     "auth": {
@@ -7749,7 +8198,7 @@
     "baseUrl": "https://vpcaccess.googleapis.com/",
     "description": "API for managing VPC access connectors.",
     "name": "vpcaccess",
-    "revision": "20230518",
+    "revision": "20240111",
     "title": "Serverless VPC Access API",
     "version": "v1",
     "auth": {
@@ -7763,10 +8212,27 @@
     }
   },
   {
+    "baseUrl": "https://walletobjects.googleapis.com/",
+    "description": "API for issuers to save and manage Google Wallet Objects.",
+    "name": "walletobjects",
+    "revision": "20240215",
+    "title": "Google Wallet API",
+    "version": "v1",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/wallet_object.issuer": {
+            "description": "Private Service: https://www.googleapis.com/auth/wallet_object.issuer"
+          }
+        }
+      }
+    }
+  },
+  {
     "baseUrl": "https://webfonts.googleapis.com/",
     "description": "The Google Web Fonts Developer API lets you retrieve information about web fonts served by Google.",
     "name": "webfonts",
-    "revision": "20230621",
+    "revision": "20231213",
     "title": "Web Fonts Developer API",
     "version": "v1",
     "auth": {
@@ -7776,7 +8242,7 @@
   {
     "baseUrl": "https://webrisk.googleapis.com/",
     "name": "webrisk",
-    "revision": "20230625",
+    "revision": "20240211",
     "title": "Web Risk API",
     "version": "v1",
     "auth": {
@@ -7793,7 +8259,7 @@
     "baseUrl": "https://websecurityscanner.googleapis.com/",
     "description": "Scans your Compute and App Engine apps for common web vulnerabilities.",
     "name": "websecurityscanner",
-    "revision": "20230619",
+    "revision": "20240204",
     "title": "Web Security Scanner API",
     "version": "v1alpha",
     "auth": {
@@ -7810,7 +8276,7 @@
     "baseUrl": "https://websecurityscanner.googleapis.com/",
     "description": "Scans your Compute and App Engine apps for common web vulnerabilities.",
     "name": "websecurityscanner",
-    "revision": "20230619",
+    "revision": "20240204",
     "title": "Web Security Scanner API",
     "version": "v1beta",
     "auth": {
@@ -7827,7 +8293,7 @@
     "baseUrl": "https://websecurityscanner.googleapis.com/",
     "description": "Scans your Compute and App Engine apps for common web vulnerabilities.",
     "name": "websecurityscanner",
-    "revision": "20230619",
+    "revision": "20240204",
     "title": "Web Security Scanner API",
     "version": "v1",
     "auth": {
@@ -7844,7 +8310,7 @@
     "baseUrl": "https://workflowexecutions.googleapis.com/",
     "description": "Execute workflows created with Workflows API.",
     "name": "workflowexecutions",
-    "revision": "20230613",
+    "revision": "20240126",
     "title": "Workflow Executions API",
     "version": "v1beta",
     "auth": {
@@ -7861,7 +8327,7 @@
     "baseUrl": "https://workflowexecutions.googleapis.com/",
     "description": "Execute workflows created with Workflows API.",
     "name": "workflowexecutions",
-    "revision": "20230613",
+    "revision": "20240126",
     "title": "Workflow Executions API",
     "version": "v1",
     "auth": {
@@ -7878,7 +8344,7 @@
     "baseUrl": "https://workflows.googleapis.com/",
     "description": "Manage workflow definitions. To execute workflows and manage executions, see the Workflows Executions API.",
     "name": "workflows",
-    "revision": "20230621",
+    "revision": "20240207",
     "title": "Workflows API",
     "version": "v1beta",
     "auth": {
@@ -7895,7 +8361,7 @@
     "baseUrl": "https://workflows.googleapis.com/",
     "description": "Manage workflow definitions. To execute workflows and manage executions, see the Workflows Executions API.",
     "name": "workflows",
-    "revision": "20230619",
+    "revision": "20240131",
     "title": "Workflows API",
     "version": "v1",
     "auth": {
@@ -7910,10 +8376,69 @@
   },
   {
     "baseUrl": "https://workloadmanager.googleapis.com/",
+    "description": "Workload Manager is a service that provides tooling for enterprise workloads to automate the deployment and validation of your workloads against best practices and recommendations.",
     "name": "workloadmanager",
-    "revision": "20230605",
+    "revision": "20240208",
     "title": "Workload Manager API",
     "version": "v1",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/cloud-platform": {
+            "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+          }
+        }
+      }
+    }
+  },
+  {
+    "baseUrl": "https://workspaceevents.googleapis.com/",
+    "description": "The Google Workspace Events API lets you subscribe to events and manage change notifications across Google Workspace applications.",
+    "name": "workspaceevents",
+    "revision": "20240215",
+    "title": "Google Workspace Events API",
+    "version": "v1",
+    "auth": {
+      "oauth2": {
+        "scopes": {
+          "https://www.googleapis.com/auth/chat.bot": {
+            "description": "Private Service: https://www.googleapis.com/auth/chat.bot"
+          },
+          "https://www.googleapis.com/auth/chat.memberships": {
+            "description": "View, add, and remove members from conversations in Google Chat"
+          },
+          "https://www.googleapis.com/auth/chat.memberships.readonly": {
+            "description": "View members in Google Chat conversations."
+          },
+          "https://www.googleapis.com/auth/chat.messages": {
+            "description": "View, compose, send, update, and delete messages, and add, view, and delete reactions to messages."
+          },
+          "https://www.googleapis.com/auth/chat.messages.reactions": {
+            "description": "View, add, and delete reactions to messages in Google Chat"
+          },
+          "https://www.googleapis.com/auth/chat.messages.reactions.readonly": {
+            "description": "View reactions to messages in Google Chat"
+          },
+          "https://www.googleapis.com/auth/chat.messages.readonly": {
+            "description": "View messages and reactions in Google Chat"
+          },
+          "https://www.googleapis.com/auth/chat.spaces": {
+            "description": "Create conversations and spaces and see or edit metadata (including history settings and access settings) in Google Chat"
+          },
+          "https://www.googleapis.com/auth/chat.spaces.readonly": {
+            "description": "View chat and spaces in Google Chat"
+          }
+        }
+      }
+    }
+  },
+  {
+    "baseUrl": "https://workstations.googleapis.com/",
+    "description": "Allows administrators to create managed developer environments in the cloud. ",
+    "name": "workstations",
+    "revision": "20240131",
+    "title": "Cloud Workstations API",
+    "version": "v1beta",
     "auth": {
       "oauth2": {
         "scopes": {
@@ -7928,9 +8453,9 @@
     "baseUrl": "https://workstations.googleapis.com/",
     "description": "Allows administrators to create managed developer environments in the cloud. ",
     "name": "workstations",
-    "revision": "20230619",
+    "revision": "20240131",
     "title": "Cloud Workstations API",
-    "version": "v1beta",
+    "version": "v1",
     "auth": {
       "oauth2": {
         "scopes": {
@@ -7945,7 +8470,7 @@
     "baseUrl": "https://youtube.googleapis.com/",
     "description": "The YouTube Data API v3 is an API that provides access to YouTube data, such as videos, playlists, and channels.",
     "name": "youtube",
-    "revision": "20230627",
+    "revision": "20240213",
     "title": "YouTube Data API v3",
     "version": "v3",
     "auth": {
@@ -7980,7 +8505,7 @@
     "baseUrl": "https://youtubeanalytics.googleapis.com/",
     "description": "Retrieves your YouTube Analytics data.",
     "name": "youtubeAnalytics",
-    "revision": "20230627",
+    "revision": "20240214",
     "title": "YouTube Analytics API",
     "version": "v2",
     "auth": {
@@ -8009,7 +8534,7 @@
     "baseUrl": "https://youtubereporting.googleapis.com/",
     "description": "Schedules reporting jobs containing your YouTube Analytics data and downloads the resulting bulk data reports in the form of CSV files.",
     "name": "youtubereporting",
-    "revision": "20230627",
+    "revision": "20240214",
     "title": "YouTube Reporting API",
     "version": "v1",
     "auth": {

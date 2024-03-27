@@ -43,12 +43,12 @@ func (c *Client) GetAllAccessories() (*AccessoryList, error) {
 	}
 
 	url := fmt.Sprintf(Accessories, c.BaseURL)
-	res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
+	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Debug("Response: ", res.Status)
-	c.Logger.Debug("Body: ", string(body))
+	c.Log.Debug("Response: ", res.Status)
+	c.Log.Debug("Body: ", string(body))
 
 	err = json.Unmarshal(body, &accessories)
 	if err != nil {

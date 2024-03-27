@@ -13,39 +13,10 @@ https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Role/
 package okta
 
 import (
-	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
 )
-
-type Roles struct {
-	Roles []Role `json:"roles,omitempty"`
-}
-
-type Role struct {
-	AssignmentType string    `json:"assignmentType,omitempty"`
-	Created        time.Time `json:"created,omitempty"`
-	Description    string    `json:"description,omitempty"`
-	ID             string    `json:"id,omitempty"`
-	Label          string    `json:"label,omitempty"`
-	LastUpdated    time.Time `json:"lastUpdated,omitempty"`
-	Links          *Links    `json:"_links,omitempty"`
-	Status         string    `json:"status,omitempty"`
-	Type           string    `json:"type,omitempty"`
-}
-
-type Permission struct {
-	Created     time.Time `json:"created,omitempty"`
-	Label       string    `json:"label,omitempty"`
-	LastUpdated time.Time `json:"lastUpdated,omitempty"`
-	Links       *Links    `json:"_links,omitempty"`
-}
-
-type RoleReport struct {
-	Role  *Role
-	Users []*User
-}
 
 /*
  * # Lists all roles with pagination support.
@@ -53,111 +24,108 @@ type RoleReport struct {
  * /api/v1/iam/roles
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Role/#tag/Role/operation/listRoles
  */
-func (c *Client) ListAllRoles() (*Roles, error) {
-	allRoles := &Roles{}
-
+func (c *Client) ListAllRoles() (*RolesList, error) {
 	url := c.BuildURL(OktaRoles)
-	res, err := c.HTTPClient.PaginatedRequest("GET", url, nil, nil)
+
+	var cache RolesList
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	roles, err := doPaginatedStruct[RolesList](c, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	err = json.Unmarshal(res[0], &allRoles)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling roles: %w", err)
-	}
-
-	return allRoles, nil
+	c.SetCache(url, roles, 5*time.Minute)
+	return roles, nil
 }
 
 /*
  * # Generate a report of all Okta roles and their users
  */
-func (c *Client) GenerateRoleReport() ([]*RoleReport, error) {
-	roleReports := []*RoleReport{}
-	rolesMap := make(map[string][]*User)
+func (c *Client) GenerateRoleReport() (*RoleReports, error) {
+	cacheKey := "Okta_Role_Report"
 
-	users, _ := c.ListAllUsers()
+	var cache RoleReports
+	if c.GetCache(cacheKey, &cache) {
+		return &cache, nil
+	}
 
-	// Use a buffered channel as a semaphore to limit concurrent requests.
+	roleReports := &RoleReports{}
+	rolesMap := make(map[*Role]map[*User]struct{})
+
+	users, err := c.ListActiveUsers()
+	if err != nil {
+		return nil, err
+	}
+
+	var rolesMutex sync.Mutex
+	var rolesErrMutex sync.Mutex
+	var rolesErrors []error
+
 	sem := make(chan struct{}, 10)
-
-	// WaitGroup to ensure all go routines complete their tasks.
 	var wg sync.WaitGroup
-
-	// Buffered channel to hold user roles result from each goroutine
-	userRolesCh := make(chan map[string][]*User, len(*users))
-
-	// Buffered channel to hold any errors that occur while getting user roles
-	rolesErrCh := make(chan error)
 
 	for _, user := range *users {
 		wg.Add(1)
 
 		go func(user *User) {
-			// Release one semaphore resource when the goroutine completes
 			defer wg.Done()
 
-			sem <- struct{}{} // acquire one semaphore resource
+			sem <- struct{}{}
 			roles, err := c.GetUserRoles(user.ID)
 			if err != nil {
-				rolesErrCh <- err
+				rolesErrMutex.Lock()
+				rolesErrors = append(rolesErrors, err)
+				rolesErrMutex.Unlock()
+				<-sem
 				return
 			}
 
-			userRoles := make(map[string][]*User)
-			for _, role := range roles.Roles {
-				userRoles[role.Type] = append(userRoles[role.Type], user)
+			userRoles := make(map[Role]map[*User]struct{})
+			for _, role := range *roles {
+				if userRoles[*role] == nil {
+					userRoles[*role] = make(map[*User]struct{})
+				}
+				userRoles[*role][user] = struct{}{}
 			}
-			userRolesCh <- userRoles
-			<-sem // release one semaphore resource
+
+			rolesMutex.Lock()
+			// Add user roles to rolesMap
+			for role, users := range userRoles {
+				if rolesMap[&role] == nil {
+					rolesMap[&role] = make(map[*User]struct{})
+				}
+				for user := range users {
+					rolesMap[&role][user] = struct{}{}
+				}
+			}
+			rolesMutex.Unlock()
+			<-sem // release semaphore
 		}(user)
 	}
 
-	// Wait for all goroutines to finish and close channels
-	go func() {
-		wg.Wait()
-		close(userRolesCh)
-		close(rolesErrCh)
-	}()
+	wg.Wait()
+	close(sem)
 
-	// Collect roles from all users
-	for userRoles := range userRolesCh {
-		for roleType, roleUsers := range userRoles {
-			rolesMap[roleType] = append(rolesMap[roleType], roleUsers...)
+	if len(rolesErrors) > 0 {
+		return nil, fmt.Errorf("error generating role report: %v", rolesErrors)
+	}
+
+	// Add roles to roleReports
+	for role, userSet := range rolesMap {
+		var users Users
+		for user := range userSet {
+			users = append(users, user)
 		}
-	}
-
-	// Check if there were any errors
-	if len(rolesErrCh) > 0 {
-		// Handle or return errors. For simplicity, only returning the first error here
-		return nil, <-rolesErrCh
-	}
-
-	// Append system roles
-	for roleType, users := range rolesMap {
-		roleReports = append(roleReports, &RoleReport{
-			&Role{
-				ID:   roleType,
-				Type: "System",
-			},
-			users,
+		*roleReports = append(*roleReports, &RoleReport{
+			Role:  role,
+			Users: &users,
 		})
 	}
 
-	// Get and append custom roles
-	customRoles, err := c.ListAllRoles()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, role := range customRoles.Roles {
-		roleReports = append(roleReports, &RoleReport{
-			Role:  &role,
-			Users: rolesMap[role.Type],
-		})
-	}
-
+	c.SetCache(cacheKey, roleReports, 60*time.Minute)
 	return roleReports, nil
 }
 
@@ -167,21 +135,20 @@ func (c *Client) GenerateRoleReport() ([]*RoleReport, error) {
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Role/#tag/Role/operation/getRole
  */
 func (c *Client) GetRole(roleID string) (*Role, error) {
-	role := &Role{}
-
-	// url := fmt.Sprintf("%s/%s", OktaRoles, roleID)
 	url := c.BuildURL(OktaRoles, roleID)
-	res, err := c.HTTPClient.PaginatedRequest("GET", url, nil, nil)
+
+	var cache Role
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	role, err := do[Role](c, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	err = json.Unmarshal(res[0], &role)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling role: %w", err)
-	}
-
-	return role, nil
+	c.SetCache(url, role, 5*time.Minute)
+	return &role, nil
 }
 
 /*
@@ -190,26 +157,20 @@ func (c *Client) GetRole(roleID string) (*Role, error) {
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/RoleAssignment/#tag/RoleAssignment/operation/listAssignedRolesForUser
  */
 func (c *Client) GetUserRoles(userID string) (*Roles, error) {
-
-	userRoles := Roles{}
-
-	// url := fmt.Sprintf("%s/%s/roles", OktaUsers, userID)
 	url := c.BuildURL(OktaUsers, userID, "roles")
-	res, err := c.HTTPClient.PaginatedRequest("GET", url, nil, nil)
+
+	var cache Roles
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	roles, err := doPaginated[Roles](c, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, r := range res {
-		role := Role{}
-		err := json.Unmarshal(r, &role)
-		if err != nil {
-			return nil, fmt.Errorf("unmarshalling user: %w", err)
-		}
-		userRoles.Roles = append(userRoles.Roles, role)
-	}
-
-	return &userRoles, nil
+	c.SetCache(url, roles, 15*time.Minute)
+	return roles, nil
 }
 
 /*
@@ -218,20 +179,18 @@ func (c *Client) GetUserRoles(userID string) (*Roles, error) {
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/RoleAssignment/#tag/RoleAssignment/operation/listUsersWithRoleAssignments
  */
 func (c *Client) ListAllUsersWithRoleAssignments() (*Users, error) {
+	url := c.BuildURL(OktaIAM, "assignees", "users")
 
-	type U struct {
-		Value []*User `json:"value,omitempty"`
+	var cache Users
+	if c.GetCache(url, &cache) {
+		return &cache, nil
 	}
 
-	// users := &Users{}
-
-	// url := fmt.Sprintf("%s/assignees/users", OktaIAM)
-	url := c.BuildURL(OktaIAM, "assignees", "users")
-	res, err := c.HTTPClient.PaginatedRequest("GET", url, nil, nil)
+	users, err := doPaginated[Users](c, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Printf("res: %+v", res)
 
-	return nil, nil
+	c.SetCache(url, users, 30*time.Minute)
+	return users, nil
 }

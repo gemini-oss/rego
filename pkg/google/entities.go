@@ -8,11 +8,12 @@ This package contains many structs for handling responses from the Google API:
 :Author: Anthony Dardano <anthony.dardano@gemini.com>
 */
 
-// pkg/google/sheets.go
+// pkg/google/entities.go
 package google
 
 import (
 	"github.com/gemini-oss/rego/pkg/common/auth"
+	"github.com/gemini-oss/rego/pkg/common/cache"
 	"github.com/gemini-oss/rego/pkg/common/log"
 	"github.com/gemini-oss/rego/pkg/common/requests"
 	"golang.org/x/oauth2/jwt"
@@ -34,29 +35,72 @@ type GoogleConfig struct {
 }
 
 type Client struct {
-	Auth       AuthCredentials // Credentials to use for authentication
-	BaseURL    string          // Base URL to use for API calls
-	OAuth      *auth.OAuthConfig
-	JWT        *jwt.Config      // JWT Config
-	HTTPClient *requests.Client // HTTP Client
-	Error      *Error           // Error
-	Logger     *log.Logger      // Logger
+	Auth     AuthCredentials   // Credentials to use for authentication
+	BaseURL  string            // Base URL to use for API calls
+	OAuth    *auth.OAuthConfig // OAuth Config
+	JWT      *jwt.Config       // JWT Config
+	HTTP     *requests.Client  // HTTP Client
+	Error    *ErrorResponse    // Error
+	Log      *log.Logger       // Logger
+	Cache    *cache.Cache      // Cache
+	Customer *Customer         // Google Workspace Account
 }
 
-type Error struct {
-	Error struct {
-		Errors  []ErrorDetail `json:"errors"`
-		Code    int           `json:"code"`
-		Message string        `json:"message"`
-	} `json:"error"`
+// Customer represents a Google Workspace account.
+type Customer struct {
+	ID                   string                 `json:"id,omitempty"`                   // The unique ID for the customer's Google Workspace account.
+	CustomerDomain       string                 `json:"customerDomain,omitempty"`       // The customer's primary domain name string.
+	Kind                 string                 `json:"kind,omitempty"`                 // Identifies the resource as a customer.
+	Etag                 string                 `json:"etag,omitempty"`                 // ETag of the resource.
+	AlternateEmail       string                 `json:"alternateEmail,omitempty"`       // The customer's secondary contact email address.
+	CustomerCreationTime string                 `json:"customerCreationTime,omitempty"` // The customer's creation time.
+	PostalAddress        *CustomerPostalAddress `json:"postalAddress,omitempty"`        // The customer's postal address information.
+	PhoneNumber          string                 `json:"phoneNumber,omitempty"`          // The customer's contact phone number in E.164 format.
+	Language             string                 `json:"language,omitempty"`             // The customer's ISO 639-2 language code.
 }
 
+// CustomerPostalAddress represents a customer's physical address.
+type CustomerPostalAddress struct {
+	CountryCode      string `json:"countryCode,omitempty"`      // ISO 3166 country code.
+	AddressLine2     string `json:"addressLine2,omitempty"`     // Address line 2 of the address.
+	Region           string `json:"region,omitempty"`           // Name of the region.
+	AddressLine3     string `json:"addressLine3,omitempty"`     // Address line 3 of the address.
+	Locality         string `json:"locality,omitempty"`         // Name of the locality.
+	PostalCode       string `json:"postalCode,omitempty"`       // The postal code.
+	AddressLine1     string `json:"addressLine1,omitempty"`     // A customer's physical address line 1.
+	OrganizationName string `json:"organizationName,omitempty"` // The company or company division name.
+	ContactName      string `json:"contactName,omitempty"`      // The customer contact's name.
+}
+
+func (c Customer) String() string {
+	// If no customerId is provided, use 'my_customer' to represent the authenticated account
+	if c.ID == "" {
+		return "my_customer"
+	}
+	return c.ID
+}
+
+/*
+ * # ErrorResponse
+ * ErrorResponse represents the structure of an error response.
+ * Example: https://developers.google.com/drive/api/guides/handle-errors
+ */
+type ErrorResponse struct {
+	Error *ErrorDetail `json:"error,omitempty"` // The details of the error.
+}
+
+// ErrorDetail contains detailed information about an error.
 type ErrorDetail struct {
-	Domain       string `json:"domain"`
-	Reason       string `json:"reason"`
-	Message      string `json:"message"`
-	LocationType string `json:"locationType"`
-	Location     string `json:"location"`
+	Code    int          `json:"code,omitempty"`    // The HTTP status code for the error.
+	Message string       `json:"message,omitempty"` // The error message.
+	Errors  []*ErrorItem `json:"errors,omitempty"`  // An array of more detailed error items.
+}
+
+// ErrorItem contains detailed information about an individual error.
+type ErrorItem struct {
+	Domain  string `json:"domain,omitempty"`  // The domain of the error.
+	Message string `json:"message,omitempty"` // The error message.
+	Reason  string `json:"reason,omitempty"`  // The reason for the error.
 }
 
 type ServiceAccount struct {
@@ -98,6 +142,7 @@ type Event struct {
 	Parameters []ReportParameter `json:"parameters,omitempty"` // Parameter value pairs for various applications
 }
 
+// https://developers.google.com/admin-sdk/reports/reference/rest/v1/NestedParameter
 type ReportParameter struct {
 	Name              string            `json:"name,omitempty"`              // The name of the parameter
 	Value             string            `json:"value,omitempty"`             // String value of the parameter
@@ -190,7 +235,16 @@ type RoleReport struct {
 
 // ### Google Drive Structs
 // ---------------------------------------------------------------------
-type Document struct {
+// https://developers.google.com/drive/api/reference/rest/v3/files/list#response-body
+type FileList struct {
+	Kind             string   `json:"kind,omitempty"`             // drive#fileList
+	IncompleteSearch bool     `json:"incompleteSearch,omitempty"` // Whether the search process was incomplete. If true, then some search results may be missing, since all documents were not searched. This may occur when searching multiple Team Drives with the "default,allTeamDrives" corpora, but all corpora could not be searched. When this happens, it is suggested that clients narrow their query by choosing a different corpus such as "default" or "teamDrive".
+	Files            *[]*File `json:"files,omitempty"`            // The list of files. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
+	NextPageToken    string   `json:"nextPageToken,omitempty"`    // The page token for the next page of files. This will be absent if the end of the files list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results.
+}
+
+// https://developers.google.com/drive/api/reference/rest/v3/files#resource:-file
+type File struct {
 	Kind                         string               `json:"kind,omitempty"`                         // drive#file
 	DriveID                      string               `json:"driveId,omitempty"`                      // The ID of the shared drive the file resides in. Only populated for items in shared drives.
 	FileExtension                string               `json:"fileExtension,omitempty"`                // The extension of the file. This is populated even when Drive is unable to determine the extension. This field can be cleared by writing a new empty value to this field.
@@ -205,10 +259,10 @@ type Document struct {
 	ThumbnailLink                string               `json:"thumbnailLink,omitempty"`                // A short-lived link to the file's thumbnail, if available. Typically lasts on the order of hours. Only populated when the requesting app can access the file's content.
 	IconLink                     string               `json:"iconLink,omitempty"`                     // A static, unauthenticated link to the file's icon.
 	Shared                       bool                 `json:"shared,omitempty"`                       // Whether the file has been shared. Not populated for items in shared drives.
-	LastModifyingUser            User                 `json:"lastModifyingUser,omitempty"`            // The user who last modified the file.
-	Owners                       []User               `json:"owners,omitempty"`                       // The owners of the file. Currently, only certain legacy files may have more than one owner. Not populated for items in shared drives.
+	LastModifyingUser            FileUser             `json:"lastModifyingUser,omitempty"`            // The user who last modified the file.
+	Owners                       []FileUser           `json:"owners,omitempty"`                       // The owners of the file. Currently, only certain legacy files may have more than one owner. Not populated for items in shared drives.
 	HeadRevisionID               string               `json:"headRevisionId,omitempty"`               // The ID of the file's head revision. This field is only populated for files with content stored in Drive; it is not populated for Google Docs or shortcut files.
-	SharingUser                  User                 `json:"sharingUser,omitempty"`                  // The user who shared the file with the requesting user, if applicable.
+	SharingUser                  FileUser             `json:"sharingUser,omitempty"`                  // The user who shared the file with the requesting user, if applicable.
 	WebViewLink                  string               `json:"webViewLink,omitempty"`                  // A link for opening the file in a relevant Google editor or viewer in a browser.
 	WebContentLink               string               `json:"webContentLink,omitempty"`               // A link for downloading the content of the file in a browser. This is only available for files with binary content in Drive.
 	Size                         string               `json:"size,omitempty"`                         // The size of the file's content in bytes. This is only applicable to files with binary content in Drive.
@@ -239,7 +293,7 @@ type Document struct {
 	TeamDriveID                  string               `json:"teamDriveId,omitempty"`                  // The ID of the Team Drive that owns the file. Not populated for items in shared drives.
 	Capabilities                 Capabilities         `json:"capabilities,omitempty"`                 // Capabilities the current user has on this file. Each capability corresponds to a fine-grained action that a user may take.
 	HasAugmentedPermissions      bool                 `json:"hasAugmentedPermissions,omitempty"`      // Whether the options to copy, print, or download this file, should be disabled for readers and commenters.
-	TrashingUser                 User                 `json:"trashingUser,omitempty"`                 // The user who trashed the file. Only populated for items in shared drives.
+	TrashingUser                 FileUser             `json:"trashingUser,omitempty"`                 // The user who trashed the file. Only populated for items in shared drives.
 	ThumbnailVersion             string               `json:"thumbnailVersion,omitempty"`             // A monotonically increasing version number for the thumbnail image for this file. This reflects every change made to the thumbnail on the server, including those not visible to the requesting user.
 	TrashedTime                  string               `json:"trashedTime,omitempty"`                  // The time that the item was trashed (RFC 3339 date-time). Only populated for items in shared drives.
 	ModifiedByMe                 bool                 `json:"modifiedByMe,omitempty"`                 // Whether the file has been modified by this user.
@@ -253,10 +307,51 @@ type Document struct {
 	LabelInfo                    LabelInfo            `json:"labelInfo,omitempty"`                    // Additional information about the content of the file. These fields are never populated in responses.
 	SHA1Checksum                 string               `json:"sha1Checksum,omitempty"`                 // The SHA1 checksum for the content of the file. It is computed by Drive and guaranteed to be up-to-date at all times. A change in the content of the file will cause a change in its SHA256 checksum.
 	SHA256Checksum               string               `json:"sha256Checksum,omitempty"`               // The SHA256 checksum for the content of the file. It is computed by Drive and guaranteed to be up-to-date at all times. A change in the content of the file will cause a change in its SHA256 checksum.
+	Path                         string               `json:"path,omitempty"`                         // The path of this file. Google Drive doesn't have path concept internally, but we construct a slash-separated path for UX
 }
 
+// https://developers.google.com/drive/api/reference/rest/v3/User
+// FileUser represents information about a Drive user.
+type FileUser struct {
+	DisplayName  string `json:"displayName,omitempty"`  // Output only. A plain text displayable name for this user.
+	Kind         string `json:"kind,omitempty"`         // Output only. Identifies what kind of resource this is. Value: the fixed string "drive#user".
+	Me           bool   `json:"me,omitempty"`           // Output only. Whether this user is the requesting user.
+	PermissionID string `json:"permissionId,omitempty"` // Output only. The user's ID as visible in Permission resources.
+	EmailAddress string `json:"emailAddress,omitempty"` // Output only. The email address of the user. This may not be present in certain contexts if the user has not made their email address visible to the requester.
+	PhotoLink    string `json:"photoLink,omitempty"`    // Output only. A link to the user's profile photo, if available.
+}
+
+// https://developers.google.com/drive/api/reference/rest/v3/permissions/list#response-body
+type PermissionList struct {
+	Kind             string       `json:"kind,omitempty"`             // drive#permissionList
+	IncompleteSearch bool         `json:"incompleteSearch,omitempty"` // Whether the search process was incomplete. If true, then some search results may be missing, since all documents were not searched. This may occur when searching multiple Team Drives with the "default,allTeamDrives" corpora, but all corpora could not be searched. When this happens, it is suggested that clients narrow their query by choosing a different corpus such as "default" or "teamDrive".
+	Permissions      []Permission `json:"permissions,omitempty"`      // The list of permissions. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
+	NextPageToken    string       `json:"nextPageToken,omitempty"`    // The page token for the next page of files. This will be absent if the end of the files list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results.
+}
+
+// https://developers.google.com/drive/api/reference/rest/v3/permissions#resource:-permission
 type Permission struct {
-	// Permission fields here
+	AllowFileDiscovery bool               `json:"allowFileDiscovery,omitempty"` // Whether the permission allows the file to be discovered through search. This is only applicable for permissions of type domain or anyone.
+	Deleted            bool               `json:"deleted,omitempty"`            // Output only. Whether the account associated with this permission has been deleted. This field only pertains to user and group permissions.
+	DisplayName        string             `json:"displayName,omitempty"`        // Output only. The "pretty" name of the value of the permission.
+	Domain             string             `json:"domain,omitempty"`             // The domain to which this permission refers.
+	EmailAddress       string             `json:"emailAddress,omitempty"`       // The email address of the user or group to which this permission refers.
+	ExpirationTime     string             `json:"expirationTime,omitempty"`     // The time at which this permission will expire (RFC 3339 date-time).
+	ID                 string             `json:"id,omitempty"`                 // Output only. The ID of this permission.
+	Kind               string             `json:"kind,omitempty"`               // Output only. Identifies what kind of resource this is. Value: the fixed string "drive#permission".
+	PermissionDetails  []PermissionDetail `json:"permissionDetails,omitempty"`  // Output only. Details of whether the permissions on this shared drive item are inherited or directly on this item.
+	PhotoLink          string             `json:"photoLink,omitempty"`          // Output only. A link to the user's profile photo, if available.
+	PendingOwner       bool               `json:"pendingOwner,omitempty"`       // Whether the account associated with this permission is a pending owner. Only populated for user type permissions for files that are not in a shared drive.
+	Role               string             `json:"role,omitempty"`               // The role granted by this permission. While new values may be supported in the future, the following are currently allowed: owner, organizer, fileOrganizer, writer, commenter, reader
+	Type               string             `json:"type,omitempty"`               // The type of the grantee. Valid values are: `user`, `group`, `domain`, `anyone`. When creating a permission, if type is `user`` or `group`, you must provide an `emailAddress` for the user or group. When type is `domain`, you must provide a `domain`. There isn't extra information required for `anyone`.
+	View               string             `json:"view,omitempty"`               // Indicates the view for this permission. Only populated for permissions that belong to a view. 'published' is the only supported value.
+}
+
+type PermissionDetail struct {
+	Inherited      bool   `json:"inherited,omitempty"`      // Output only. Whether this permission is inherited. This field is always populated. This is an output-only field.
+	InheritedFrom  string `json:"inheritedFrom,omitempty"`  // Output only. The ID of the item from which this permission is inherited. This is an output-only field.
+	PermissionType string `json:"permissionType,omitempty"` // Output only. The permission type for this user. While new values may be added in future, the following are currently possible: file, member
+	Role           string `json:"role,omitempty"`           // Output only. The primary role for this user. While new values may be added in the future, the following are currently possible: organizer, fileOrganizer, writer, commenter, reader
 }
 
 type ContentHints struct {
@@ -351,8 +446,14 @@ type ShortcutDetails struct {
 	TargetResourceKey string `json:"targetResourceKey,omitempty"` // The resource key of the target file. This is a unique identifier of the target file and is guaranteed to be immutable across file renames.
 }
 
+// https://developers.google.com/drive/api/reference/rest/v3/files#contentrestriction
 type ContentRestriction struct {
-	// Content restriction fields here
+	OwnerRestricted bool   `json:"ownerRestricted,omitempty"` // Whether the content restriction can only be modified or removed by a user who owns the file.
+	ReadOnly        bool   `json:"readOnly,omitempty"`        // Whether the content of the file is read-only.
+	Reason          string `json:"reason,omitempty"`          // Reason for why the content of the file is restricted.
+	RestrictingUser *User  `json:"restrictingUser,omitempty"` // The user who set the content restriction.
+	RestrictionTime string `json:"restrictionTime,omitempty"` // The time at which the content restriction was set.
+	Type            string `json:"type,omitempty"`            // The type of the content restriction.
 }
 
 type LinkShareMetadata struct {
@@ -364,8 +465,30 @@ type LabelInfo struct {
 	Labels []Label `json:"labels,omitempty"` // The list of labels belonging to this account.
 }
 
+/*
+ * Label represents a label and its fields.
+ * https://developers.google.com/drive/api/reference/rest/v3/Label
+ */
 type Label struct {
-	// Label fields here
+	Fields     map[string]Field `json:"fields,omitempty"`     // A map of the fields on the label, keyed by the field's ID.
+	ID         string           `json:"id,omitempty"`         // The ID of the label.
+	Kind       string           `json:"kind,omitempty"`       // drive#label.
+	RevisionID string           `json:"revisionId,omitempty"` // The revision ID of the label.
+}
+
+/*
+ * Field represents a field, which is a typed key-value pair.
+ * https://developers.google.com/drive/api/reference/rest/v3/Label#Field
+ */
+type Field struct {
+	DateString []string `json:"dateString,omitempty"` // Only present if valueType is dateString. RFC 3339 formatted date: YYYY-MM-DD.
+	ID         string   `json:"id,omitempty"`         // The identifier of this label field.
+	Integer    []string `json:"integer,omitempty"`    // Only present if valueType is integer.
+	Kind       string   `json:"kind,omitempty"`       // drive#labelField.
+	Selection  []string `json:"selection,omitempty"`  // Only present if valueType is selection.
+	Text       []string `json:"text,omitempty"`       // Only present if valueType is text.
+	User       []User   `json:"user,omitempty"`       // Only present if valueType is user.
+	ValueType  string   `json:"valueType,omitempty"`  // The field type. While new values may be supported in the future, the following are currently allowed: dateString, integer, selection, text, user.
 }
 
 // END OF GOOGLE DRIVE STRUCTS
@@ -657,7 +780,6 @@ type PivotFilterSpec interface{}
 type PivotValue interface{}
 type PivotValueLayout interface{}
 type PivotGroupValueMetadata interface{}
-type SortOrder interface{}
 type PivotGroupSortValueBucket interface{}
 type PivotGroupRule interface{}
 type PivotGroupLimit interface{}
@@ -1017,6 +1139,16 @@ type UpdateDimensionPropertiesRequest struct {
 
 // ### User Structs
 // ---------------------------------------------------------------------------------------
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#response-body
+type Users struct {
+	Kind          string  `json:"kind,omitempty"`          // The type of the API resource
+	TriggerEvent  string  `json:"trigger_event,omitempty"` // Event that triggered this response (only used in case of Push Response)
+	Etag          string  `json:"etag,omitempty"`          // ETag of the resource
+	Users         []*User `json:"users,omitempty"`         // A list of user objects
+	NextPageToken string  `json:"nextPageToken,omitempty"` // Token to specify the next page in the list
+}
+
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/users#resource:-user
 type User struct {
 	AgreedToTerms              bool           `json:"agreedToTerms,omitempty"`              // User's agreement to terms status
 	Aliases                    []string       `json:"aliases,omitempty"`                    // User aliases
@@ -1037,13 +1169,13 @@ type User struct {
 	IsEnforcedIn2Sv            bool           `json:"isEnforcedIn2Sv,omitempty"`            // User's 2SV enforcement status
 	IsEnrolledIn2Sv            bool           `json:"isEnrolledIn2Sv,omitempty"`            // User's 2SV enrolment status
 	IsMailboxSetup             bool           `json:"isMailboxSetup,omitempty"`             // User's mailbox setup status
-	Ims                        []IM           `json:"ims,omitempty"`                        // User's instant messaging addresses
+	IMs                        []IM           `json:"ims,omitempty"`                        // User's instant messaging addresses
 	IpWhitelisted              bool           `json:"ipWhitelisted,omitempty"`              // User's IP whitelist status
 	Kind                       string         `json:"kind,omitempty"`                       // The type of the API resource
 	Languages                  []Language     `json:"languages,omitempty"`                  // User's languages
 	LastLoginTime              string         `json:"lastLoginTime,omitempty"`              // User's last login time
 	Locations                  []UserLocation `json:"locations,omitempty"`                  // User's locations
-	Name                       Name           `json:"name,omitempty"`                       // User's name
+	Name                       UserName       `json:"name,omitempty"`                       // User's name
 	NonEditableAliases         []string       `json:"nonEditableAliases,omitempty"`         // User's non-editable aliases
 	Notes                      Note           `json:"notes,omitempty"`                      // User's notes
 	OrgUnitPath                string         `json:"orgUnitPath,omitempty"`                // User's organizational unit path
@@ -1055,7 +1187,7 @@ type User struct {
 	RecoveryEmail              string         `json:"recoveryEmail,omitempty"`              // User's recovery email
 	RecoveryPhone              string         `json:"recoveryPhone,omitempty"`              // User's recovery phone number
 	Relations                  []Relation     `json:"relations,omitempty"`                  // User's relations
-	Roles                      interface{}    `json:"roles,omitempty"`                      // User's roles
+	Roles                      []Role         `json:"roles,omitempty"`                      // User's roles
 	SshPublicKeys              []SSHPublicKey `json:"sshPublicKeys,omitempty"`              // A list of SSH public keys
 	Suspended                  bool           `json:"suspended,omitempty"`                  // User's suspension status
 	SuspensionReason           string         `json:"suspensionReason,omitempty"`           // User's suspension reason
@@ -1108,7 +1240,8 @@ type UserLocation struct {
 	Type         string `json:"type,omitempty"`         // The location type
 }
 
-type Name struct {
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/users#username
+type UserName struct {
 	FullName    string `json:"fullName,omitempty"`    // The user's full name
 	FamilyName  string `json:"familyName,omitempty"`  // The user's last name
 	GivenName   string `json:"givenName,omitempty"`   // The user's first name
@@ -1180,3 +1313,356 @@ type Website struct {
 
 // END OF USER STRUCTS
 //-----------------------------------------------------------------------------
+
+// ### Device Structs
+// ----------------------------------------------------------------------------
+// https://developers.google.com/admin-sdk/directory/v1/guides/manage-chrome-devices
+type ChromeOSDevices struct {
+	Kind            string             `json:"kind,omitempty"`            // The kind of the response
+	ChromeOSDevices *[]*ChromeOSDevice `json:"chromeosdevices,omitempty"` // List of ChromeOS devices
+	NextPageToken   string             `json:"nextPageToken,omitempty"`   // Token for the next page of results
+}
+
+func (c ChromeOSDevices) Append(result interface{}) {
+	more, ok := result.(*ChromeOSDevices)
+	if !ok {
+		return
+	}
+	*c.ChromeOSDevices = append(*c.ChromeOSDevices, *more.ChromeOSDevices...)
+}
+
+func (c ChromeOSDevices) PageToken() string {
+	return c.NextPageToken
+}
+
+// ChromeOSDevice represents a ChromeOS device resource.
+type ChromeOSDevice struct {
+	ActiveTimeRanges         []ActiveTimeRange     `json:"activeTimeRanges,omitempty"`         // List of active time ranges.
+	AnnotatedAssetId         string                `json:"annotatedAssetId,omitempty"`         // Asset ID of the device.
+	AnnotatedLocation        string                `json:"annotatedLocation,omitempty"`        // Location of the device.
+	AnnotatedUser            string                `json:"annotatedUser,omitempty"`            // User of the device.
+	AutoUpdateExpiration     string                `json:"autoUpdateExpiration,omitempty"`     // Auto-update expiration date.
+	BootMode                 string                `json:"bootMode,omitempty"`                 // Boot mode of the device.
+	CpuInfo                  []CpuInfo             `json:"cpuInfo,omitempty"`                  // Information about the CPU.
+	CpuStatusReports         []CpuStatusReport     `json:"cpuStatusReports,omitempty"`         // CPU status reports.
+	DeprovisionReason        string                `json:"deprovisionReason,omitempty"`        // Reason for deprovisioning.
+	DeviceFiles              []DeviceFile          `json:"deviceFiles,omitempty"`              // Files on the device.
+	DeviceId                 string                `json:"deviceId"`                           // Unique identifier of the device.
+	DeviceLicenseType        string                `json:"deviceLicenseType,omitempty"`        // License type of the device.
+	DiskVolumeReports        []DiskVolumeReport    `json:"diskVolumeReports,omitempty"`        // Disk volume reports.
+	Etag                     string                `json:"etag,omitempty"`                     // ETag of the resource.
+	EthernetMacAddress       string                `json:"ethernetMacAddress,omitempty"`       // Ethernet MAC address.
+	EthernetMacAddress0      string                `json:"ethernetMacAddress0,omitempty"`      // Secondary Ethernet MAC address.
+	FirmwareVersion          string                `json:"firmwareVersion,omitempty"`          // Firmware version.
+	FirstEnrollmentTime      string                `json:"firstEnrollmentTime,omitempty"`      // First enrollment time.
+	Kind                     string                `json:"kind,omitempty"`                     // Kind of the resource.
+	LastDeprovisionTimestamp string                `json:"lastDeprovisionTimestamp,omitempty"` // Last deprovision timestamp.
+	LastEnrollmentTime       string                `json:"lastEnrollmentTime,omitempty"`       // Last enrollment time.
+	LastKnownNetwork         []LastKnownNetwork    `json:"lastKnownNetwork,omitempty"`         // Last known network.
+	LastSync                 string                `json:"lastSync,omitempty"`                 // Last synchronization time.
+	MacAddress               string                `json:"macAddress,omitempty"`               // MAC address.
+	ManufactureDate          string                `json:"manufactureDate,omitempty"`          // Manufacture date of the device.
+	Meid                     string                `json:"meid,omitempty"`                     // MEID or IMEI of the mobile card.
+	Model                    string                `json:"model,omitempty"`                    // Model of the device.
+	Notes                    string                `json:"notes,omitempty"`                    // Notes about the device.
+	OrderNumber              string                `json:"orderNumber,omitempty"`              // Order number.
+	OrgUnitId                string                `json:"orgUnitId,omitempty"`                // Organizational unit ID.
+	OrgUnitPath              string                `json:"orgUnitPath,omitempty"`              // Organizational unit path.
+	OsUpdateStatus           *OsUpdateStatus       `json:"osUpdateStatus,omitempty"`           // OS update status.
+	OsVersion                string                `json:"osVersion,omitempty"`                // OS version.
+	PlatformVersion          string                `json:"platformVersion,omitempty"`          // Platform version.
+	RecentUsers              []RecentUser          `json:"recentUsers,omitempty"`              // Recent users.
+	ScreenshotFiles          []ScreenshotFile      `json:"screenshotFiles,omitempty"`          // Screenshot files.
+	SerialNumber             string                `json:"serialNumber"`                       // Serial number.
+	Status                   string                `json:"status,omitempty"`                   // Status of the device.
+	SupportEndDate           string                `json:"supportEndDate,omitempty"`           // Support end date.
+	SystemRamFreeReports     []SystemRamFreeReport `json:"systemRamFreeReports,omitempty"`     // System RAM free reports.
+	SystemRamTotal           string                `json:"systemRamTotal,omitempty"`           // Total system RAM.
+	TPMVersionInfo           *TpmVersionInfo       `json:"tpmVersionInfo,omitempty"`           // TPM version information.
+	WillAutoRenew            bool                  `json:"willAutoRenew,omitempty"`            // Auto-renewal status.
+}
+
+// ActiveTimeRange represents an active time range of the device.
+type ActiveTimeRange struct {
+	ActiveTime int    `json:"activeTime,omitempty"` // Duration of usage in milliseconds.
+	Date       string `json:"date,omitempty"`       // Date of usage.
+}
+
+// CpuInfo represents information about the CPU of the Chrome device.
+type CpuInfo struct {
+	Architecture     string       `json:"architecture,omitempty"`     // CPU architecture.
+	LogicalCpus      []LogicalCpu `json:"logicalCpus,omitempty"`      // Information about logical CPUs.
+	MaxClockSpeedKhz int          `json:"maxClockSpeedKhz,omitempty"` // Max CPU clock speed in kHz.
+	Model            string       `json:"model,omitempty"`            // CPU model name.
+}
+
+// LogicalCpu represents a logical CPU in the Chrome device.
+type LogicalCpu struct {
+	CStates                    []CState `json:"cStates,omitempty"`                    // C-States of the CPU.
+	CurrentScalingFrequencyKhz int      `json:"currentScalingFrequencyKhz,omitempty"` // Current scaling frequency in kHz.
+	IdleDuration               string   `json:"idleDuration,omitempty"`               // Idle duration since last boot.
+	MaxScalingFrequencyKhz     int      `json:"maxScalingFrequencyKhz,omitempty"`     // Max scaling frequency allowed by policy.
+}
+
+// CState represents a C-State in the CPU of a Chrome device.
+type CState struct {
+	DisplayName     string `json:"displayName,omitempty"`     // Name of the state.
+	SessionDuration string `json:"sessionDuration,omitempty"` // Duration in the state.
+}
+
+// CpuStatusReport represents a CPU status report of a Chrome device.
+// CpuStatusReport represents a CPU status report of a Chrome device.
+type CpuStatusReport struct {
+	ReportTime                   string               `json:"reportTime,omitempty"`                   // Date and time the report was received.
+	CpuUtilizationPercentageInfo []int                `json:"cpuUtilizationPercentageInfo,omitempty"` // CPU utilization percentages.
+	CpuTemperatureInfo           []CpuTemperatureInfo `json:"cpuTemperatureInfo,omitempty"`           // Information about CPU temperature.
+}
+
+// CpuTemperatureInfo represents information about CPU temperature in a Chrome device.
+type CpuTemperatureInfo struct {
+	Temperature int    `json:"temperature,omitempty"` // Temperature in Celsius degrees.
+	Label       string `json:"label,omitempty"`       // Label of the CPU.
+}
+
+// DiskVolumeReport represents a disk volume report of a Chrome device.
+type DiskVolumeReport struct {
+	VolumeInfo []VolumeInfo `json:"volumeInfo,omitempty"` // Information about disk volumes.
+}
+
+// VolumeInfo represents information about a disk volume on a Chrome device.
+type VolumeInfo struct {
+	StorageFree  string `json:"storageFree,omitempty"`  // Free disk space in bytes.
+	StorageTotal string `json:"storageTotal,omitempty"` // Total disk space in bytes.
+	VolumeId     string `json:"volumeId,omitempty"`     // Volume ID.
+}
+
+// DeviceFile represents a file on a Chrome device.
+type DeviceFile struct {
+	CreateTime  string `json:"createTime,omitempty"`  // Date and time the file was created.
+	DownloadUrl string `json:"downloadUrl,omitempty"` // File download URL.
+	Name        string `json:"name,omitempty"`        // File name.
+	Type        string `json:"type,omitempty"`        // File type.
+}
+
+// SystemRamFreeReport represents a report of free RAM on a Chrome device.
+type SystemRamFreeReport struct {
+	ReportTime        string   `json:"reportTime,omitempty"`        // Date and time the report was received.
+	SystemRamFreeInfo []string `json:"systemRamFreeInfo,omitempty"` // Free RAM information.
+}
+
+// TpmVersionInfo represents TPM version information of a Chrome device.
+type TpmVersionInfo struct {
+	Family          string `json:"family,omitempty"`          // TPM family.
+	FirmwareVersion string `json:"firmwareVersion,omitempty"` // TPM firmware version.
+	Manufacturer    string `json:"manufacturer,omitempty"`    // TPM manufacturer code.
+	SpecLevel       string `json:"specLevel,omitempty"`       // TPM specification level.
+	TpmModel        string `json:"tpmModel,omitempty"`        // TPM model number.
+	VendorSpecific  string `json:"vendorSpecific,omitempty"`  // Vendor-specific information.
+}
+
+// LastKnownNetwork represents the last known network of a Chrome device.
+type LastKnownNetwork struct {
+	IpAddress    string `json:"ipAddress,omitempty"`    // IP address.
+	WanIpAddress string `json:"wanIpAddress,omitempty"` // WAN IP address.
+}
+
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/chromeosdevices#OsUpdateStatus
+type OsUpdateStatus struct {
+	State                 string `json:"state,omitempty"`                 // The state of the update.
+	TargetOsVersion       string `json:"targetOsVersion,omitempty"`       // The target version of the update.
+	TargetKioskAppVersion string `json:"targetKioskAppVersion,omitempty"` // The target version of the kiosk app.
+	UpdateTime            string `json:"updateTime,omitempty"`            // The time the update was applied.
+	UpdateCheckTime       string `json:"updateCheckTime,omitempty"`       // The time the update was checked.
+	RebootTime            string `json:"rebootTime,omitempty"`            // The time the device will reboot.
+}
+
+// RecentUser represents a recent user of a Chrome device.
+type RecentUser struct {
+	Type  string `json:"type,omitempty"`  // Type of the user
+	Email string `json:"email,omitempty"` // Email of the user
+}
+
+// ScreenshotFile represents a screenshot file on a Chrome device.
+type ScreenshotFile struct {
+	CreateTime  string `json:"createTime,omitempty"`  // Date and time the file was created.
+	DownloadUrl string `json:"downloadUrl,omitempty"` // File download URL.
+	Name        string `json:"name,omitempty"`        // File name.
+	Type        string `json:"type,omitempty"`        // File type.
+}
+
+// END OF DEVICE STRUCTS
+//----------------------------------------------------------------------
+
+// ### Chrome Policy Structs
+// ----------------------------------------------------------------------------
+// ResolvedPolicies represents a list of resolved policies found by the resolve request.
+type ResolvedPolicies struct {
+	ResolvedPolicies *[]*ResolvedPolicy `json:"resolvedPolicies,omitempty"` // The list of resolved policies found by the resolve request.
+	NextPageToken    string             `json:"nextPageToken,omitempty"`    // The page token used to get the next set of resolved policies found by the request.
+}
+
+func (r ResolvedPolicies) Append(result interface{}) {
+	more, ok := result.(*ResolvedPolicies)
+	if !ok {
+		return
+	}
+	*r.ResolvedPolicies = append(*r.ResolvedPolicies, *more.ResolvedPolicies...)
+}
+
+func (r ResolvedPolicies) PageToken() string {
+	return r.NextPageToken
+}
+
+// https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies/resolve#ResolvedPolicy
+type ResolvedPolicy struct {
+	TargetKey      PolicyTargetKey `json:"targetKey,omitempty"`      // The target resource for which the resolved policy value applies.
+	Value          PolicyValue     `json:"value,omitempty"`          // The resolved value of the policy.
+	SourceKey      PolicyTargetKey `json:"sourceKey,omitempty"`      // The source resource from which this policy value is obtained.
+	AddedSourceKey PolicyTargetKey `json:"addedSourceKey,omitempty"` // The added source key for management level.
+}
+
+// https://developers.google.com/chrome/policy/reference/rest/v1/PolicyValue
+type PolicyValue struct {
+	PolicySchema string      `json:"policySchema,omitempty"` // The fully qualified name of the policy schema associated with this policy.
+	Value        interface{} `json:"value,omitempty"`        // The value of the policy that is compatible with the schema that it is associated with.
+}
+
+// https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas
+type PolicySchemas struct {
+	PolicySchemas *[]*PolicySchema `json:"policySchemas,omitempty"` // List of policy schemas.
+	NextPageToken string           `json:"nextPageToken,omitempty"` // Token for the next page of results.
+}
+
+func (p PolicySchemas) Append(result interface{}) {
+	more, ok := result.(*PolicySchemas)
+	if !ok {
+		return
+	}
+	*p.PolicySchemas = append(*p.PolicySchemas, *more.PolicySchemas...)
+}
+
+func (p PolicySchemas) PageToken() string {
+	return p.NextPageToken
+}
+
+// PolicySchema represents the schema of a policy.
+type PolicySchema struct {
+	Name                     string                          `json:"name,omitempty"`                     // Format: name=customers/{customer}/policySchemas/{schema_namespace}
+	PolicyDescription        string                          `json:"policyDescription,omitempty"`        // Output only. Description about the policy schema for user consumption.
+	AdditionalTargetKeyNames []AdditionalTargetKeyName       `json:"additionalTargetKeyNames,omitempty"` // Output only. Additional key names for identifying the target of the policy value.
+	Definition               FileDescriptorProto             `json:"definition,omitempty"`               // Schema definition using proto descriptor.
+	FieldDescriptions        []PolicySchemaFieldDescription  `json:"fieldDescriptions,omitempty"`        // Output only. Detailed description of each field in the schema.
+	AccessRestrictions       []string                        `json:"accessRestrictions,omitempty"`       // Output only. Specific access restrictions related to this policy.
+	Notices                  []PolicySchemaNoticeDescription `json:"notices,omitempty"`                  // Output only. Special notice messages related to setting values in certain fields.
+	SupportUri               string                          `json:"supportUri,omitempty"`               // Output only. URI to related support article for this schema.
+	SchemaName               string                          `json:"schemaName,omitempty"`               // Output only. Fully qualified name of the policy schema.
+	ValidTargetResources     []TargetResource                `json:"validTargetResources,omitempty"`     // Output only. Information about applicable target resources for the policy.
+	PolicyApiLifecycle       PolicyApiLifecycle              `json:"policyApiLifecycle,omitempty"`       // Output only. Current lifecycle information.
+	CategoryTitle            string                          `json:"categoryTitle,omitempty"`            // Title of the category in which a setting belongs.
+}
+
+// AdditionalTargetKeyName represents additional key names for identifying policy value targets.
+type AdditionalTargetKeyName struct {
+	Key            string `json:"key,omitempty"`            // Key name.
+	KeyDescription string `json:"keyDescription,omitempty"` // Key description.
+}
+
+// FileDescriptorProto describes a complete .proto file.
+type FileDescriptorProto struct {
+	Name        string            `json:"name,omitempty"`        // File name, relative to root of source tree.
+	Package     string            `json:"package,omitempty"`     // e.g. "foo", "foo.bar", etc.
+	MessageType []DescriptorProto `json:"messageType,omitempty"` // All top-level definitions in this file.
+	EnumType    []interface{}     `json:"enumType,omitempty"`    // Enum types defined in this file.
+	Syntax      string            `json:"syntax,omitempty"`      // The syntax of the proto file. "proto2", "proto3", or "editions".
+}
+
+// DescriptorProto describes a message type.
+type DescriptorProto struct {
+	Name       string                 `json:"name,omitempty"`       // Message type name.
+	Field      []FieldDescriptorProto `json:"field,omitempty"`      // Fields within this message type.
+	NestedType []DescriptorProto      `json:"nestedType,omitempty"` // Nested message types.
+	EnumType   []interface{}          `json:"enumType,omitempty"`   // Enum types within this message.
+	OneofDecl  []interface{}          `json:"oneofDecl,omitempty"`  // Oneof declarations.
+	// ... other fields as needed ...
+}
+
+// FieldDescriptorProto describes a field within a message.
+type FieldDescriptorProto struct {
+	Name           string `json:"name,omitempty"`           // Field name.
+	Number         int    `json:"number,omitempty"`         // Field number.
+	Label          string `json:"label,omitempty"`          // Field label. (enum)
+	Type           string `json:"type,omitempty"`           // Field type. (enum)
+	TypeName       string `json:"typeName,omitempty"`       // For message and enum types, this is the name of the type.
+	DefaultValue   string `json:"defaultValue,omitempty"`   // Default value for the field.
+	OneofIndex     int    `json:"oneofIndex,omitempty"`     // Index of a oneof in the containing type's oneofDecl list.
+	JsonName       string `json:"jsonName,omitempty"`       // JSON name of this field.
+	Proto3Optional bool   `json:"proto3Optional,omitempty"` // Indicates if this is a proto3 "optional".
+}
+
+// PolicySchemaFieldDescription represents a detailed description of a schema field.
+type PolicySchemaFieldDescription struct {
+	// Revisit this field: interface{} // https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas#PolicySchemaFieldDescription
+}
+
+// PolicySchemaNoticeDescription represents special notice messages related to schema fields.
+type PolicySchemaNoticeDescription struct {
+	// Revisit this field: interface{} // https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas#policyschemanoticedescription
+}
+
+// TargetResource represents applicable target resources for the policy.
+type TargetResource string // This is an enum, define enum values as constants.
+
+// PolicyApiLifecycle represents current lifecycle information of the policy API.
+type PolicyApiLifecycle struct {
+	// Revisit this field: interface{} https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas#policyapilifecycle
+}
+
+// END OF CHROME POLICY STRUCTS
+//----------------------------------------------------------------------
+
+// ### Enums
+// ---------------------------------------------------------------------
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#event
+type UserEvent string
+
+const (
+	Add       UserEvent = "ADD"        // User Created Event
+	Delete    UserEvent = "DELETE"     // User Deleted Event
+	MakeAdmin UserEvent = "MAKE_ADMIN" // User Admin Status Change Event
+	Undelete  UserEvent = "UNDELETE"   // User Undeleted Event
+	Update    UserEvent = "UPDATE"     // User Updated Event
+)
+
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#orderby
+type OrderBy string
+
+const (
+	PrimaryEmail OrderBy = "EMAIL"       // Primary email of the user
+	FamilyName   OrderBy = "FAMILY_NAME" // User's family name
+	GivenName    OrderBy = "GIVEN_NAME"  // User's given name
+)
+
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#projection
+type UserProjection string
+
+const (
+	Basic  UserProjection = "BASIC"  // Do not include any custom fields for the user
+	Custom UserProjection = "CUSTOM" // Include custom fields from scemas requested i nthe customFieldMask
+	Full   UserProjection = "FULL"   // Include all fields associated with this user.
+)
+
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#sortorder
+type SortOrder string
+
+const (
+	Ascending  SortOrder = "ASCENDING"  // Ascending order
+	Descending SortOrder = "DESCENDING" // Descending order
+)
+
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#viewtype
+type UserViewType string
+
+const (
+	AdminView    UserViewType = "admin_view"    // Results include both administrator-only and domain-public fields for the user.
+	DomainPublic UserViewType = "domain_public" // Results only include fields for the user that are publicly visible to other users
+)

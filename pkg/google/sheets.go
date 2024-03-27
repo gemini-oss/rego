@@ -13,8 +13,9 @@ https://developers.google.com/sheets/api/reference/rest
 package google
 
 import (
-	"encoding/json"
 	"fmt"
+
+	ss "github.com/gemini-oss/rego/pkg/common/starstruct"
 )
 
 var (
@@ -55,6 +56,35 @@ func VerifySheetValueRange(vr *ValueRange) error {
 }
 
 /*
+ * Generate Google Sheets ValueRange from a slice of any structs
+ */
+func GenerateValueRange(data []interface{}, headers *[]string) *ValueRange {
+	vr := &ValueRange{
+		MajorDimension: "ROWS",
+		Range:          "A:ZZ",
+	}
+
+	vr.Values = append(vr.Values, *headers)
+	for _, d := range data {
+		orderedData, err := ss.FlattenStructFields(d, headers)
+		if err != nil {
+			continue // Owners field is empty -- skip
+		}
+		row := make([]string, 0, len(*headers))
+		for i, value := range orderedData {
+			// If the value matches the header, append it to the row
+			if value[0] == (*headers)[i] {
+				row = append(row, value[1])
+			}
+		}
+		vr.Values = append(vr.Values, row)
+	}
+	vr.Values[0] = *headers
+
+	return vr
+}
+
+/*
  * # Spreadsheet: Create
  * - Creates a new spreadsheet, with basic properties.
  *   - https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/create
@@ -62,14 +92,7 @@ func VerifySheetValueRange(vr *ValueRange) error {
 func (c *Client) CreateSpreadsheet() (*Spreadsheet, error) {
 	url := Sheets
 
-	_, body, err := c.HTTPClient.DoRequest("POST", url, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	c.Logger.Debugf("Request Body: %s", string(body))
-
-	spreadsheet := &Spreadsheet{}
-	err = json.Unmarshal(body, &spreadsheet)
+	spreadsheet, err := do[*Spreadsheet](c, "POST", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -97,14 +120,10 @@ func (c *Client) UpdateSpreadsheet(spreadsheetID string, vr *ValueRange) error {
 
 	url := fmt.Sprintf("%s/%s/values/%s", Sheets, spreadsheetID, vr.Range)
 
-	// Prepare request
-	res, body, err := c.HTTPClient.DoRequest("PUT", url, q, &vr)
+	_, err = do[any](c, "PUT", url, q, &vr)
 	if err != nil {
-		c.Logger.Panic(err)
 		return err
 	}
-	c.Logger.Println("Response Status: ", res.Status)
-	c.Logger.Debug("Response Body: ", string(body))
 
 	return nil
 }
@@ -129,13 +148,10 @@ func (c *Client) AppendSpreadsheet(spreadsheetID string, vr *ValueRange) error {
 
 	url := fmt.Sprintf("%s/%s/values/%s:append", Sheets, spreadsheetID, vr.Range)
 
-	// Prepare request
-	res, body, err := c.HTTPClient.DoRequest("POST", url, q, vr)
+	_, err = do[any](c, "POST", url, q, &vr)
 	if err != nil {
 		return err
 	}
-	c.Logger.Println("Response Status: ", res.Status)
-	c.Logger.Debug("Response Body: ", string(body))
 
 	return nil
 }
@@ -168,7 +184,7 @@ func (c *Client) FormatHeaderAndAutoSize(spreadsheetId string, rows int, columns
 						Blue:  (168.0 / 255.0),
 					},
 					TextFormat: &TextFormat{
-						FontSize: 12,
+						FontSize: 10,
 						Bold:     true,
 					},
 				},
@@ -182,7 +198,7 @@ func (c *Client) FormatHeaderAndAutoSize(spreadsheetId string, rows int, columns
 		SetBasicFilter: &SetBasicFilterRequest{
 			Filter: &BasicFilter{
 				Range: &GridRange{
-					SheetID:          0,
+					SheetID:          0, // Currently assumes the original sheet from a new spreadsheet
 					StartRowIndex:    0,
 					EndRowIndex:      rows,
 					StartColumnIndex: 0,
@@ -205,12 +221,10 @@ func (c *Client) FormatHeaderAndAutoSize(spreadsheetId string, rows int, columns
 	})
 
 	// Execute the batchUpdate request
-	resp, body, err := c.HTTPClient.DoRequest("POST", url, nil, format)
+	_, err := do[any](c, "POST", url, nil, format)
 	if err != nil {
 		return err
 	}
-	c.Logger.Println("Response Status: ", resp.Status)
-	c.Logger.Debug("Response Body: ", string(body))
 
 	return nil
 }

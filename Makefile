@@ -1,3 +1,8 @@
+# Makefile \
+:Copyright: (c) 2024 by Gemini Space Station, LLC., see AUTHORS for more info \
+:License: See the LICENSE file for details \
+:Author: Anthony Dardano <anthony.dardano@gemini.com>
+
 BINARY=rego
 
 # Builds the project
@@ -8,10 +13,15 @@ build:
 test:
 	go test -v ./...
 
-# Generates documentation
-doc:
-	~/go/bin/gomarkdoc ./... --output 'docs/{{.Dir}}/README.md' --exclude-dirs ./pkg/internal/tests/...
+# Generates markdown documentation for Hugo
+docs:
+	./gen_hugo_index.sh
 
+# Starts the hugo test server
+server:
+	hugo server -s hugo --disableFastRender
+
+# Formats the code
 pretty:
 	gofmt -s -w .
 

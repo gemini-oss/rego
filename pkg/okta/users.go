@@ -9,119 +9,12 @@ https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/
 :Author: Anthony Dardano <anthony.dardano@gemini.com>
 */
 
-// pkg/okta/users/users.go
+// pkg/okta/users.go
 package okta
 
 import (
-	"encoding/json"
-	"fmt"
 	"time"
 )
-
-type Users []*User
-
-type User struct {
-	Activated             time.Time        `json:"activated,omitempty"`
-	Created               time.Time        `json:"created,omitempty"`
-	Credentials           *UserCredentials `json:"credentials,omitempty"`
-	ID                    string           `json:"id,omitempty"`
-	LastLogin             time.Time        `json:"lastLogin,omitempty"`
-	LastUpdated           time.Time        `json:"lastUpdated,omitempty"`
-	PasswordChanged       time.Time        `json:"passwordChanged,omitempty"`
-	Profile               *UserProfile     `json:"profile,omitempty"`
-	Status                string           `json:"status,omitempty"`
-	StatusChanged         time.Time        `json:"statusChanged,omitempty"`
-	TransitioningToStatus string           `json:"transitioningToStatus,omitempty"`
-	Type                  *UserType        `json:"type,omitempty"`
-	Embedded              *Embedded        `json:"_embedded,omitempty"`
-	Links                 *Links           `json:"_links,omitempty"`
-}
-
-type UserCredentials struct {
-	Password         *PasswordCredentials `json:"password,omitempty"`
-	Provider         *Provider            `json:"provider,omitempty"`
-	RecoveryQuestion *RecoveryQuestion    `json:"recovery_question,omitempty"`
-}
-
-type PasswordCredentials struct {
-	Hook  *PasswordHook `json:"hook,omitempty"`
-	Value string        `json:"value,omitempty"`
-	Hash  *PasswordHash `json:"hash,omitempty"`
-}
-
-type PasswordHash struct {
-	Algorithm       string `json:"algorithm,omitempty"`
-	DigestAlgorithm string `json:"digestAlgorithm,omitempty"`
-	IterationCount  int    `json:"iterationCount,omitempty"`
-	KeySize         int    `json:"keySize,omitempty"`
-	Salt            string `json:"salt,omitempty"`
-	SaltOrder       string `json:"saltOrder,omitempty"`
-	Value           string `json:"value,omitempty"`
-	WorkFactor      int    `json:"workFactor,omitempty"`
-}
-
-type PasswordHook struct {
-	Type string `json:"type,omitempty"`
-}
-
-type Provider struct {
-	Name string `json:"name,omitempty"`
-	Type string `json:"type,omitempty"`
-}
-
-type RecoveryQuestion struct {
-	Answer   string `json:"answer,omitempty"`
-	Question string `json:"question,omitempty"`
-}
-
-type UserProfile struct {
-	City              string      `json:"city,omitempty"`
-	CostCenter        string      `json:"costCenter,omitempty"`
-	CountryCode       string      `json:"countryCode,omitempty"`
-	Department        string      `json:"department,omitempty"`
-	DisplayName       string      `json:"displayName,omitempty"`
-	Division          string      `json:"division,omitempty"`
-	Email             string      `json:"email,omitempty"`
-	EmployeeNumber    string      `json:"employeeNumber,omitempty"`
-	FirstName         string      `json:"firstName,omitempty"`
-	HonorificPrefix   string      `json:"honorificPrefix,omitempty"`
-	HonorificSuffix   string      `json:"honorificSuffix,omitempty"`
-	LastName          string      `json:"lastName,omitempty"`
-	Locale            string      `json:"locale,omitempty"`
-	Login             string      `json:"login,omitempty"`
-	Manager           string      `json:"manager,omitempty"`
-	ManagerId         string      `json:"managerId,omitempty"`
-	MiddleName        string      `json:"middleName,omitempty"`
-	MobilePhone       string      `json:"mobilePhone,omitempty"`
-	NickName          string      `json:"nickName,omitempty"`
-	Organization      string      `json:"organization,omitempty"`
-	PostalAddress     string      `json:"postalAddress,omitempty"`
-	PreferredLanguage string      `json:"preferredLanguage,omitempty"`
-	PrimaryPhone      string      `json:"primaryPhone,omitempty"`
-	ProfileUrl        string      `json:"profileUrl,omitempty"`
-	Property1         interface{} `json:"property1,omitempty"`
-	Property2         interface{} `json:"property2,omitempty"`
-	SecondEmail       string      `json:"secondEmail,omitempty"`
-	State             string      `json:"state,omitempty"`
-	StreetAddress     string      `json:"streetAddress,omitempty"`
-	Timezone          string      `json:"timezone,omitempty"`
-	Title             string      `json:"title,omitempty"`
-	UserType          string      `json:"userType,omitempty"`
-	ZipCode           string      `json:"zipCode,omitempty"`
-}
-
-type UserType struct {
-	Created       time.Time `json:"created,omitempty"`
-	CreatedBy     string    `json:"createdBy,omitempty"`
-	Default       bool      `json:"default,omitempty"`
-	Description   string    `json:"description,omitempty"`
-	DisplayName   string    `json:"displayName,omitempty"`
-	ID            string    `json:"id,omitempty"`
-	LastUpdated   time.Time `json:"lastUpdated,omitempty"`
-	LastUpdatedBy string    `json:"lastUpdatedBy,omitempty"`
-	Name          string    `json:"name,omitempty"`
-	Links         *Links    `json:"_links,omitempty"`
-}
 
 /*
  * Query Parameters for Users
@@ -137,98 +30,138 @@ type UserQuery struct {
 }
 
 /*
- * Get all users, regardless of status
+ * # Get all users, regardless of status
  * /api/v1/users
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/listUsers
  */
 func (c *Client) ListAllUsers() (*Users, error) {
-	c.Logger.Println("Getting all users")
-	allUsers := Users{}
+	url := c.BuildURL(OktaUsers)
 
-	q := UserQuery{
+	var cache Users
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	q := &UserQuery{
 		Limit:  `200`,
 		Search: `status eq "STAGED" or status eq "PROVISIONED" or status eq "ACTIVE" or status eq "RECOVERY" or status eq "LOCKED_OUT" or status eq "PASSWORD_EXPIRED" or status eq "SUSPENDED" or status eq "DEPROVISIONED"`,
 	}
 
-	// url := fmt.Sprintf("%s/users", c.BaseURL)
-	url := c.BuildURL(OktaUsers)
-	res, err := c.HTTPClient.PaginatedRequest("GET", url, q, nil)
+	users, err := doPaginated[Users](c, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Printf("Received response from %s", url)
 
-	for _, r := range res {
-		user := User{}
-		err := json.Unmarshal(r, &user)
-		if err != nil {
-			return nil, fmt.Errorf("unmarshalling user: %w", err)
-		}
-		allUsers = append(allUsers, &user)
-	}
-
-	c.Logger.Println("Successfully listed all users.")
-	return &allUsers, nil
+	c.SetCache(url, users, 30*time.Minute)
+	return users, nil
 }
 
 /*
- * List all ACTIVE users
+ * # List all ACTIVE users
  * /api/v1/users
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/listUsers
  */
 func (c *Client) ListActiveUsers() (*Users, error) {
+	url := c.BuildURL(OktaUsers)
 
-	allUsers := Users{}
+	var cache Users
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
 
-	q := UserQuery{
+	q := &UserQuery{
 		Limit:  `200`,
 		Search: `status eq "ACTIVE"`,
 	}
 
-	// url := fmt.Sprintf("%s/users", c.BaseURL)
-	url := c.BuildURL(OktaUsers)
-	res, err := c.HTTPClient.PaginatedRequest("GET", url, q, nil)
+	users, err := doPaginated[Users](c, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, r := range res {
-		user := User{}
-		err := json.Unmarshal(r, &user)
-		if err != nil {
-			return nil, fmt.Errorf("unmarshalling user: %w", err)
-		}
-		allUsers = append(allUsers, &user)
-	}
-
-	return &allUsers, nil
+	c.SetCache(url, users, 30*time.Minute)
+	return users, nil
 }
 
 /*
- * Get a user by ID
+ * # Get a user by ID
  * /api/v1/users/{userId}
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/getUser
  */
 func (c *Client) GetUser(userID string) (*User, error) {
-
-	// url := fmt.Sprintf("%s/users/%s", c.BaseURL, userID)
 	url := c.BuildURL(OktaUsers, userID)
-	_, body, err := c.HTTPClient.DoRequest("GET", url, nil, nil)
+
+	var cache User
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	user, err := do[User](c, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	user := &User{}
-	err = json.Unmarshal(body, &user)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling user: %w", err)
-	}
-
-	return user, nil
+	c.SetCache(url, user, 5*time.Minute)
+	return &user, nil
 }
 
 /*
- * Get all Assigned Application Links for a User
+ * # Update a user's properties by ID
+ * /api/v1/users/{userId}
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/updateUser
+ */
+func (c *Client) UpdateUser(userID string, u *User) (*User, error) {
+
+	url := c.BuildURL(OktaUsers, userID)
+
+	user, err := do[User](c, "POST", url, nil, &u)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+/*
+ * # Get all Assigned Application Links for a User
  * /api/v1/users/{userId}/appLinks
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/listAppLinks
  */
+func (c *Client) GetUserAppLinks(userID string) (*AppLinks, error) {
+	url := c.BuildURL(OktaUsers, userID, "appLinks")
+
+	var cache AppLinks
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	appLinks, err := do[AppLinks](c, "GET", url, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	c.SetCache(url, appLinks, 5*time.Minute)
+	return &appLinks, nil
+}
+
+/*
+ * # List all Groups for a User
+ * /api/v1/users/{userId}/groups
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/updateUser
+ */
+func (c *Client) GetUserGroups(userID string) (*Groups, error) {
+	url := c.BuildURL(OktaUsers, userID, "groups")
+
+	var cache Groups
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	groups, err := do[Groups](c, "GET", url, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	c.SetCache(url, groups, 5*time.Minute)
+	return &groups, nil
+}

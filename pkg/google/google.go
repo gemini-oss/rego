@@ -19,9 +19,12 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/gemini-oss/rego/pkg/common/cache"
 	"github.com/gemini-oss/rego/pkg/common/config"
 	"github.com/gemini-oss/rego/pkg/common/log"
+	"github.com/gemini-oss/rego/pkg/common/ratelimit"
 	"github.com/gemini-oss/rego/pkg/common/requests"
 	"golang.org/x/oauth2/google"
 )
@@ -32,6 +35,7 @@ const (
 	SERVICE_ACCOUNT = "service_account"
 	BaseURL         = "https://www.googleapis.com"
 	AdminBaseURL    = "https://admin.googleapis.com"
+	ChromeBaseURL   = "https://chromepolicy.googleapis.com"
 	OAuthURL        = "https://accounts.google.com/o/oauth2/auth"
 	OAuthTokenURL   = "https://oauth2.googleapis.com/token"
 	JWTTokenURL     = "https://oauth2.googleapis.com/token"
@@ -40,21 +44,68 @@ const (
 /*
  * Build a URL for the Google Workspace API
  * @param endpoint string
- * @param identifiers ...string
+ * @param customer *Customer
+ * @param parameters ...string
  * @return string
  */
-func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
-	url := fmt.Sprintf(endpoint, c.BaseURL)
-	for _, id := range identifiers {
-		url = fmt.Sprintf("%s/%s", url, id)
+func (c *Client) BuildURL(endpoint string, customer *Customer, parameters ...string) string {
+	var url string
+	if strings.Contains(endpoint, "/customer/%s") || strings.Contains(endpoint, "/customers/%s") {
+		if customer == nil {
+			customer = &Customer{}
+		}
+		url = fmt.Sprintf(endpoint, customer.String())
+	} else {
+		url = endpoint
 	}
+
+	for _, param := range parameters {
+		if param != "" {
+			if strings.HasPrefix(param, ":") {
+				url = strings.TrimSuffix(url, "/") + param
+			} else {
+				url = fmt.Sprintf("%s/%s", url, param)
+			}
+		}
+	}
+
+	c.Log.Debug("url:", url)
 	return url
+}
+
+/*
+ * SetCache stores a Google API response in the cache
+ */
+func (c *Client) SetCache(key string, value interface{}, duration time.Duration) {
+	data, err := json.Marshal(value)
+	if err != nil {
+		c.Log.Error("Error marshalling cache data:", err)
+		return
+	}
+	c.Cache.Set(key, data, duration)
+}
+
+/*
+ * GetCache retrieves a Google API response from the cache
+ */
+func (c *Client) GetCache(key string, target interface{}) bool {
+	data, found := c.Cache.Get(key)
+	if !found {
+		return false
+	}
+
+	err := json.Unmarshal(data, target)
+	if err != nil {
+		c.Log.Error("Error unmarshalling cache data:", err)
+		return false
+	}
+	return true
 }
 
 /*
  * # Generate JWT Client/Tokens for Google Workspace
  * @param auth AuthCredentials
- * @param logger *log.Logger
+ * @param Log *log.Logger
  * @return *Client
  * @return error
  * https://developers.google.com/identity/protocols/oauth2/service-account#jwt-auth
@@ -62,31 +113,31 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
 func (c *Client) GenerateJWT(data []byte) (*requests.Client, error) {
 	ctx := context.Background()
 
-	c.Logger.Println("Generating JWT Config")
+	c.Log.Println("Generating JWT Config")
 	jwtConfig, err := google.JWTConfigFromJSON(data, c.Auth.Scopes...)
 	jwtConfig.Subject = c.Auth.Subject
 	if err != nil {
-		c.Logger.Printf("Unable to parse client secret file to config: %v", err)
+		c.Log.Printf("Unable to parse client secret file to config: %v", err)
 	}
-	c.Logger.Printf("JWT Config Successfully Generated")
+	c.Log.Printf("JWT Config Successfully Generated")
 
-	c.Logger.Println("Generating JWT Token")
+	c.Log.Println("Generating JWT Token")
 	t, err := jwtConfig.TokenSource(ctx).Token()
 	if err != nil {
-		c.Logger.Printf("Unable to generate token: %v", err)
+		c.Log.Printf("Unable to generate token: %v", err)
 	}
-	c.Logger.Printf("Token Successfully Generated")
+	c.Log.Printf("Token Successfully Generated")
 
-	c.Logger.Println("Reconfiguring HTTP Client")
+	c.Log.Println("Reconfiguring HTTP Client")
 	type contextKey string
 	jwtClient := jwtConfig.Client(context.WithValue(ctx, contextKey("token"), t))
 	headers := requests.Headers{
-		"Accept":        "application/json",
-		"Content-Type":  "application/json",
+		"Accept":        requests.JSON,
+		"Content-Type":  requests.JSON,
 		"Authorization": "Bearer " + t.AccessToken,
 	}
 
-	return requests.NewClient(jwtClient, headers), nil
+	return requests.NewClient(jwtClient, headers, c.HTTP.RateLimiter), nil
 }
 
 func (c *Client) ImpersonateUser(email string) error {
@@ -106,25 +157,27 @@ func (c *Client) ImpersonateUser(email string) error {
 
 	// Update the headers to use the new token
 	headers := requests.Headers{
-		"Accept":        "application/json",
-		"Content-Type":  "application/json",
+		"Accept":        requests.JSON,
+		"Content-Type":  requests.JSON,
 		"Authorization": "Bearer " + t.AccessToken,
 	}
 
 	// Update the HTTP client of the client object
-	c.HTTPClient = requests.NewClient(jwtClient, headers)
+	c.HTTP = requests.NewClient(jwtClient, headers, nil)
 
 	return nil
 }
 
 /*
- * # Generate Google Workspace Client
- * @param auth AuthCredentials
- * @param logger *log.Logger
- * @return *Client
- * @return error
- * Example:
+  - # Generate Google Workspace Client
+  - @param auth AuthCredentials
+  - @param log *log.Logger
+  - @return *Client
+  - @return error
+  - Example:
+
 ```go
+
 	ac := google.AuthCredentials{
 		CICD: true,
 		Type: google.SERVICE_ACCOUNT,
@@ -133,26 +186,100 @@ func (c *Client) ImpersonateUser(email string) error {
 			"Google Drive API",
 			"Google Sheets API",
 		},
+		Subject: "super.user@domain.com",
 	}
 	g, _ := google.NewClient(ac, log.DEBUG)
+
 ```
- */
+
+  - Example 2: (Some Scopes may not work with Subject)
+
+```go
+
+	ac := google.AuthCredentials{
+		CICD: true,
+		Type: google.SERVICE_ACCOUNT,
+		Scopes: []string{
+			"Chrome Policy API",
+			"Chrome Management API",
+		},
+	}
+	g, _ := google.NewClient(ac, log.DEBUG)
+
+```
+
+  - Example 3: Direct URLs
+
+```go
+
+	ac := google.AuthCredentials{
+		CICD: true,
+		Type: google.SERVICE_ACCOUNT,
+		Scopes: []string{
+			"https://www.googleapis.com/auth/admin.directory.user",
+		},
+	}
+	g, _ := google.NewClient(ac, log.DEBUG)
+
+```
+
+  - Example 4: Transfer Customer context to a new client
+
+```go
+
+	ac := google.AuthCredentials{
+		CICD: true,
+		Type: google.SERVICE_ACCOUNT,
+		Scopes: []string{
+			"Admin SDK API",
+		},
+		Subject: "super.user@domain.com",
+	}
+	g, _ := google.NewClient(ac, log.DEBUG)
+
+	ac.Scopes = []string{
+		"Chrome Policy API",
+		"Chrome Management API",
+	}
+	chrome, _ := google.NewClient(ac, log.DEBUG)
+	chrome.Customer, _ = g.MyCustomer()
+
+```
+*/
 func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
+	log := log.NewLogger("{google}", verbosity)
+
+	// Look into `Functional Options` patterns for a better way to handle this (and other clients while we're at it)
+	encryptionKey := []byte(config.GetEnv("REGO_ENCRYPTION_KEY"))
+	if len(encryptionKey) == 0 {
+		log.Fatal("REGO_ENCRYPTION_KEY is not set")
+	}
+
+	cache, err := cache.NewCache(encryptionKey, "/tmp/rego_cache_google.gob", 1000000)
+	if err != nil {
+		panic(err)
+	}
+
+	// https://developers.google.com/drive/api/guides/limits
+	rl := ratelimit.NewRateLimiter(12000)
+	rl.Log.Verbosity = verbosity
 
 	c := &Client{
 		Auth:    ac,
 		BaseURL: BaseURL,
-		Logger:  log.NewLogger("{google}", verbosity),
+		Log:     log,
+		Cache:   cache,
+		HTTP:    requests.NewClient(nil, nil, rl),
 	}
 
-	c.Logger.Println("Initializing Google Client")
+	log.Println("Initializing Google Client")
 	headers := requests.Headers{
-		"Accept":       "application/json",
-		"Content-Type": "application/json",
+		"Accept":       requests.JSON,
+		"Content-Type": requests.JSON,
 	}
 	// httpClient := requests.NewClient(nil, headers)
 
-	c.Logger.Println("Loading Scopes")
+	log.Println("Loading Scopes")
 	scopes := []string{}
 	c.Auth.Scopes = DedupeScopes(c.Auth.Scopes)
 	for service := range c.Auth.Scopes {
@@ -168,17 +295,24 @@ func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
 		}
 	}
 	c.Auth.Scopes = scopes
-	c.Logger.Printf("Scopes Loaded: %s\n", scopes)
+	log.Debugf("Scopes Loaded: %s\n", scopes)
 
-	c.Logger.Println("Loading Credentials")
+	log.Println("Loading Credentials")
 	switch c.Auth.CICD {
 	case true:
-		c.Logger.Println("Detected CICD Environment: Reading Credentials from Environment Variables")
+		log.Println("Detected CICD Environment: Reading Credentials from Environment Variables")
 		switch c.Auth.Type {
 		case API_KEY:
-			headers["Authorization"] = "Bearer " + config.GetEnv("GOOGLE_API_KEY", "GOOGLE_API_KEY")
+			headers["Authorization"] = "Bearer " + config.GetEnv("GOOGLE_API_KEY")
+			if len(headers["Authorization"]) <= 7 {
+				return nil, fmt.Errorf("GOOGLE_API_KEY is not set")
+			}
 		case OAUTH_CLIENT:
-			b64 := config.GetEnv("GOOGLE_OAUTH_CLIENT", "GOOGLE_OAUTH_CLIENT")
+			b64 := config.GetEnv("GOOGLE_OAUTH_CLIENT")
+			if len(b64) == 0 {
+				return nil, fmt.Errorf("GOOGLE_OAUTH_CLIENT is not set")
+			}
+
 			decoded, err := base64.StdEncoding.DecodeString(b64)
 			if err != nil {
 				fmt.Println("decode error:", err)
@@ -191,14 +325,18 @@ func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
 				return nil, err
 			}
 		case SERVICE_ACCOUNT:
-			b64 := config.GetEnv("GOOGLE_SERVICE_ACCOUNT", "GOOGLE_SERVICE_ACCOUNT")
+			b64 := config.GetEnv("GOOGLE_SERVICE_ACCOUNT")
+			if len(b64) == 0 {
+				return nil, fmt.Errorf("GOOGLE_SERVICE_ACCOUNT is not set")
+			}
+
 			decoded, err := base64.StdEncoding.DecodeString(b64)
 			if err != nil {
 				fmt.Println("decode error:", err)
 				return nil, err
 			}
 
-			c.HTTPClient, err = c.GenerateJWT(decoded)
+			c.HTTP, err = c.GenerateJWT(decoded)
 			if err != nil {
 				return nil, err
 			}
@@ -206,31 +344,34 @@ func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
 			return c, nil
 		}
 	case false:
-		c.Logger.Println("Detected Local Environment: Reading Credentials from Arguments")
+		log.Println("Detected Local Environment: Reading Credentials from Arguments")
 		switch c.Auth.Type {
 		case API_KEY:
 			headers["Authorization"] = "Bearer " + c.Auth.Credentials
+			if len(headers["Authorization"]) <= 7 {
+				return nil, fmt.Errorf("GOOGLE_API_KEY is not set")
+			}
 		case OAUTH_CLIENT:
 			file, err := os.ReadFile(c.Auth.Credentials)
 			if err != nil {
-				c.Logger.Printf("Error opening file: %s\n", err)
+				log.Printf("Error opening file: %s\n", err)
 			}
 			oauth, err := google.ConfigFromJSON(file, c.Auth.Scopes...)
 			if err != nil {
-				c.Logger.Printf("Unable to parse client secret file to config: %v", err)
+				log.Printf("Unable to parse client secret file to config: %v", err)
 			}
 			_ = oauth // Will return to this later
 		case SERVICE_ACCOUNT:
-			c.Logger.Println("Service Account Credentials Detected")
+			log.Println("Service Account Credentials Detected")
 
-			c.Logger.Println("Loading Service Account Credentials from file")
+			log.Println("Loading Service Account Credentials from file")
 			file, err := os.ReadFile(c.Auth.Credentials)
 			if err != nil {
-				c.Logger.Printf("Error opening file: %s\n", err)
+				log.Printf("Error opening file: %s\n", err)
 			}
 
-			c.Logger.Println("Generating JWT Client")
-			c.HTTPClient, err = c.GenerateJWT(file)
+			log.Println("Generating JWT Client")
+			c.HTTP, err = c.GenerateJWT(file)
 			if err != nil {
 				return nil, err
 			}
@@ -238,5 +379,54 @@ func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
 			return c, nil
 		}
 	}
+
 	return nil, nil
+}
+
+// GoogleAPIResponse is an interface for Google API responses involving pagination
+type GoogleAPIResponse interface {
+	Append(interface{})
+	PageToken() string
+}
+
+/*
+ * Perform a generic request to the Google API
+ */
+func do[T any](c *Client, method string, url string, query interface{}, data interface{}) (T, error) {
+	var result T
+	res, body, err := c.HTTP.DoRequest(method, url, query, data)
+	if err != nil {
+		return *new(T), err
+	}
+
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return *new(T), fmt.Errorf("unmarshalling error: %w", err)
+	}
+
+	return result, nil
+}
+
+func doPaginated[T GoogleAPIResponse](c *Client, method string, url string, query interface{}, data interface{}) (*T, error) {
+	var results T
+	pageToken := ""
+
+	for {
+		results, err := do[T](c, method, url, query, data)
+		if err != nil {
+			return nil, err
+		}
+
+		results.Append(&results)
+
+		pageToken = results.PageToken()
+		if pageToken == "" {
+			break
+		}
+	}
+
+	return &results, nil
 }

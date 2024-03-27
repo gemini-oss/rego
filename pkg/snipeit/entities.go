@@ -12,9 +12,26 @@ https://developer.okta.com/docs/api/
 // pkg/snipeit/entities.go
 package snipeit
 
+import (
+	"github.com/gemini-oss/rego/pkg/common/cache"
+	"github.com/gemini-oss/rego/pkg/common/log"
+	"github.com/gemini-oss/rego/pkg/common/requests"
+)
+
+// ### SnipeIT Client Structs
+// ---------------------------------------------------------------------
+type Client struct {
+	BaseURL string           // BaseURL is the base URL for the SnipeIT API.
+	HTTP    *requests.Client // HTTP client for the SnipeIT API.
+	Log     *log.Logger      // Log is the logger for the SnipeIT API.
+	Cache   *cache.Cache     // Cache for the SnipeIT API.
+}
+
+// END OF SNIPEIT CLIENT STRUCTS
+//---------------------------------------------------------------------
 
 // ### Assets
-//-------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 // Source: https://snipe-it.readme.io/reference/hardware-list
 type HardwareList struct {
 	Total int         `json:"total,omitempty"` // The total number of hardware items.
@@ -37,8 +54,8 @@ type Hardware struct {
 	Category         *Record           `json:"category,omitempty"`          // Category of the hardware item.
 	Manufacturer     *Record           `json:"manufacturer,omitempty"`      // Manufacturer of the hardware item.
 	Supplier         *Record           `json:"supplier,omitempty"`          // Supplier of the hardware item.
-	Notes            *Record           `json:"notes,omitempty"`             // Notes associated with the hardware item.
-	OrderNumber      *Record           `json:"order_number,omitempty"`      // Order number of the hardware item.
+	Notes            string            `json:"notes,omitempty"`             // Notes associated with the hardware item.
+	OrderNumber      string            `json:"order_number,omitempty"`      // Order number of the hardware item.
 	Company          *Record           `json:"company,omitempty"`           // Company of the hardware item.
 	Location         *Record           `json:"location,omitempty"`          // Location of the hardware item.
 	RTDLocation      *Record           `json:"rtd_location,omitempty"`      // RTD location of the hardware item.
@@ -57,7 +74,7 @@ type Hardware struct {
 	Age              string            `json:"age,omitempty"`               // Age of the hardware item.
 	LastCheckout     *DateInfo         `json:"last_checkout,omitempty"`     // Time when the hardware item was last checked out.
 	ExpectedCheckin  *DateInfo         `json:"expected_checkin,omitempty"`  // Expected check-in date of the hardware item.
-	PurchaseCost     *DateInfo         `json:"purchase_cost,omitempty"`     // Purchase cost of the hardware item.
+	PurchaseCost     string            `json:"purchase_cost,omitempty"`     // Purchase cost of the hardware item.
 	CheckinCounter   int               `json:"checkin_counter,omitempty"`   // Check-in counter of the hardware item.
 	CheckoutCounter  int               `json:"checkout_counter,omitempty"`  // Check-out counter of the hardware item.
 	RequestsCounter  int               `json:"requests_counter,omitempty"`  // Request counter of the hardware item.
@@ -100,7 +117,7 @@ type Accessory struct {
 }
 
 // ### Categories
-//-------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 // Source: https://snipe-it.readme.io/reference/categories
 type CategoryList struct {
 	Total int         `json:"total,omitempty"` // Total count of rows
@@ -126,6 +143,7 @@ type Category struct {
 	UpdatedAt         *DateInfo         `json:"updated_at,omitempty"`
 	Actions           *AvailableActions `json:"available_actions,omitempty"`
 }
+
 // END OF CATEGORY STRUCTS
 //-------------------------------------------------------------------------
 
@@ -251,5 +269,6 @@ type AvailableActions struct {
 	Restore  bool `json:"restore,omitempty"`  // Whether restore action is available.
 	Update   bool `json:"update,omitempty"`   // Whether update action is available.
 }
+
 // END OF COMMON ASSET TYPES
 //-------------------------------------------------------------------------

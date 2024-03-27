@@ -18,6 +18,7 @@ import (
 
 	"github.com/gemini-oss/rego/pkg/common/config"
 	"github.com/gemini-oss/rego/pkg/common/log"
+	"github.com/gemini-oss/rego/pkg/common/ratelimit"
 	"github.com/gemini-oss/rego/pkg/common/requests"
 )
 
@@ -49,31 +50,36 @@ const (
 	Reports          = "%s/reports"              // https://snipe-it.readme.io/reference#reports
 )
 
-type Client struct {
-	BaseURL    string
-	HTTPClient *requests.Client
-	Logger     *log.Logger
-}
-
 func NewClient(verbosity int) *Client {
+	log := log.NewLogger("{snipeit}", verbosity)
 
-	url := config.GetEnv("SNIPEIT_URL", "snipeit_url")
+	url := config.GetEnv("SNIPEIT_URL")
+	if len(url) == 0 {
+		log.Fatal("SNIPEIT_URL is not set.")
+	}
+
 	url = strings.TrimPrefix(url, "https://")
 	url = strings.TrimPrefix(url, "http://")
 	url = strings.Trim(url, "./")
 
 	BaseURL = fmt.Sprintf(BaseURL, url)
-	token := config.GetEnv("SNIPEIT_TOKEN", "snipeit_token")
+	token := config.GetEnv("SNIPEIT_TOKEN")
+	if len(token) == 0 {
+		log.Fatal("SNIPEIT_TOKEN is not set.")
+	}
 
 	headers := requests.Headers{
 		"Authorization": "Bearer " + token,
-		"Accept":        "application/json",
-		"Content-Type":  "application/json",
+		"Accept":        requests.JSON,
+		"Content-Type":  requests.JSON,
 	}
 
+	// https://snipe-it.readme.io/reference/api-throttling
+	rl := ratelimit.NewRateLimiter(120)
+
 	return &Client{
-		BaseURL:    BaseURL,
-		HTTPClient: requests.NewClient(nil, headers),
-		Logger:     log.NewLogger("{snipeit}", verbosity),
+		BaseURL: BaseURL,
+		HTTP:    requests.NewClient(nil, headers, rl),
+		Log:     log,
 	}
 }

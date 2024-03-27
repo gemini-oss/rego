@@ -18,39 +18,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/gemini-oss/rego/pkg/common/cache"
 	"github.com/gemini-oss/rego/pkg/common/config"
 	"github.com/gemini-oss/rego/pkg/common/log"
 	"github.com/gemini-oss/rego/pkg/common/requests"
 )
 
 var (
-	BaseURL                 = fmt.Sprintf("https://%s/api/v1", "%s")      // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api
-	ClassicURL              = fmt.Sprintf("https://%s/JSSResource", "%s") // https://developer.jamf.com/jamf-pro/reference/classic-api
-	JamfDevices             = fmt.Sprintf("%s/devices", "%s")             // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api/devices
-	JamfManagementFramework = fmt.Sprintf("%s/users", "%s")               // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api/management-framework
-	JameUsers               = fmt.Sprintf("%s/iam", "%s")                 // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api/users
+	BaseURL      = fmt.Sprintf("https://%s/api", "%s")         // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api
+	V1           = "%s/v1"                                     // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api
+	V1_AuthToken = fmt.Sprintf("%s/auth/token", V1)            // https://developer.jamf.com/jamf-pro/reference/post_v1-auth-token
+	V2           = "%s/v2"                                     // https://developer.jamf.com/jamf-pro/reference/jamf-pro-api
+	ClassicURL   = fmt.Sprintf("https://%s/JSSResource", "%s") // https://developer.jamf.com/jamf-pro/reference/classic-api
 )
-
-// Credentials for Jamf Pro
-type Credentials struct {
-	Username string
-	Password string
-	Token    JamfToken
-}
-
-type JamfToken struct {
-	Token   string    `json:"token"`
-	Expires time.Time `json:"expires"`
-}
-
-type Client struct {
-	BaseURL    string
-	ClassicURL string
-	HTTP       *requests.Client
-	Logger     *log.Logger
-}
 
 // BuildURL builds a URL for a given resource and identifiers.
 func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
@@ -58,7 +41,38 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
 	for _, id := range identifiers {
 		url = fmt.Sprintf("%s/%s", url, id)
 	}
+	c.Log.Debug("url:", url)
 	return url
+}
+
+/*
+ * SetCache stores a Jamf API response in the cache
+ */
+func (c *Client) SetCache(key string, value interface{}, duration time.Duration) {
+	// Convert value to a byte slice and cache it
+	data, err := json.Marshal(value)
+	if err != nil {
+		c.Log.Error("Error marshalling cache data:", err)
+		return
+	}
+	c.Cache.Set(key, data, duration)
+}
+
+/*
+ * GetCache retrieves a Jamf API response from the cache
+ */
+func (c *Client) GetCache(key string, target interface{}) bool {
+	data, found := c.Cache.Get(key)
+	if !found {
+		return false
+	}
+
+	err := json.Unmarshal(data, target)
+	if err != nil {
+		c.Log.Error("Error unmarshalling cache data:", err)
+		return false
+	}
+	return true
 }
 
 /*
@@ -67,21 +81,25 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
  * - https://developer.jamf.com/jamf-pro/reference/post_v1-auth-token
  */
 func GetToken(baseURL string) (*JamfToken, error) {
-	url := baseURL + "/auth/token"
+	url := fmt.Sprintf(V1_AuthToken, baseURL)
 
 	// Prepare the credentials for Basic Auth
 	creds := Credentials{
-		Username: config.GetEnv("JSS_USERNAME", ""),
-		Password: config.GetEnv("JSS_PASSWORD", ""),
+		Username: config.GetEnv("JSS_USERNAME"),
+		Password: config.GetEnv("JSS_PASSWORD"),
 	}
+	if len(creds.Username) == 0 || len(creds.Password) == 0 {
+		return nil, fmt.Errorf("JSS_USERNAME or JSS_PASSWORD is not set")
+	}
+
 	basicCreds := fmt.Sprintf("%s:%s", creds.Username, creds.Password)
 
 	headers := requests.Headers{
 		"Authorization": "Basic " + base64.StdEncoding.EncodeToString([]byte(basicCreds)),
-		"Content-Type":  "application/json",
+		"Content-Type":  requests.JSON,
 	}
 
-	hc := requests.NewClient(nil, headers)
+	hc := requests.NewClient(nil, headers, nil)
 	_, body, err := hc.DoRequest("POST", url, nil, nil)
 	if err != nil {
 		return nil, err
@@ -101,7 +119,11 @@ func GetToken(baseURL string) (*JamfToken, error) {
  */
 func NewClient(verbosity int) *Client {
 
-	url := config.GetEnv("JSS_URL", "https://yourserver.jamfcloud.com")
+	url := config.GetEnv("JSS_URL") // https://yourserver.jamfcloud.com
+	if len(url) == 0 {
+		panic("JSS_URL is not set.")
+	}
+
 	url = strings.TrimPrefix(url, "https://")
 	url = strings.TrimPrefix(url, "http://")
 	url = strings.TrimSuffix(url, "/")
@@ -116,16 +138,135 @@ func NewClient(verbosity int) *Client {
 
 	headers := requests.Headers{
 		"Authorization":             fmt.Sprintf("Bearer %s", token.Token),
-		"Accept":                    "application/json, application/xml;q=0.9",
+		"Accept":                    fmt.Sprintf("%s, %s;q=0.9", requests.JSON, requests.XML),
 		"Cache-Control":             "no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0",
 		"Strict-Transport-Security": "max-age=31536000 ; includeSubDomains",
-		"Content-Type":              "application/json",
+		"Content-Type":              requests.JSON,
+	}
+
+	// Look into `Functional Options` patterns for a better way to handle this (and othe clients while we're at it)
+	encryptionKey := []byte(config.GetEnv("REGO_ENCRYPTION_KEY"))
+	if len(encryptionKey) == 0 {
+		panic("REGO_ENCRYPTION_KEY is not set.")
+	}
+
+	cache, err := cache.NewCache(encryptionKey, "/tmp/rego_cache_jamf.gob")
+	if err != nil {
+		panic(err)
 	}
 
 	return &Client{
 		BaseURL:    BaseURL,
 		ClassicURL: ClassicURL,
-		HTTP:       requests.NewClient(nil, headers),
-		Logger:     log.NewLogger("{jamf}", verbosity),
+		HTTP:       requests.NewClient(nil, headers, nil),
+		Log:        log.NewLogger("{jamf}", verbosity),
+		Cache:      cache,
 	}
+}
+
+// JamfResult is an interface for Jamf API responses involving pagination
+type JamfAPIResponse interface {
+	Total() int
+	Append(interface{})
+}
+
+/*
+ * Perform a generic request to the Jamf API
+ */
+func do[T any](c *Client, method string, url string, query interface{}, data interface{}) (T, error) {
+	var result T
+	res, body, err := c.HTTP.DoRequest(method, url, query, data)
+	if err != nil {
+		return *new(T), err
+	}
+
+	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Body:", string(body))
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return *new(T), fmt.Errorf("unmarshalling error: %w", err)
+	}
+
+	return result, nil
+}
+
+/*
+ * Perform a concurrent generic request to the Jamf API
+ */
+func doConcurrent[T JamfAPIResponse](c *Client, method string, url string, q *DeviceQuery, data interface{}) (*T, error) {
+	// Do initial request to get the total number of items
+	firstPage, err := do[T](c, method, url, q, data)
+	if err != nil {
+		return nil, err
+	}
+
+	// If there's only one page, return the result
+	totalPages := calculateTotalPages(firstPage.Total(), q.PageSize)
+	if totalPages <= 1 {
+		return &firstPage, nil
+	}
+
+	// Create a channel to collect results from each goroutine
+	resultsCh := make(chan *T, totalPages)
+	errCh := make(chan error, totalPages)
+
+	// Use a buffered channel as a semaphore to limit concurrent requests.
+	sem := make(chan struct{}, 10)
+	var wg sync.WaitGroup
+
+	// Start goroutines for each page
+	for i := (q.Page + 1); i < totalPages; i++ {
+		wg.Add(1)
+		go func(p int) {
+			// Release one semaphore resource when the goroutine completes
+			defer wg.Done()
+
+			sem <- struct{}{} // acquire one semaphore resource
+
+			// Create a new query with the current page
+			q := *q
+			c.Log.Println("Query:", q)
+			q.Page = p
+
+			result, err := do[T](c, method, url, q, data)
+			if err != nil {
+				errCh <- err
+				return
+			}
+
+			resultsCh <- &result
+			<-sem // release one semaphore resource
+		}(i)
+	}
+
+	// Wait for all goroutines to complete
+	wg.Wait()
+	close(resultsCh)
+	close(errCh)
+
+	// Check for errors
+	if len(errCh) > 0 {
+		return nil, <-errCh
+	}
+
+	// Combine results from all pages
+	results := firstPage
+	for result := range resultsCh {
+		results.Append(result)
+	}
+
+	return &results, nil
+}
+
+/*
+ * Calculate the total number of pages
+ * based on the total number of items and the page size
+ */
+func calculateTotalPages(totalItems, pageSize int) int {
+	totalPages := totalItems / pageSize
+	if totalItems%pageSize > 0 {
+		totalPages++
+	}
+	return totalPages
 }
