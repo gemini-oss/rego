@@ -83,27 +83,27 @@ func (c *Client) GenerateRoleReport() (*RoleReports, error) {
 				return
 			}
 
-            userRoles := make(map[Role]map[*User]struct{})
-            for _, role := range *roles {
-                if userRoles[*role] == nil {
-                    userRoles[*role] = make(map[*User]struct{})
-                }
-                userRoles[*role][user] = struct{}{}
-            }
+			userRoles := make(map[Role]map[*User]struct{})
+			for _, role := range *roles {
+				if userRoles[*role] == nil {
+					userRoles[*role] = make(map[*User]struct{})
+				}
+				userRoles[*role][user] = struct{}{}
+			}
 
-            rolesMutex.Lock()
+			rolesMutex.Lock()
 			// Add user roles to rolesMap
-            for role, users := range userRoles {
-                if rolesMap[&role] == nil {
-                    rolesMap[&role] = make(map[*User]struct{})
-                }
-                for user := range users {
-                    rolesMap[&role][user] = struct{}{}
-                }
-            }
-            rolesMutex.Unlock()
-            <-sem // release semaphore
-        }(user)
+			for role, users := range userRoles {
+				if rolesMap[&role] == nil {
+					rolesMap[&role] = make(map[*User]struct{})
+				}
+				for user := range users {
+					rolesMap[&role][user] = struct{}{}
+				}
+			}
+			rolesMutex.Unlock()
+			<-sem // release semaphore
+		}(user)
 	}
 
 	wg.Wait()
@@ -113,17 +113,17 @@ func (c *Client) GenerateRoleReport() (*RoleReports, error) {
 		return nil, fmt.Errorf("error generating role report: %v", rolesErrors)
 	}
 
-    // Add roles to roleReports
-    for role, userSet := range rolesMap {
-        var users Users
-        for user := range userSet {
-            users = append(users, user)
-        }
-        *roleReports = append(*roleReports, &RoleReport{
-            Role:  role,
-            Users: &users,
-        })
-    }
+	// Add roles to roleReports
+	for role, userSet := range rolesMap {
+		var users Users
+		for user := range userSet {
+			users = append(users, user)
+		}
+		*roleReports = append(*roleReports, &RoleReport{
+			Role:  role,
+			Users: &users,
+		})
+	}
 
 	c.SetCache(cacheKey, roleReports, 60*time.Minute)
 	return roleReports, nil
