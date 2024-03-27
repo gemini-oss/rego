@@ -1,0 +1,18 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Regolith (ReGo) – Log</title>
+    <link>https://gemini-oss.github.io/rego/docs/pkg/internal/tests/common/log/</link>
+    <description>Recent content in Log on Regolith (ReGo)</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	  <atom:link href="https://gemini-oss.github.io/rego/docs/pkg/internal/tests/common/log/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+  </channel>
+</rss>
