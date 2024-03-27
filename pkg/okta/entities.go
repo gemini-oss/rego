@@ -299,7 +299,7 @@ type Permission struct {
 type RoleReports []*RoleReport
 
 type RoleReport struct {
-	Role  *Role // The role.
+	Role  *Role  // The role.
 	Users *Users // The users assigned to the role.
 }
 
