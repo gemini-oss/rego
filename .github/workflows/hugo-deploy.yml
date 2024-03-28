@@ -1,0 +1,71 @@
+name: Hugo Deploy (Update Site Documentation)
+
+on:
+  push:
+    branches:
+      - anthony-dardano
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0                            # Ensures git history is fully checked out
+          ssh-known-hosts: github.com               # Needed to push to GitHub
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}   # Needed to push to GitHub
+          submodules: true                          # Needed since Hugo theme is a submodule
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+          git config --global user.name "Anthony Dardano"
+          git config --global user.email "anthony.dardano@gemini.com"
+          git config --global user.signingkey ~/.ssh/id_ed25519
+          git config --global gpg.format ssh
+          git config --global commit.gpgsign true
+          git config --global push.autoSetupRemote true
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '>=1.22'
+
+      - name: Install Dependencies
+        run: |
+          go install github.com/gohugoio/hugo@latest
+          go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@latest
+
+      - name: Setup Hugo
+        run: |
+          if which hugo >/dev/null 2>&1; then
+            echo "Hugo already installed"
+          else
+            HUGO_VERSION=$(curl -s https://api.github.com/repos/gohugoio/hugo/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
+            wget https://github.com/gohugoio/hugo/releases/download/${HUGO_VERSION}/hugo_${HUGO_VERSION#v}_Linux-64bit.tar.gz
+            tar -xzf hugo_${HUGO_VERSION#v}_Linux-64bit.tar.gz
+            sudo mv hugo $(go env GOPATH)/bin/
+          fi
+
+      - name: Build and Deploy Site
+        run: |
+          git checkout -b gh-pages
+          make docs
+          $(go env GOPATH)/bin/hugo -s hugo
+          mv hugo/public/ docs/
+          git add -A
+          git commit -S -m "ᕙ(▀̿̿Ĺ̯̿̿▀̿ ̿)ᕗ Hugo Docs // `date +'%Y-%m-%d %I:%M:%S %p'`" --signoff
+          git push --set-upstream origin gh-pages --force
+
+      - name: Cleanup
+        run: |
+          rm -rf ~/.ssh

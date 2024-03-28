@@ -15,6 +15,7 @@ package snipeit
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 )
 
 /*
@@ -45,21 +46,99 @@ func (c *Client) GetAllAssets() (*HardwareList, error) {
 	assets := &HardwareList{}
 
 	q := AssetQuery{
-		Limit: 50,
+		Limit:  500,
+		Offset: 0,
 	}
 
+	c.HTTP.RateLimiter.Start()
+
 	url := fmt.Sprintf(Assets, c.BaseURL)
-	res, body, err := c.HTTPClient.DoRequest("GET", url, q, nil)
+	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Debug("Response from GetAllAssets: ", res.Status)
-	c.Logger.Debug("Body from GetAllAssets: ", string(body))
+	c.Log.Debug(res.Status)
+	c.Log.Trace(string(body))
 
 	err = json.Unmarshal(body, &assets)
 	if err != nil {
 		return nil, err
 	}
+
+	// Use a buffered channel as a semaphore to limit concurrent requests.
+	sem := make(chan struct{}, 10)
+
+	// WaitGroup to ensure all go routines complete their tasks.
+	var wg sync.WaitGroup
+
+	// Buffered channel to hold device pages result from each goroutine
+	assetsCh := make(chan map[string]*HardwareList, assets.Total)
+
+	// Buffered channel to hold any errors that occur while getting device pages
+	rolesErrCh := make(chan error)
+
+	for next_page := true; next_page; next_page = (q.Offset < assets.Total) {
+
+		remainingAssets := assets.Total - q.Offset
+		if remainingAssets < q.Limit {
+			q.Limit = remainingAssets
+		}
+
+		wg.Add(1)
+
+		// Start a new goroutine to get the next device page
+		go func(q AssetQuery) {
+			// Release one semaphore resource when the goroutine completes
+			defer wg.Done()
+
+			sem <- struct{}{} // acquire one semaphore resource
+			page := &HardwareList{}
+
+			res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
+			if err != nil {
+				rolesErrCh <- err
+				return
+			}
+
+			c.Log.Debug("Response Status:", res.Status)
+			c.Log.Trace("Response Body: ", string(body))
+
+			err = json.Unmarshal(body, &page)
+			if err != nil {
+				rolesErrCh <- err
+				return
+			}
+
+			newPage := make(map[string]*HardwareList)
+			newPage[fmt.Sprint(q.Offset)] = page
+			assetsCh <- newPage
+			<-sem // release one semaphore resource
+		}(q) // Pass the query to the goroutine
+
+		q.Offset += q.Limit
+	}
+
+	// Wait for all goroutines to finish and close channels
+	go func() {
+		wg.Wait()
+		close(assetsCh)
+		close(rolesErrCh)
+	}()
+
+	// Collect devices from all pages
+	for deviceRecords := range assetsCh {
+		for _, results := range deviceRecords {
+			assets.Rows = append(assets.Rows, results.Rows...)
+		}
+	}
+
+	// Check if there were any errors
+	if len(rolesErrCh) > 0 {
+		// Handle or return errors. For simplicity, only returning the first error here
+		return nil, <-rolesErrCh
+	}
+
+	c.HTTP.RateLimiter.Stop()
 
 	return assets, nil
 }

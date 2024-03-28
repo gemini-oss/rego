@@ -30,3 +30,13 @@ go.work
 
 # Build output
 /build/
+
+# Backup files
+*.bak
+
+# Log files
+*.log
+
+# ReGo Cache files
+*_cache.json
+*.gob

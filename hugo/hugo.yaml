@@ -1,0 +1,61 @@
+# Hugo configuration file
+title: Regolith (ReGo)
+baseURL: https://gemini-oss.github.io/rego/
+languageCode: en-us
+params:
+  subtitle: The Foundation for Simplified Multi-Service API Interactions
+
+  contact:
+    email: anthony.dardano@gemini.com
+    phone: +1 (234) 567-8910
+
+  navbar:
+    displayTitle: true
+    displayLogo: false
+
+  footer:
+    displayCopyright: true
+    displayPoweredBy: true
+
+  editURL:
+    enable: true
+    base: "https://gemini-oss.github.io/rego/edit/main/content"
+
+theme: hextra
+module:
+  imports:
+  - path: hextra
+
+markup:
+  # RAW HTML
+  goldmark:
+    renderer:
+      unsafe: true
+
+  # Hextra Syntax Highlighting
+  highlight:
+    noClasses: false
+
+menu:
+  main:
+    - name: Docs
+      pageRef: /docs
+      weight: 1
+    - name: About
+      pageRef: /about
+      weight: 2
+    - name: Contact ↗
+      url: mailto:anthony.dardano@gemini.com
+      weight: 3
+    - name: Search
+      weight: 4
+      params:
+        type: search
+    - name: Gemini
+      weight: 5
+      url: https://gemini.com
+    - name: GitHub
+      weight: 6
+      url: https://github.com/gemini-oss/rego
+      params:
+        icon: github
