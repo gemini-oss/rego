@@ -2,12 +2,12 @@
 package ratelimit
 
 import (
-	"math/rand"
 	"net/http"
 	"strconv"
 	"sync"
 	"time"
 
+	"github.com/gemini-oss/rego/pkg/common/crypt"
 	"github.com/gemini-oss/rego/pkg/common/log"
 )
 
@@ -140,8 +140,11 @@ func (rl *RateLimiter) calculateWaitDuration(timeUntilReset time.Duration) time.
 		scaledWait = maxWait
 	}
 
-	randomIncrement := time.Duration(rand.Intn(50)) * time.Millisecond
-	return scaledWait + randomIncrement
+	randomIncrement, err := crypt.SecureRandomInt(50)
+	if err != nil {
+		randomIncrement = 0
+	}
+	return scaledWait + time.Duration(randomIncrement)*time.Millisecond
 }
 
 // performWait sleeps for the specified duration.

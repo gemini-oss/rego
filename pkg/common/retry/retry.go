@@ -2,11 +2,10 @@
 package retry
 
 import (
-	"math/rand"
 	"time"
-)
 
-var random = rand.New(rand.NewSource(time.Now().UnixNano()))
+	"github.com/gemini-oss/rego/pkg/common/crypt"
+)
 
 const (
 	MaxRetries = 5
@@ -24,17 +23,24 @@ func (RealTime) Sleep(duration time.Duration) {
 	time.Sleep(duration)
 }
 
-func SetRandomSeed(seed int64) {
-	random = rand.New(rand.NewSource(seed))
-}
-
-// BackoffWithJitter returns a duration for exponential backoff with jitter
+// BackoffWithJitter returns a duration for exponential backoff with jitter using a secure random source
 func BackoffWithJitter(retryCount int) time.Duration {
 	backoff := MinBackoff * (1 << retryCount)
 	if backoff > MaxBackoff {
 		backoff = MaxBackoff
 	}
-	jitter := random.Intn(backoff)
+
+	jitter, err := crypt.SecureRandomInt(backoff)
+	if err != nil {
+		// Handle the error or default to a non-jittered backoff
+		return time.Duration(backoff) * time.Millisecond
+	}
+
+	// Ensuring jitter is within the MinBackoff and backoff range
+	if jitter < MinBackoff {
+		jitter = MinBackoff
+	}
+
 	return time.Duration(jitter) * time.Millisecond
 }
 

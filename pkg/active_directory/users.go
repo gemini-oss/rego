@@ -110,3 +110,21 @@ func (c *Client) PasswordNeverExpiresUsers() (*Users, error) {
 	c.SetCache(cacheKey, users, 30*time.Minute)
 	return &users, nil
 }
+
+func (c *Client) MemberOf(group string) (*Users, error) {
+	cacheKey := "rego_memberof_" + group
+
+	var cache Users
+	if c.GetCache(cacheKey, cache) {
+		return &cache, nil
+	}
+
+	attributes := DefaultUserAttributes
+	users, err := do[Users](c, fmt.Sprintf(FILTER_USER_NESTED_GROUP, group, "OU=Groups", c.BaseDN), attributes)
+	if err != nil {
+		return nil, err
+	}
+
+	c.SetCache(cacheKey, users, 30*time.Minute)
+	return &users, nil
+}

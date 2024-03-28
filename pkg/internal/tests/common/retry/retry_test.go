@@ -22,7 +22,6 @@ func (m *MockTime) GetSleepDurations() []time.Duration {
 }
 
 func TestSuccessfulBeforeMaxRetries(t *testing.T) {
-	retry.SetRandomSeed(0)
 	mockTime := MockTime{}
 
 	attemptsBeforeSuccess := 3
@@ -46,7 +45,6 @@ func TestSuccessfulBeforeMaxRetries(t *testing.T) {
 }
 
 func TestRetryTimingAndJitter(t *testing.T) {
-	retry.SetRandomSeed(0) // Set a fixed seed for consistent jitter
 	mockTime := MockTime{}
 
 	operation := func() error {
@@ -60,14 +58,22 @@ func TestRetryTimingAndJitter(t *testing.T) {
 		t.Fatalf("Expected %d retry attempts, got %d", retry.MaxRetries, len(sleepDurations))
 	}
 
-	// Verbose logging for each retry interval
+	minBackoff := time.Duration(retry.MinBackoff) * time.Millisecond
+	maxBackoff := time.Duration(retry.MaxBackoff) * time.Millisecond
+
 	for i, duration := range sleepDurations {
-		t.Logf("Retry %d: Slept for %v", i+1, duration)
+		expectedBackoff := minBackoff * time.Duration(1<<i)
+		if expectedBackoff > maxBackoff {
+			expectedBackoff = maxBackoff
+		}
+
+		if duration < 0 || duration > expectedBackoff {
+			t.Errorf("Sleep duration %v on retry %d is outside expected range [0, %v]", duration, i+1, expectedBackoff)
+		}
 	}
 }
 
 func TestExceedingMaxRetries(t *testing.T) {
-	retry.SetRandomSeed(0)
 	mockTime := MockTime{}
 
 	operation := func() error {

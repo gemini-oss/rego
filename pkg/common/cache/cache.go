@@ -218,7 +218,7 @@ func (c *Cache) persistToDisk() error {
 		return err
 	}
 
-	return os.WriteFile(c.persistencePath, fileData, 0644)
+	return os.WriteFile(c.persistencePath, fileData, 0600)
 }
 
 func (c *Cache) loadFromDisk() error {

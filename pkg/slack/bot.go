@@ -18,6 +18,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
 	"net/url"
@@ -66,8 +67,14 @@ func (c *Client) EventHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Invalid request", http.StatusBadRequest)
 			return
 		}
+
+		tmpl := template.Must(template.New("challenge").Parse(`{{.}}`))
 		w.Header().Set("Content-Type", "text/plain")
-		w.Write([]byte(challenge.Challenge))
+		err = tmpl.Execute(w, challenge.Challenge)
+		if err != nil {
+			c.Log.Printf("Error executing template: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
 
 	case "event_callback":
 		// Handle event
@@ -119,11 +126,6 @@ func (c *Client) CommandHandler(w http.ResponseWriter, r *http.Request) {
 		ResponseURL: v.Get("response_url"),
 	}
 	c.Log.Println(sc)
-	if err != nil {
-		c.Log.Printf("Error unmarshalling request body: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
 
 	m := &SlackMessage{Channel: sc.ChannelID, Token: c.Token}
 	userlist, _ := c.ListUsers()

@@ -7,6 +7,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
@@ -162,4 +163,17 @@ func entropy(charFrequency map[byte]int, length int) float64 {
 		entropy -= probability * math.Log2(probability)
 	}
 	return entropy
+}
+
+func SecureRandomInt(max int) (int, error) {
+	if max <= 0 {
+		return 0, fmt.Errorf("invalid max value")
+	}
+	var b [8]byte
+	_, err := rand.Read(b[:])
+	if err != nil {
+		return 0, err
+	}
+	value := binary.LittleEndian.Uint64(b[:])
+	return int(value % uint64(max)), nil
 }

@@ -12,8 +12,6 @@ This package contains some functions involving practical examples of multi-servi
 package orchestrators
 
 import (
-	"strings"
-
 	"github.com/gemini-oss/rego/pkg/active_directory"
 	"github.com/gemini-oss/rego/pkg/common/log"
 	"github.com/gemini-oss/rego/pkg/google"
@@ -82,12 +80,12 @@ func (c *Client) OktaRoleReportToGoogleSheet() error {
 
 /*
  * Orchestrate the following:
- * Generate a report of all Domain Admins in Active Directory
+ * Generate a report of all members of a group in Active Directory
  * Save the report to a Google Sheet
  * Format the sheet
  */
-func (c *Client) ADReportToGoogleSheet() error {
-	users, err := c.ActiveDirectory.ListAllAdmins()
+func (c *Client) ADReportToGoogleSheet(group string) error {
+	users, err := c.ActiveDirectory.MemberOf(group)
 	if err != nil {
 		return err
 	}
@@ -101,11 +99,11 @@ func (c *Client) ADReportToGoogleSheet() error {
 		Range:          "A:Z",
 		MajorDimension: "ROWS",
 	}
-	headers := []string{"SAM Account Name", "Common Name (CN)", "User Principal Name (UPN)", "Display Name", "MemberOf"}
+	headers := []string{"SAM Account Name", "First", "Last", "User Principal Name (UPN)", "Display Name", "Group"}
 	vr.Values = append(vr.Values, headers)
 
 	for _, user := range *users {
-		vr.Values = append(vr.Values, []string{user.SAMAccountName, user.CommonName, user.UserPrincipalName, user.DisplayName, strings.Join(user.MemberOf, "\n\n")})
+		vr.Values = append(vr.Values, []string{user.SAMAccountName, user.GivenName, user.SN, user.UserPrincipalName, user.DisplayName, group})
 	}
 
 	rows := len(vr.Values)
