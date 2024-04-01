@@ -166,9 +166,10 @@ func (c *Client) ListAllRoleAssignments(customer *Customer) (*RoleAssignment, er
  */
 func (c *Client) GetAssignmentsForRole(roleId string, customer *Customer) (*RoleAssignment, error) {
 	url := c.BuildURL(DirectoryRoleAssignments, customer)
+	cacheKey := fmt.Sprintf("%s_%s", url, roleId)
 
 	var cache RoleAssignment
-	if c.GetCache(url, &cache) {
+	if c.GetCache(cacheKey, &cache) {
 		return &cache, nil
 	}
 
@@ -182,7 +183,7 @@ func (c *Client) GetAssignmentsForRole(roleId string, customer *Customer) (*Role
 		return nil, err
 	}
 
-	c.SetCache(url, roleAssignment, 5*time.Minute)
+	c.SetCache(cacheKey, roleAssignment, 5*time.Minute)
 	return roleAssignment, nil
 }
 
