@@ -411,19 +411,22 @@ func do[T any](c *Client, method string, url string, query interface{}, data int
 }
 
 func doPaginated[T GoogleAPIResponse](c *Client, method string, url string, query interface{}, data interface{}) (*T, error) {
-	var results T
+	var r T
+	results := r
+
 	pageToken := ""
 
 	for {
-		results, err := do[T](c, method, url, query, data)
+		r, err := do[T](c, method, url, query, data)
 		if err != nil {
 			return nil, err
 		}
 
-		results.Append(&results)
+		r.Append(r)
 
-		pageToken = results.PageToken()
+		pageToken = r.PageToken()
 		if pageToken == "" {
+			results = r
 			break
 		}
 	}

@@ -15,6 +15,7 @@ package google
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -395,4 +396,56 @@ func (c *Client) GetFileOwnership(fileID string) (string, error) {
 	}
 
 	return "", fmt.Errorf("no owner found for file %s", fileID)
+}
+
+/*
+ * Get Root Organization Unit of current customer
+ * /admin/directory/v1/customer/{customerId}/orgunits/{orgUnitPath=**}
+ * https://developers.google.com/admin-sdk/directory/reference/rest/v1/orgunits/get
+ */
+func (c *Client) RootOU(customer *Customer) (*OrgUnit, error) {
+	url := c.BuildURL(DirectoryOrgUnits, customer)
+	cacheKey := fmt.Sprintf("%s_%s", url, "root")
+
+	var cache OrgUnit
+	if c.GetCache(cacheKey, &cache) {
+		return &cache, nil
+	}
+
+	c.Log.Println("Getting ROOT org unit...")
+	ou, err := do[*OrgUnit](c, "GET", url, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	ou, err = c.GetOU(customer, ou.OrganizationUnits[0].ParentID)
+	if err != nil {
+		return nil, err
+	}
+
+	c.SetCache(cacheKey, ou, 30*time.Minute)
+	return ou, nil
+}
+
+/*
+ * Get Organization Unit ID by Path
+ * /admin/directory/v1/customer/{customerId}/orgunits/{orgUnitPath=**}
+ * https://developers.google.com/admin-sdk/directory/reference/rest/v1/orgunits/get
+ */
+func (c *Client) GetOU(customer *Customer, orgUnitPath string) (*OrgUnit, error) {
+	url := c.BuildURL(DirectoryOrgUnits, customer, strings.TrimPrefix(orgUnitPath, "/"))
+
+	var cache OrgUnit
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	c.Log.Println("Getting org unit...")
+	ou, err := do[*OrgUnit](c, "GET", url, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	c.SetCache(url, ou, 5*time.Minute)
+	return ou, nil
 }

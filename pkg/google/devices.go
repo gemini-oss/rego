@@ -14,6 +14,7 @@ package google
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -89,7 +90,7 @@ type PolicyQuery struct {
  * https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies/resolve#PolicyRequest
  */
 type PolicyRequest struct {
-	PolicySchemaFilter string          `json:"policySchemaFilter,omitempty"` // https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies/resolve#PolicyRequest
+	PolicySchemaFilter string          `json:"policySchemaFilter,omitempty"` // https://developers.google.com/chrome/policy/guides/policy-schemas#policy_schema_names
 	PolicyTargetKey    PolicyTargetKey `json:"policyTargetKey,omitempty"`    // https://developers.google.com/chrome/policy/reference/rest/v1/PolicyTargetKey
 	PageSize           int             `json:"pageSize,omitempty"`           // The maximum number of resolved policies to return, defaults to 100 and has a maximum of 1000.
 	PageToken          string          `json:"pageToken,omitempty"`          // Token for requesting the next page of query results.
@@ -182,28 +183,51 @@ func (c *Client) ListAllDevicePolicySchemas(customer *Customer) (*PolicySchemas,
  * chromepolicy.googleapis.com/v1/{customerId}/policies:resolve
  * https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies/resolve
  */
-func (c *Client) ResolvePolicySchemas(OU string, customer *Customer) (*ResolvedPolicies, error) {
+func (c *Client) ResolvePolicySchemas(customer *Customer, ou *OrgUnit) (*ResolvedPolicies, error) {
 	c.Log.Println("Getting all ChromeOS Device Policies...")
+
+	url := c.BuildURL(DevicePolicies, customer, ":resolve")
+	cacheKey := fmt.Sprintf("%s_%s", url, ou.ID)
+
+	var cache ResolvedPolicies
+	if c.GetCache(cacheKey, &cache) {
+		return &cache, nil
+	}
+	policies := &ResolvedPolicies{
+		Direct:           new([]*ResolvedPolicy),
+		Inherited:        new([]*ResolvedPolicy),
+		ResolvedPolicies: new([]*ResolvedPolicy),
+	}
+
 	req := &PolicyRequest{
-		PolicySchemaFilter: "chrome.users.*",
 		PolicyTargetKey: PolicyTargetKey{
-			TargetResource: fmt.Sprintf("orgunits/%s", OU),
+			TargetResource: fmt.Sprintf("orgunits/%s", strings.TrimPrefix(ou.ID, "id:")),
 		},
 		PageSize: 1000,
 	}
 
-	url := c.BuildURL(DevicePolicies, customer, ":resolve")
-
-	var cache ResolvedPolicies
-	if c.GetCache(url, &cache) {
-		return &cache, nil
-	}
-
-	policies, err := doPaginated[ResolvedPolicies](c, "POST", url, nil, req)
+	req.PolicySchemaFilter = "chrome.users.*"
+	userPolicies, err := doPaginated[ResolvedPolicies](c, "POST", url, nil, req)
 	if err != nil {
 		return nil, err
 	}
+	*policies.ResolvedPolicies = append(*policies.ResolvedPolicies, *userPolicies.ResolvedPolicies...)
 
-	c.SetCache(url, policies, 5*time.Minute)
+	req.PolicySchemaFilter = "chrome.devices.*"
+	devicePolicies, err := doPaginated[ResolvedPolicies](c, "POST", url, nil, req)
+	if err != nil {
+		return nil, err
+	}
+	*policies.ResolvedPolicies = append(*policies.ResolvedPolicies, *devicePolicies.ResolvedPolicies...)
+
+	for _, policy := range *policies.ResolvedPolicies {
+		if strings.Contains(policy.SourceKey.TargetResource, strings.TrimPrefix(ou.ID, "id:")) {
+			*policies.Direct = append(*policies.Direct, policy)
+		} else {
+			*policies.Inherited = append(*policies.Inherited, policy)
+		}
+	}
+
+	c.SetCache(cacheKey, policies, 5*time.Minute)
 	return policies, nil
 }

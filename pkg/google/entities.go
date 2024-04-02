@@ -119,6 +119,20 @@ type ServiceAccount struct {
 // ### Google Admin SDK Structs
 //---------------------------------------------------------------------
 
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/orgunits
+type OrgUnit struct {
+	Kind              string     `json:"kind,omitempty"`              // The type of the API resource.
+	Name              string     `json:"name,omitempty"`              // The organizational unit's path name.
+	Description       string     `json:"description,omitempty"`       // Description of the organizational unit.
+	Etag              string     `json:"etag,omitempty"`              // ETag of the resource.
+	BlockInheritance  bool       `json:"blockInheritance,omitempty"`  // Determines if sub-organizational units can inherit the settings of the parent organization. This field is deprecated.
+	ID                string     `json:"orgUnitId,omitempty"`         // The unique ID of the organizational unit.
+	Path              string     `json:"orgUnitPath,omitempty"`       // The full path to the organizational unit.
+	ParentID          string     `json:"parentOrgUnitId,omitempty"`   // The unique ID of the parent organizational unit.
+	ParentPath        string     `json:"parentOrgUnitPath,omitempty"` // The organizational unit's parent path.
+	OrganizationUnits []*OrgUnit `json:"organizationUnits,omitempty"` // List of sub-organizational units.
+}
+
 // https://developers.google.com/admin-sdk/reports/reference/rest/v1/activities/list#Activity
 type Report struct {
 	Kind          string     `json:"kind,omitempty"`          // The type of API resource
@@ -1497,8 +1511,10 @@ type ScreenshotFile struct {
 // ----------------------------------------------------------------------------
 // ResolvedPolicies represents a list of resolved policies found by the resolve request.
 type ResolvedPolicies struct {
-	ResolvedPolicies *[]*ResolvedPolicy `json:"resolvedPolicies,omitempty"` // The list of resolved policies found by the resolve request.
-	NextPageToken    string             `json:"nextPageToken,omitempty"`    // The page token used to get the next set of resolved policies found by the request.
+	Direct           *[]*ResolvedPolicy `json:"directPolicies,omitempty"`    // (Calculated) Policies directly set on the orgunit.
+	Inherited        *[]*ResolvedPolicy `json:"inheritedPolicies,omitempty"` // (Calculated) Policies inherited from the orgunit hierarchy.
+	ResolvedPolicies *[]*ResolvedPolicy `json:"resolvedPolicies,omitempty"`  // The list of resolved policies found by the resolve request.
+	NextPageToken    string             `json:"nextPageToken,omitempty"`     // The page token used to get the next set of resolved policies found by the request.
 }
 
 func (r ResolvedPolicies) Append(result interface{}) {
