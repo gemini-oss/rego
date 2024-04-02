@@ -174,7 +174,7 @@ func (c *Client) ListAllDevicePolicySchemas(customer *Customer) (*PolicySchemas,
 		return nil, err
 	}
 
-	c.SetCache(url, policySchemas, 5*time.Minute)
+	c.SetCache(url, policySchemas, 60*time.Minute)
 	return policySchemas, nil
 }
 

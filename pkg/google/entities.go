@@ -1529,6 +1529,18 @@ func (r ResolvedPolicies) PageToken() string {
 	return r.NextPageToken
 }
 
+// https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies.orgunits/batchModify#request-body
+type PolicyModificationRequests struct {
+	Requests []*PolicyModificationRequest `json:"requests,omitempty"` // The list of requests.
+}
+
+// https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies.orgunits/batchModify#modifyorgunitpolicyrequest
+type PolicyModificationRequest struct {
+	PolicyTargetKey PolicyTargetKey `json:"policyTargetKey,omitempty"` // https://developers.google.com/chrome/policy/reference/rest/v1/PolicyTargetKey
+	PolicyValue     PolicyValue     `json:"policyValue,omitempty"`     // https://developers.google.com/chrome/policy/reference/rest/v1/PolicyValue
+	UpdateMask      string          `json:"updateMask,omitempty"`      // The field mask to restrict which fields are updated. Must be set if the policy value is being updated.
+}
+
 // https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies/resolve#ResolvedPolicy
 type ResolvedPolicy struct {
 	TargetKey      PolicyTargetKey `json:"targetKey,omitempty"`      // The target resource for which the resolved policy value applies.
@@ -1539,8 +1551,8 @@ type ResolvedPolicy struct {
 
 // https://developers.google.com/chrome/policy/reference/rest/v1/PolicyValue
 type PolicyValue struct {
-	PolicySchema string      `json:"policySchema,omitempty"` // The fully qualified name of the policy schema associated with this policy.
-	Value        interface{} `json:"value,omitempty"`        // The value of the policy that is compatible with the schema that it is associated with.
+	PolicySchema string                 `json:"policySchema,omitempty"` // The fully qualified name of the policy schema associated with this policy.
+	Value        map[string]interface{} `json:"value,omitempty"`        // The value of the policy that is compatible with the schema that it is associated with.
 }
 
 // https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas
@@ -1573,7 +1585,7 @@ type PolicySchema struct {
 	SupportUri               string                          `json:"supportUri,omitempty"`               // Output only. URI to related support article for this schema.
 	SchemaName               string                          `json:"schemaName,omitempty"`               // Output only. Fully qualified name of the policy schema.
 	ValidTargetResources     []TargetResource                `json:"validTargetResources,omitempty"`     // Output only. Information about applicable target resources for the policy.
-	PolicyApiLifecycle       PolicyApiLifecycle              `json:"policyApiLifecycle,omitempty"`       // Output only. Current lifecycle information.
+	PolicyApiLifecycle       PolicyAPILifecycle              `json:"policyApiLifecycle,omitempty"`       // Output only. Current lifecycle information.
 	CategoryTitle            string                          `json:"categoryTitle,omitempty"`            // Title of the category in which a setting belongs.
 }
 
@@ -1615,23 +1627,108 @@ type FieldDescriptorProto struct {
 	Proto3Optional bool   `json:"proto3Optional,omitempty"` // Indicates if this is a proto3 "optional".
 }
 
-// PolicySchemaFieldDescription represents a detailed description of a schema field.
+// https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas#policyschemafielddescription
 type PolicySchemaFieldDescription struct {
-	// Revisit this field: interface{} // https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas#PolicySchemaFieldDescription
+	DefaultValue            interface{}                               `json:"defaultValue,omitempty"`            // Output only. Client default if the policy is unset. We'll revisit this with the source.
+	Description             string                                    `json:"description,omitempty"`             // Deprecated. Use name and fieldDescription instead.
+	Field                   string                                    `json:"field,omitempty"`                   // Output only. The name of the field for associated with this description.
+	FieldConstraints        *FieldConstraints                         `json:"fieldConstraints,omitempty"`        // Output only. Information on input constraints for the field.
+	FieldDependencies       []*PolicySchemaFieldDependencies          `json:"fieldDependencies,omitempty"`       // Output only. List of field dependencies.
+	FieldDescription        string                                    `json:"fieldDescription,omitempty"`        // Output only. The description of the field.
+	InputConstraint         string                                    `json:"inputConstraint,omitempty"`         // Output only. Any input constraints on the field values.
+	KnownValueDescriptions  []*PolicySchemaFieldKnownValueDescription `json:"knownValueDescriptions,omitempty"`  // Output only. Descriptions for known values of the field.
+	Name                    string                                    `json:"name,omitempty"`                    // Output only. The name of the field.
+	NestedFieldDescriptions []*PolicySchemaFieldDescription           `json:"nestedFieldDescriptions,omitempty"` // Output only. Descriptions of nested fields.
+	RequiredItems           []*PolicySchemaRequiredItems              `json:"requiredItems,omitempty"`           // Output only. List of required fields based on field value.
 }
 
-// PolicySchemaNoticeDescription represents special notice messages related to schema fields.
+// https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas#policyschemafieldknownvaluedescription
+type PolicySchemaFieldKnownValueDescription struct {
+	Description string `json:"description,omitempty"` // Output only. Additional description for this value.
+	Value       string `json:"value,omitempty"`       // Output only. The string representation of the value for the field.
+}
+
+// https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas#policyschemafielddependencies
+type PolicySchemaFieldDependencies struct {
+	SourceField      string `json:"sourceField,omitempty"`      // The source field on which this field depends.
+	SourceFieldValue string `json:"sourceFieldValue,omitempty"` // The value the source field must have for this field to be set.
+}
+
+// https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas#fieldconstraints
+type FieldConstraints struct {
+	NumericRangeConstraint  *NumericRangeConstraint  `json:"numericRangeConstraint,omitempty"`  // Constraints on numeric range.
+	UploadedFileConstraints *UploadedFileConstraints `json:"uploadedFileConstraints,omitempty"` // Constraints on uploaded files.
+}
+
+// https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas#numericrangeconstraint
+type NumericRangeConstraint struct {
+	Maximum string `json:"maximum,omitempty"` // Maximum value (int64 format).
+	Minimum string `json:"minimum,omitempty"` // Minimum value (int64 format).
+}
+
+// https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas#uploadedfileconstraints
+type UploadedFileConstraints struct {
+	SizeLimitBytes        string        `json:"sizeLimitBytes,omitempty"`        // Size limit of uploaded files (int64 format).
+	SupportedContentTypes []ContentType `json:"supportedContentTypes,omitempty"` // Supported file types for upload.
+}
+
+// ContentType represents types of files that can be uploaded.
+type ContentType string
+
+const (
+	CONTENT_TYPE_UNSPECIFIED ContentType = "CONTENT_TYPE_UNSPECIFIED" // Unspecified content type.
+	CONTENT_TYPE_PLAIN_TEXT  ContentType = "CONTENT_TYPE_PLAIN_TEXT"  // Plain text.
+	CONTENT_TYPE_HTML        ContentType = "CONTENT_TYPE_HTML"        // HTML.
+	CONTENT_TYPE_IMAGE_JPEG  ContentType = "CONTENT_TYPE_IMAGE_JPEG"  // JPEG.
+	CONTENT_TYPE_IMAGE_GIF   ContentType = "CONTENT_TYPE_IMAGE_GIF"   // GIF.
+	CONTENT_TYPE_IMAGE_PNG   ContentType = "CONTENT_TYPE_IMAGE_PNG"   // PNG.
+	CONTENT_TYPE_JSON        ContentType = "CONTENT_TYPE_JSON"        // JSON.
+	CONTENT_TYPE_ZIP         ContentType = "CONTENT_TYPE_ZIP"         // ZIP.
+	CONTENT_TYPE_GZIP        ContentType = "CONTENT_TYPE_GZIP"        // GZIP.
+	CONTENT_TYPE_CSV         ContentType = "CONTENT_TYPE_CSV"         // CSV.
+	CONTENT_TYPE_YAML        ContentType = "CONTENT_TYPE_YAML"        // YAML.
+	CONTENT_TYPE_IMAGE_WEBP  ContentType = "CONTENT_TYPE_IMAGE_WEBP"  // WEBP.
+)
+
+// https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas#policyschemarequireditems
+type PolicySchemaRequiredItems struct {
+	FieldConditions []string `json:"fieldConditions,omitempty"` // The field values that trigger required field enforcement.
+	RequiredFields  []string `json:"requiredFields,omitempty"`  // Fields required due to field conditions.
+}
+
+// https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas#policyschemanoticedescription
 type PolicySchemaNoticeDescription struct {
-	// Revisit this field: interface{} // https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas#policyschemanoticedescription
+	AcknowledgementRequired bool   `json:"acknowledgementRequired,omitempty"` // Output only. Indicates if user acknowledgment is required.
+	Field                   string `json:"field,omitempty"`                   // Output only. The field name associated with the notice.
+	NoticeMessage           string `json:"noticeMessage,omitempty"`           // Output only. The notice message associated with the value of the field.
+	NoticeValue             string `json:"noticeValue,omitempty"`             // Output only. The value of the field that has a notice.
 }
 
-// TargetResource represents applicable target resources for the policy.
-type TargetResource string // This is an enum, define enum values as constants.
+// TargetResource represents target resource types for policies.
+type TargetResource string
 
-// PolicyApiLifecycle represents current lifecycle information of the policy API.
-type PolicyApiLifecycle struct {
-	// Revisit this field: interface{} https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas#policyapilifecycle
+// Enumeration of TargetResource.
+const (
+	TARGET_RESOURCE_UNSPECIFIED TargetResource = "TARGET_RESOURCE_UNSPECIFIED" // Unspecified target resource.
+	ORG_UNIT                    TargetResource = "ORG_UNIT"                    // Organizational unit target resource.
+	GROUP                       TargetResource = "GROUP"                       // Group target resource.
+)
+
+// https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas#policyapilifecycle
+type PolicyAPILifecycle struct {
+	Stage PolicyAPILifecycleStage `json:"policyAPILifecycleStage,omitempty"` // The lifecycle stage of the policy API.
 }
+
+// PolicyAPILifecycleStage represents the lifecycle stage of the policy API.
+type PolicyAPILifecycleStage string
+
+const (
+	API_UNSPECIFIED PolicyAPILifecycleStage = "API_UNSPECIFIED" // Unspecified API lifecycle stage
+	API_PREVIEW     PolicyAPILifecycleStage = "API_PREVIEW"     // Policy is not working yet, but giving developers heads up on format. This stage can transfer to API_DEVELOPEMNT or API_CURRENT.
+	API_DEVELOPMENT PolicyAPILifecycleStage = "API_DEVELOPMENT" // Policy can change format in backward incompatible way (breaking change). This stage can transfer to API_CURRENT or API_DEPRECATED. This could be used for policies launched only to TTs or launched to selected customers for emergency usage.
+	API_CURRENT     PolicyAPILifecycleStage = "API_CURRENT"     // Policy in official format. Policy can change format in backward compatible way (non-breaking change). Example: this policy can introduce a new field, which is considered non-breaking change, when field masks are properly utilized. This stage can transfer to API_DEPRECATED.
+	API_DEPRECATED  PolicyAPILifecycleStage = "API_DEPRECATED"  // Please stop using this policy. This policy is deprecated and may/will be removed in the future. Most likely a new policy was introduced to replace this one.
+)
 
 // END OF CHROME POLICY STRUCTS
 //----------------------------------------------------------------------
@@ -1642,43 +1739,43 @@ type PolicyApiLifecycle struct {
 type UserEvent string
 
 const (
-	Add       UserEvent = "ADD"        // User Created Event
-	Delete    UserEvent = "DELETE"     // User Deleted Event
-	MakeAdmin UserEvent = "MAKE_ADMIN" // User Admin Status Change Event
-	Undelete  UserEvent = "UNDELETE"   // User Undeleted Event
-	Update    UserEvent = "UPDATE"     // User Updated Event
+	ADD        UserEvent = "ADD"        // User Created Event
+	DELETE     UserEvent = "DELETE"     // User Deleted Event
+	MAKE_ADMIN UserEvent = "MAKE_ADMIN" // User Admin Status Change Event
+	UNDELETE   UserEvent = "UNDELETE"   // User Undeleted Event
+	UPDATE     UserEvent = "UPDATE"     // User Updated Event
 )
 
 // https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#orderby
 type OrderBy string
 
 const (
-	PrimaryEmail OrderBy = "EMAIL"       // Primary email of the user
-	FamilyName   OrderBy = "FAMILY_NAME" // User's family name
-	GivenName    OrderBy = "GIVEN_NAME"  // User's given name
+	PRIMARY_EMAIL OrderBy = "EMAIL"       // Primary email of the user
+	FAMILY_NAME   OrderBy = "FAMILY_NAME" // User's family name
+	GIVEN_NAME    OrderBy = "GIVEN_NAME"  // User's given name
 )
 
 // https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#projection
 type UserProjection string
 
 const (
-	Basic  UserProjection = "BASIC"  // Do not include any custom fields for the user
-	Custom UserProjection = "CUSTOM" // Include custom fields from scemas requested i nthe customFieldMask
-	Full   UserProjection = "FULL"   // Include all fields associated with this user.
+	BASIC  UserProjection = "BASIC"  // Do not include any custom fields for the user
+	CUSTOM UserProjection = "CUSTOM" // Include custom fields from scemas requested i nthe customFieldMask
+	FULL   UserProjection = "FULL"   // Include all fields associated with this user.
 )
 
 // https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#sortorder
 type SortOrder string
 
 const (
-	Ascending  SortOrder = "ASCENDING"  // Ascending order
-	Descending SortOrder = "DESCENDING" // Descending order
+	ASCENDING  SortOrder = "ASCENDING"  // Ascending order
+	DESCENDING SortOrder = "DESCENDING" // Descending order
 )
 
 // https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#viewtype
 type UserViewType string
 
 const (
-	AdminView    UserViewType = "admin_view"    // Results include both administrator-only and domain-public fields for the user.
-	DomainPublic UserViewType = "domain_public" // Results only include fields for the user that are publicly visible to other users
+	ADMIN_VIEW    UserViewType = "admin_view"    // Results include both administrator-only and domain-public fields for the user.
+	DOMAIN_PUBLIC UserViewType = "domain_public" // Results only include fields for the user that are publicly visible to other users
 )

@@ -449,3 +449,66 @@ func (c *Client) GetOU(customer *Customer, orgUnitPath string) (*OrgUnit, error)
 	c.SetCache(url, ou, 5*time.Minute)
 	return ou, nil
 }
+
+/*
+ * Clone Chrome Policies for Organization Units by Path
+ * chromepolicy.googleapis.com/v1/{customer=customers/*}/policies/orgunits:batchModify
+ * https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies.orgunits/batchModify
+ */
+func (c *Client) CloneOU(customer *Customer, sourcePath, targetPath string) error {
+	url := c.BuildURL(DevicePolicies, customer, "orgunits:batchModify")
+
+	schemas, err := c.ListAllDevicePolicySchemas(customer)
+	if err != nil {
+		return err
+	}
+
+	sourceOU, err := c.GetOU(customer, sourcePath)
+	if err != nil {
+		return err
+	}
+
+	sourcePolicies, err := c.ResolvePolicySchemas(customer, sourceOU)
+	if err != nil {
+		return err
+	}
+
+	targetOU, err := c.GetOU(customer, targetPath)
+	if err != nil {
+		return err
+	}
+
+	payload := PolicyModificationRequests{}
+	var updateMask string
+	var fields []string
+	for _, policy := range *sourcePolicies.Direct {
+		for _, schema := range *schemas.PolicySchemas {
+			if policy.Value.PolicySchema == schema.SchemaName {
+				for _, field := range schema.FieldDescriptions {
+					_, exists := policy.Value.Value[field.Field]
+					if exists {
+						fields = append(fields, field.Field)
+					}
+				}
+				updateMask = strings.Join(fields, ",")
+				fields = nil
+			}
+		}
+
+		payload.Requests = append(payload.Requests, &PolicyModificationRequest{
+			PolicyTargetKey: PolicyTargetKey{
+				TargetResource: fmt.Sprintf("orgunits/%s", strings.TrimPrefix(targetOU.ID, "id:")),
+			},
+			PolicyValue: policy.Value,
+			UpdateMask:  updateMask,
+		})
+	}
+
+	c.Log.Println("Cloning policy:", &payload.Requests)
+	_, err = do[any](c, "POST", url, nil, payload)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

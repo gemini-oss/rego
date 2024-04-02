@@ -95,7 +95,7 @@ func (c *Client) ListAllUsers() (*Users, error) {
 		return nil, err
 	}
 	q.MaxResults = 500
-	q.Projection = Basic
+	q.Projection = BASIC
 
 	url := DirectoryUsers
 	c.Log.Debug("url:", url)
