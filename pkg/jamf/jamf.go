@@ -41,6 +41,18 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
 	for _, id := range identifiers {
 		url = fmt.Sprintf("%s/%s", url, id)
 	}
+	c.HTTP.UpdateBodyType(requests.JSON)
+	c.Log.Debug("url:", url)
+	return url
+}
+
+// BuildClassicURL builds a URL for a given resource and identifiers.
+func (c *Client) BuildClassicURL(endpoint string, identifiers ...string) string {
+	url := fmt.Sprintf(endpoint, c.ClassicURL)
+	for _, id := range identifiers {
+		url = fmt.Sprintf("%s/%s", url, id)
+	}
+	c.HTTP.UpdateBodyType(requests.XML)
 	c.Log.Debug("url:", url)
 	return url
 }
@@ -63,7 +75,7 @@ func (c *Client) SetCache(key string, value interface{}, duration time.Duration)
  */
 func (c *Client) GetCache(key string, target interface{}) bool {
 	data, found := c.Cache.Get(key)
-	if !found {
+	if !found || !c.Cache.Enabled {
 		return false
 	}
 

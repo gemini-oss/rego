@@ -3,6 +3,7 @@ package requests
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"net/http"
@@ -48,6 +49,7 @@ const (
  */
 type Client struct {
 	httpClient  *http.Client
+	BodyType    string
 	Headers     Headers
 	RateLimiter *rl.RateLimiter
 }
@@ -75,6 +77,11 @@ func NewClient(c *http.Client, headers Headers, rateLimiter *rl.RateLimiter) *Cl
 // UpdateHeaders changes the headers for the HTTP client
 func (c *Client) UpdateContentType(contentType string) {
 	c.Headers["Content-Type"] = contentType
+}
+
+// UpdateHeaders changes the payload body for the HTTP client
+func (c *Client) UpdateBodyType(bodyType string) {
+	c.BodyType = bodyType
 }
 
 /*
@@ -186,6 +193,21 @@ func SetFormURLEncodedPayload(req *http.Request, data interface{}) error {
 	return nil
 }
 
+func SetXMLPayload(req *http.Request, data interface{}) error {
+	if data == nil {
+		return nil
+	}
+
+	payload, err := xml.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("marshaling request body: %w", err)
+	}
+
+	req.Body = io.NopCloser(strings.NewReader(string(payload)))
+	req.ContentLength = int64(len(payload))
+	return nil
+}
+
 func (c *Client) DoRequest(method string, url string, query interface{}, data interface{}) (*http.Response, []byte, error) {
 	realTime := retry.RealTime{}
 	return c.doRetry(method, url, query, data, realTime)
@@ -220,7 +242,7 @@ func (c *Client) do(method string, url string, query interface{}, data interface
 
 	SetQueryParams(req, query)
 
-	if err := setPayload(req, data, c.Headers["Content-Type"]); err != nil {
+	if err := setPayload(req, data, c.BodyType); err != nil {
 		return nil, nil, err
 	}
 
@@ -253,12 +275,14 @@ func (c *Client) do(method string, url string, query interface{}, data interface
 	return nil, body, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 }
 
-func setPayload(req *http.Request, data interface{}, contentType string) error {
-	switch contentType {
+func setPayload(req *http.Request, data interface{}, bodyType string) error {
+	switch bodyType {
 	case FormURLEncoded, fmt.Sprintf("%s; charset=utf-8", FormURLEncoded):
 		return SetFormURLEncodedPayload(req, data)
 	case JSON, fmt.Sprintf("%s; charset=utf-8", JSON):
 		return SetJSONPayload(req, data)
+	case XML, fmt.Sprintf("%s; charset=utf-8", XML):
+		return SetXMLPayload(req, data)
 	default:
 		// No payload to set
 		return nil

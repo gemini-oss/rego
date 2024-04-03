@@ -34,6 +34,16 @@ type Client struct {
 // END OF JAMF CLIENT STRUCTS
 //---------------------------------------------------------------------
 
+// ### Jamf Generic Structs
+// ---------------------------------------------------------------------
+type JamfProperty struct {
+	ID   interface{} `json:"id,omitempty" xml:"id,omitempty"`     // ID of the object.
+	Name string      `json:"name,omitempty" xml:"name,omitempty"` // Name of the object.
+}
+
+// END OF JAMF GENERIC STRUCTS
+//---------------------------------------------------------------------
+
 // ### Jamf Device Structs
 // ---------------------------------------------------------------------
 type Inventory struct {
@@ -109,16 +119,16 @@ type Computer struct {
 	General               *General                 `json:"general,omitempty"`               // General information about the computer.
 	GroupMemberships      *[]*GroupMembership      `json:"groupMemberships,omitempty"`      // List of group memberships.
 	Hardware              *Hardware                `json:"hardware,omitempty"`              // Hardware details of the computer.
-	IBeacons              *[]*IBeacon              `json:"ibeacons,omitempty"`              // iBeacons associated with the computer.
-	ID                    string                   `json:"id"`                              // Unique identifier for the computer.
-	LicensedSoftware      *[]*LicensedSoftware     `json:"licensedSoftware,omitempty"`      // List of licensed software.
+	IBeacons              *[]*JamfProperty         `json:"ibeacons,omitempty"`              // iBeacons associated with the computer.
+	ID                    interface{}              `json:"id"`                              // Unique identifier for the computer.
+	LicensedSoftware      *[]*JamfProperty         `json:"licensedSoftware,omitempty"`      // List of licensed software.
 	LocalUserAccounts     *[]*LocalUserAccount     `json:"localUserAccounts,omitempty"`     // List of local user accounts on the computer.
 	OperatingSystem       *OperatingSystem         `json:"operatingSystem,omitempty"`       // Operating system details.
 	PackageReceipts       *PackageReceipts         `json:"packageReceipts,omitempty"`       // Information about package receipts.
 	Plugins               *[]*Plugin               `json:"plugins,omitempty"`               // List of plugins installed on the computer.
 	Printers              *[]*Printer              `json:"printers,omitempty"`              // List of printers configured on the computer.
 	Purchasing            *Purchasing              `json:"purchasing,omitempty"`            // Purchasing information.
-	Security              *Security                `json:"security,omitempty"`              // Security settings and information.
+	Security              *ComputerSecurity        `json:"security,omitempty"`              // Security settings and information.
 	Services              *[]*Service              `json:"services,omitempty"`              // List of services on the computer.
 	SoftwareUpdates       *[]*SoftwareUpdate       `json:"softwareUpdates,omitempty"`       // List of software updates.
 	Storage               *Storage                 `json:"storage,omitempty"`               // Storage details.
@@ -141,7 +151,7 @@ type Application struct {
 // Attachment represents an attachment in the inventory.
 type Attachment struct {
 	FileType  string `json:"fileType,omitempty"`  // Type of the file.
-	Id        string `json:"id,omitempty"`        // ID of the attachment.
+	ID        string `json:"id,omitempty"`        // ID of the attachment.
 	Name      string `json:"name,omitempty"`      // Name of the attachment.
 	SizeBytes int    `json:"sizeBytes,omitempty"` // Size of the attachment in bytes.
 }
@@ -156,15 +166,6 @@ type Certificate struct {
 	SerialNumber      string `json:"serialNumber,omitempty"`      // Serial number of the certificate.
 	Sha1Fingerprint   string `json:"sha1Fingerprint,omitempty"`   // SHA1 fingerprint of the certificate.
 	SubjectName       string `json:"subjectName,omitempty"`       // Subject name of the certificate.
-}
-
-type ConfigurationProfile struct {
-	DisplayName       string `json:"displayName,omitempty"`       // Display name of the configuration profile.
-	ID                string `json:"id,omitempty"`                // Identifier of the configuration profile.
-	LastInstalled     string `json:"lastInstalled,omitempty"`     // Last installed date of the configuration profile.
-	ProfileIdentifier string `json:"profileIdentifier,omitempty"` // Profile identifier of the configuration profile.
-	Removable         bool   `json:"removable,omitempty"`         // Indicates if the profile is removable.
-	Username          string `json:"username,omitempty"`          // Username associated with the configuration profile.
 }
 
 // ContentCaching represents content caching information of a computer.
@@ -295,7 +296,7 @@ type General struct {
 	LastReportedIp                       string               `json:"lastReportedIp"`                       // Last reported IP address.
 	LastCloudBackupDate                  string               `json:"lastCloudBackupDate"`                  // Date of last cloud backup.
 	ManagementID                         string               `json:"managementId"`                         // Management ID.
-	MdmCapable                           MdmCapable           `json:"mdmCapable"`                           // MDM capability information.
+	MDMCapable                           MDMCapable           `json:"mdmCapable"`                           // MDM capability information.
 	MdmProfileExpiration                 string               `json:"mdmProfileExpiration"`                 // Expiration of the MDM profile.
 	Name                                 string               `json:"name"`                                 // Name of the computer.
 	Platform                             string               `json:"platform"`                             // Platform of the computer (e.g., Mac).
@@ -303,13 +304,13 @@ type General struct {
 	ReportDate                           string               `json:"reportDate"`                           // Date of report.
 	Site                                 Site                 `json:"site"`                                 // Site information.
 	Supervised                           bool                 `json:"supervised"`                           // Indicates if the device is supervised.
-	UserApprovedMdm                      bool                 `json:"userApprovedMdm"`                      // Indicates if MDM is user-approved.
+	UserApprovedMDM                      bool                 `json:"userApprovedMdm"`                      // Indicates if MDM is user-approved.
 	DeclarativeDeviceManagementEnabled   bool                 `json:"declarativeDeviceManagementEnabled"`   // Indicates if declarative device management is enabled.
 }
 
 // GroupMembership represents the membership details of a computer in a group.
 type GroupMembership struct {
-	GroupId    string `json:"groupId,omitempty"`    // Unique identifier of the group.
+	GroupID    string `json:"groupId,omitempty"`    // Unique identifier of the group.
 	GroupName  string `json:"groupName,omitempty"`  // Name of the group.
 	SmartGroup bool   `json:"smartGroup,omitempty"` // Indicates if the group is a smart group.
 }
@@ -334,8 +335,8 @@ type ExtensionAttribute struct {
 	InputType    string   `json:"inputType"`    // Input type of the attribute.
 }
 
-// MdmCapable represents MDM capability information of a computer.
-type MdmCapable struct {
+// MDMCapable represents MDM capability information of a computer.
+type MDMCapable struct {
 	Capable      bool     `json:"capable"`      // Indicates if the computer is MDM capable.
 	CapableUsers []string `json:"capableUsers"` // List of users capable of MDM.
 }
@@ -346,10 +347,9 @@ type RemoteManagement struct {
 	ManagementUsername string `json:"managementUsername"` // Username for management.
 }
 
-// Site represents the site information of a computer.
+// Site represents site information of a Jamf object.
 type Site struct {
-	ID   string `json:"id"`   // Identifier of the site.
-	Name string `json:"name"` // Name of the site.
+	*JamfProperty
 }
 
 // Hardware represents the hardware details of a computer in the inventory.
@@ -382,22 +382,11 @@ type Hardware struct {
 	ExtensionAttributes    []ExtensionAttribute `json:"extensionAttributes"`    // List of extension attributes.
 }
 
-// IBeacon represents an iBeacon associated with the computer.
-type IBeacon struct {
-	Name string `json:"name,omitempty"` // Name of the iBeacon.
-}
-
-// LicensedSoftware represents licensed software installed on the computer.
-type LicensedSoftware struct {
-	Id   string `json:"id,omitempty"`   // ID of the licensed software.
-	Name string `json:"name,omitempty"` // Name of the licensed software.
-}
-
 // LocalUserAccount represents a local user account on the computer.
 type LocalUserAccount struct {
 	Admin                          bool   `json:"admin,omitempty"`                          // Indicates if the user is an admin.
-	AzureActiveDirectoryId         string `json:"azureActiveDirectoryId,omitempty"`         // Azure Active Directory ID.
-	ComputerAzureActiveDirectoryId string `json:"computerAzureActiveDirectoryId,omitempty"` // Computer's Azure Active Directory ID.
+	AzureActiveDirectoryID         string `json:"azureActiveDirectoryId,omitempty"`         // Azure Active Directory ID.
+	ComputerAzureActiveDirectoryID string `json:"computerAzureActiveDirectoryId,omitempty"` // Computer's Azure Active Directory ID.
 	FileVault2Enabled              bool   `json:"fileVault2Enabled,omitempty"`              // Indicates if FileVault2 is enabled.
 	FullName                       string `json:"fullName,omitempty"`                       // Full name of the user.
 	HomeDirectory                  string `json:"homeDirectory,omitempty"`                  // Path to the home directory.
@@ -409,7 +398,7 @@ type LocalUserAccount struct {
 	PasswordRequireAlphanumeric    bool   `json:"passwordRequireAlphanumeric,omitempty"`    // Indicates if password requires alphanumeric characters.
 	Uid                            string `json:"uid,omitempty"`                            // User ID.
 	UserAccountType                string `json:"userAccountType,omitempty"`                // Type of the user account.
-	UserAzureActiveDirectoryId     string `json:"userAzureActiveDirectoryId,omitempty"`     // User's Azure Active Directory ID.
+	UserAzureActiveDirectoryID     string `json:"userAzureActiveDirectoryId,omitempty"`     // User's Azure Active Directory ID.
 	UserGuid                       string `json:"userGuid,omitempty"`                       // User GUID.
 	Username                       string `json:"username,omitempty"`                       // Username.
 }
@@ -421,7 +410,7 @@ type OperatingSystem struct {
 	FileVault2Status         string               `json:"fileVault2Status,omitempty"`         // Status of FileVault2 encryption.
 	Name                     string               `json:"name,omitempty"`                     // Name of the operating system.
 	RapidSecurityResponse    string               `json:"rapidSecurityResponse,omitempty"`    // Rapid Security Response status.
-	SoftwareUpdateDeviceId   string               `json:"softwareUpdateDeviceId,omitempty"`   // Software Update Device ID.
+	SoftwareUpdateDeviceID   string               `json:"softwareUpdateDeviceId,omitempty"`   // Software Update Device ID.
 	SupplementalBuildVersion string               `json:"supplementalBuildVersion,omitempty"` // Supplemental build version of the operating system.
 	Version                  string               `json:"version,omitempty"`                  // Version of the operating system.
 	ExtensionAttributes      []ExtensionAttribute `json:"extensionAttributes,omitempty"`      // List of extension attributes.
@@ -467,7 +456,7 @@ type Purchasing struct {
 }
 
 // Security represents the security settings of the computer.
-type Security struct {
+type ComputerSecurity struct {
 	ActivationLockEnabled bool   `json:"activationLockEnabled,omitempty"` // Indicates if activation lock is enabled.
 	AutoLoginDisabled     bool   `json:"autoLoginDisabled,omitempty"`     // Indicates if auto-login is disabled.
 	BootstrapTokenAllowed bool   `json:"bootstrapTokenAllowed,omitempty"` // Indicates if bootstrap token is allowed.
@@ -540,6 +529,46 @@ type UserAndLocation struct {
 // END OF JAMF DEVICE STRUCTS
 //---------------------------------------------------------------------
 
+// ### Jamf User Structs
+// ---------------------------------------------------------------------
+// Response structure for the Jamf Pro API for Configuration Profiles
+type Users struct {
+	List *[]*User `json:"users"` // List of JSS users
+}
+
+// User represents the details of a JSS User.
+type User struct {
+	*JamfProperty
+	CustomPhotoURL       string                `json:"custom_photo_url,omitempty" xml:"custom_photo_url,omitempty"`               // Custom photo URL of the user.
+	Email                string                `json:"email,omitempty" xml:"email,omitempty"`                                     // Email of the user.
+	EmailAddress         string                `json:"email_address,omitempty" xml:"email_address,omitempty"`                     // Email address of the user.
+	EnableCustomPhotoURL bool                  `json:"enable_custom_photo_url,omitempty" xml:"enable_custom_photo_url,omitempty"` // Indicates if custom photo URL is enabled.
+	ExtensionAttributes  []*ExtensionAttribute `json:"extension_attributes,omitempty" xml:"extension_attributes,omitempty"`       // Extension attributes
+	FullName             string                `json:"full_name,omitempty" xml:"full_name,omitempty"`                             // Full name of the user.
+	LDAPServer           []*JamfProperty       `json:"ldap_server,omitempty" xml:"ldap_server,omitempty"`                         // LDAP server information.
+	Links                []*UserLink           `json:"links,omitempty" xml:"links,omitempty"`                                     // Links associated with the user.
+	ManagedAppleID       string                `json:"managed_apple_id,omitempty" xml:"managed_apple_id,omitempty"`               // Managed Apple ID.
+	PhoneNumber          string                `json:"phone_number,omitempty" xml:"phone_number,omitempty"`                       // Phone number of the user.
+	Position             string                `json:"position,omitempty" xml:"position,omitempty"`                               // Position of the user.
+	Sites                []*Site               `json:"sites,omitempty" xml:"sites,omitempty"`                                     // Sites
+	UserGroups           []*UserGroup          `json:"user_groups,omitempty" xml:"user_groups,omitempty"`                         // Groups the user belongs to.
+}
+
+// UserLink represents a link associated with a user.
+type UserLink struct {
+	Computer          []*Computer `json:"computer,omitempty" xml:"computer,omitempty"`                         // Computer information.
+	TotalVPPCodeCount int         `json:"total_vpp_code_count,omitempty" xml:"total_vpp_code_count,omitempty"` // Total VPP code count.
+}
+
+// UserGroup represents a group that a user belongs to.
+type UserGroup struct {
+	*JamfProperty
+	IsSmart bool `json:"is_smart,omitempty" xml:"is_smart,omitempty"` // Indicates if the group is a smart group.
+}
+
+// END OF JAMF USER STRUCTS
+//---------------------------------------------------------------------
+
 // ### Jamf Management Structs
 // ---------------------------------------------------------------------
 // ManagementResponse represents a generic response for device management operations.
@@ -555,6 +584,115 @@ type UDIDsNotProcessed struct {
 }
 
 // END OF JAMF MANAGEMENT STRUCTS
+//---------------------------------------------------------------------
+
+// ### Jamf {Configuration Profile, Policy} Structs
+// ---------------------------------------------------------------------
+// Response structure for the Jamf Pro API for Configuration Profiles
+type OSXConfigurationProfiles struct {
+	List *[]*OSXConfigurationProfile `json:"os_x_configuration_profiles"` // List of configuration profiles.
+}
+
+// OSXConfigurationProfile represents the details of a configuration profile.
+type OSXConfigurationProfile struct {
+	*JamfProperty
+	Details struct {
+		General     *ConfigurationProfile `json:"general,omitempty" xml:"general,omitempty"`           // General configuration details.
+		Scope       *Scope                `json:"scope,omitempty" xml:"scope,omitempty"`               // Scope of the configuration.
+		SelfService *SelfService          `json:"self_service,omitempty" xml:"self_service,omitempty"` // Self-service related configurations.
+	} `json:"os_x_configuration_profile,omitempty" xml:"os_x_configuration_profile,omitempty"` // Configuration profile details.
+}
+
+type ConfigurationProfile struct {
+	*JamfProperty
+	Category           *Category `json:"category,omitempty" xml:"category,omitempty"`                       // Category information.
+	Description        string    `json:"description,omitempty" xml:"description,omitempty"`                 // Description of the profile.
+	DisplayName        string    `json:"displayName,omitempty"`                                             // Display name of the configuration profile.
+	DistributionMethod string    `json:"distribution_method,omitempty" xml:"distribution_method,omitempty"` // Distribution method.
+	LastInstalled      string    `json:"lastInstalled,omitempty"`                                           // Last installed date of the configuration profile.
+	Level              string    `json:"level,omitempty" xml:"level,omitempty"`                             // Level of the configuration.
+	Payloads           string    `json:"payloads,omitempty" xml:"payloads,omitempty"`                       // Payloads
+	ProfileIdentifier  string    `json:"profileIdentifier,omitempty"`                                       // Profile identifier of the configuration profile.
+	RedeployOnUpdate   string    `json:"redeploy_on_update,omitempty" xml:"redeploy_on_update,omitempty"`   // Redeployment criteria.
+	Removable          bool      `json:"removable,omitempty"`                                               // Indicates if the profile is removable.
+	Site               *Site     `json:"site,omitempty" xml:"site,omitempty"`                               // Site information.
+	Username           string    `json:"username,omitempty"`                                                // Username associated with the configuration profile.
+	UserRemovable      bool      `json:"user_removable,omitempty" xml:"user_removable,omitempty"`           // Whether user can remove the profile.
+	UUID               string    `json:"uuid,omitempty" xml:"uuid,omitempty"`                               // Universal Unique Identifier.
+}
+
+// Category represents category information of the {configuration profile, policy}.
+type Category struct {
+	*JamfProperty
+}
+
+// Scope represents the scope of the {configuration profile, policy}.
+type Scope struct {
+	AllComputers    bool             `json:"all_computers,omitempty" xml:"all_computers,omitempty"`       // If all computers are included.
+	AllJSSUsers     bool             `json:"all_jss_users,omitempty" xml:"all_jss_users,omitempty"`       // If all JSS users are included.
+	Buildings       interface{}      `json:"buildings,omitempty" xml:"buildings,omitempty"`               // Buildings
+	ComputerGroups  []*ComputerGroup `json:"computer_groups,omitempty" xml:"computer_groups,omitempty"`   // Computer groups.
+	Computers       []*Computer      `json:"computers,omitempty" xml:"computers,omitempty"`               // Computers
+	Departments     interface{}      `json:"departments,omitempty" xml:"departments,omitempty"`           // Departments
+	Exclusions      *Exclusions      `json:"exclusions,omitempty" xml:"exclusions,omitempty"`             // Exclusions from the scope.
+	IBeacons        interface{}      `json:"ibeacons,omitempty" xml:"ibeacons,omitempty"`                 // iBeacons
+	JSSUserGroups   interface{}      `json:"jss_user_groups,omitempty" xml:"jss_user_groups,omitempty"`   // JSS user groups
+	JSSUsers        interface{}      `json:"jss_users,omitempty" xml:"jss_users,omitempty"`               // JSS users
+	Limitations     *Limitations     `json:"limitations,omitempty" xml:"limitations,omitempty"`           // Limitations in the scope.
+	NetworkSegments interface{}      `json:"network_segments,omitempty" xml:"network_segments,omitempty"` // Network segments
+	Users           []*User          `json:"users,omitempty" xml:"users,omitempty"`                       // Users
+	UserGroups      interface{}      `json:"user_groups,omitempty" xml:"user_groups,omitempty"`           // User groups
+}
+
+// Limitations represents limitations within the scope of the {configuration profile, policy}.
+type Limitations struct {
+	IBeacons        []*JamfProperty `json:"ibeacons,omitempty" xml:"ibeacons,omitempty"`                 // iBeacons
+	NetworkSegments interface{}     `json:"network_segments,omitempty" xml:"network_segments,omitempty"` // Network segments
+	UserGroups      []*UserGroup    `json:"user_groups,omitempty" xml:"user_groups,omitempty"`           // User groups
+	Users           []*User         `json:"users,omitempty" xml:"users,omitempty"`                       // Users
+}
+
+// Exclusions represents exclusions from the scope of the {configuration profile, policy}.
+type Exclusions struct {
+	Buildings       interface{}      `json:"buildings,omitempty" xml:"buildings,omitempty"`               // Buildings
+	ComputerGroups  []*ComputerGroup `json:"computer_groups,omitempty" xml:"computer_groups,omitempty"`   // Computer groups.
+	Computers       []*Computer      `json:"computers,omitempty" xml:"computers,omitempty"`               // Computers
+	Departments     interface{}      `json:"departments,omitempty" xml:"departments,omitempty"`           // Departments
+	IBeacons        []*JamfProperty  `json:"ibeacons,omitempty" xml:"ibeacons,omitempty"`                 // iBeacons
+	JSSUserGroups   []*UserGroup     `json:"jss_user_groups,omitempty" xml:"jss_user_groups,omitempty"`   // JSS user groups
+	JSSUsers        []*User          `json:"jss_users,omitempty" xml:"jss_users,omitempty"`               // JSS users
+	NetworkSegments interface{}      `json:"network_segments,omitempty" xml:"network_segments,omitempty"` // Network segments
+	UserGroups      []*UserGroup     `json:"user_groups,omitempty" xml:"user_groups,omitempty"`           // User groups
+	Users           []*User          `json:"users,omitempty" xml:"users,omitempty"`                       // Users
+}
+
+// ComputerGroup represents a single computer group.
+type ComputerGroup struct {
+	*JamfProperty
+}
+
+// SelfService represents self-service configurations.
+type SelfService struct {
+	FeatureOnMainPage           bool        `json:"feature_on_main_page,omitempty" xml:"feature_on_main_page,omitempty"`                       // If featured on the main page.
+	ForceUsersToViewDescription bool        `json:"force_users_to_view_description,omitempty" xml:"force_users_to_view_description,omitempty"` // If users are forced to view description.
+	InstallButtonText           string      `json:"install_button_text,omitempty" xml:"install_button_text,omitempty"`                         // Text on the install button.
+	Notification                interface{} `json:"notification,omitempty" xml:"notification,omitempty"`                                       // Notification settings
+	NotificationMessage         interface{} `json:"notification_message,omitempty" xml:"notification_message,omitempty"`                       // Notification message
+	NotificationSubject         string      `json:"notification_subject,omitempty" xml:"notification_subject,omitempty"`                       // Notification subject.
+	RemovalDisallowed           string      `json:"removal_disallowed,omitempty" xml:"removal_disallowed,omitempty"`                           // Removal policy.
+	Security                    *Security   `json:"security,omitempty" xml:"security,omitempty"`                                               // Security settings.
+	SelfServiceCategories       interface{} `json:"self_service_categories,omitempty" xml:"self_service_categories,omitempty"`                 // Self-service categories
+	SelfServiceDescription      interface{} `json:"self_service_description,omitempty" xml:"self_service_description,omitempty"`               // Self-service description
+	SelfServiceDisplayName      string      `json:"self_service_display_name,omitempty" xml:"self_service_display_name,omitempty"`             // Display name in self-service.
+	SelfServiceIcon             interface{} `json:"self_service_icon,omitempty" xml:"self_service_icon,omitempty"`                             // Self-service icon
+}
+
+// Security represents security configurations in self-service.
+type Security struct {
+	RemovalDisallowed string `json:"removal_disallowed,omitempty" xml:"removal_disallowed,omitempty"` // Removal policy.
+}
+
+// END OF JAMF {CONFIGURATION PROFILE, POLICY} STRUCTS
 //---------------------------------------------------------------------
 
 // ### Enums

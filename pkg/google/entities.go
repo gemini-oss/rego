@@ -100,10 +100,10 @@ type ErrorDetail struct {
 
 // Implement the error interface for ErrorDetail.
 func (e *ErrorDetail) Error() string {
-    if e == nil {
-        return ""
-    }
-    return fmt.Sprintf("code: %d, message: %s", e.Code, e.Message)
+	if e == nil {
+		return ""
+	}
+	return fmt.Sprintf("code: %d, message: %s", e.Code, e.Message)
 }
 
 // ErrorItem contains detailed information about an individual error.
