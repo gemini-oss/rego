@@ -12,6 +12,8 @@ This package contains many structs for handling responses from the Google API:
 package google
 
 import (
+	"fmt"
+
 	"github.com/gemini-oss/rego/pkg/common/auth"
 	"github.com/gemini-oss/rego/pkg/common/cache"
 	"github.com/gemini-oss/rego/pkg/common/log"
@@ -94,6 +96,14 @@ type ErrorDetail struct {
 	Code    int          `json:"code,omitempty"`    // The HTTP status code for the error.
 	Message string       `json:"message,omitempty"` // The error message.
 	Errors  []*ErrorItem `json:"errors,omitempty"`  // An array of more detailed error items.
+}
+
+// Implement the error interface for ErrorDetail.
+func (e *ErrorDetail) Error() string {
+    if e == nil {
+        return ""
+    }
+    return fmt.Sprintf("code: %d, message: %s", e.Code, e.Message)
 }
 
 // ErrorItem contains detailed information about an individual error.

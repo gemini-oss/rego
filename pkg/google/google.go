@@ -402,6 +402,15 @@ func do[T any](c *Client, method string, url string, query interface{}, data int
 	c.Log.Println("Response Status:", res.Status)
 	c.Log.Debug("Response Body:", string(body))
 
+	if res.StatusCode >= 400 {
+		var googleError ErrorResponse
+		err = json.Unmarshal(body, &googleError)
+		if err != nil {
+			return *new(T), fmt.Errorf("error unmarshalling API error response: %w", err)
+		}
+		return *new(T), googleError.Error
+	}
+
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		return *new(T), fmt.Errorf("unmarshalling error: %w", err)
