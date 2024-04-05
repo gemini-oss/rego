@@ -1521,10 +1521,25 @@ type ScreenshotFile struct {
 // ----------------------------------------------------------------------------
 // ResolvedPolicies represents a list of resolved policies found by the resolve request.
 type ResolvedPolicies struct {
-	Direct           *[]*ResolvedPolicy `json:"directPolicies,omitempty"`    // (Calculated) Policies directly set on the orgunit.
-	Inherited        *[]*ResolvedPolicy `json:"inheritedPolicies,omitempty"` // (Calculated) Policies inherited from the orgunit hierarchy.
-	ResolvedPolicies *[]*ResolvedPolicy `json:"resolvedPolicies,omitempty"`  // The list of resolved policies found by the resolve request.
-	NextPageToken    string             `json:"nextPageToken,omitempty"`     // The page token used to get the next set of resolved policies found by the request.
+	*SortedPolicies
+	Users            *ResolvedPolicies  `json:"userPolicies,omitempty"`     // chrome.users.*
+	Devices          *ResolvedPolicies  `json:"devicePolicies,omitempty"`   // chrome.devices.*
+	ResolvedPolicies *[]*ResolvedPolicy `json:"resolvedPolicies,omitempty"` // The list of resolved policies found by the resolve request.
+	NextPageToken    string             `json:"nextPageToken,omitempty"`    // The page token used to get the next set of resolved policies found by the request.
+}
+
+func newResolvedPolicies() *ResolvedPolicies {
+    return &ResolvedPolicies{
+        SortedPolicies:    newSortedPolicies(),
+        ResolvedPolicies: new([]*ResolvedPolicy),
+    }
+}
+
+func (r *ResolvedPolicies) Init() {
+    r.SortedPolicies = newSortedPolicies()
+    r.Users = newResolvedPolicies()
+    r.Devices = newResolvedPolicies()
+    r.ResolvedPolicies = new([]*ResolvedPolicy)
 }
 
 func (r ResolvedPolicies) Append(result interface{}) {
@@ -1537,6 +1552,18 @@ func (r ResolvedPolicies) Append(result interface{}) {
 
 func (r ResolvedPolicies) PageToken() string {
 	return r.NextPageToken
+}
+
+type SortedPolicies struct {
+	Direct    *[]*ResolvedPolicy `json:"directPolicies,omitempty"`    // (Calculated) Policies directly set on the orgunit.
+	Inherited *[]*ResolvedPolicy `json:"inheritedPolicies,omitempty"` // (Calculated) Policies inherited from the orgunit hierarchy.
+}
+
+func newSortedPolicies() *SortedPolicies {
+    return &SortedPolicies{
+        Direct:    new([]*ResolvedPolicy),
+        Inherited: new([]*ResolvedPolicy),
+    }
 }
 
 // https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies.orgunits/batchModify#request-body

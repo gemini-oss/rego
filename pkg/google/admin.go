@@ -478,10 +478,36 @@ func (c *Client) CloneOU(customer *Customer, sourcePath, targetPath string) erro
 		return err
 	}
 
-	payload := PolicyModificationRequests{}
-	var updateMask string
-	var fields []string
-	for _, policy := range *sourcePolicies.Direct {
+	userPayload := PolicyModificationRequests{
+		Requests: createPolicyModificationRequests(*sourcePolicies.Users.Direct, targetOU, schemas),
+	}
+
+	c.Log.Println("Cloning user policies...")
+	_, err = do[any](c, "POST", url, nil, userPayload)
+	if err != nil {
+		return err
+	}
+	c.Log.Printf("Successfully cloned user policies! (https://admin.google.com/ac/chrome/settings/user?ac_ouid=%s)", strings.TrimPrefix(targetOU.ID, "id:"))
+
+	devicePayload := PolicyModificationRequests{
+		Requests: createPolicyModificationRequests(*sourcePolicies.Devices.ResolvedPolicies, targetOU, schemas),
+	}
+
+	c.Log.Println("Cloning device policies...")
+	_, err = do[any](c, "POST", url, nil, devicePayload)
+	if err != nil {
+		return err
+	}
+	c.Log.Printf("Successfully cloned chrome device policies! (https://admin.google.com/ac/chrome/settings/device?ac_ouid=%s)", strings.TrimPrefix(targetOU.ID, "id:"))
+
+	return nil
+}
+
+func createPolicyModificationRequests(policies []*ResolvedPolicy, targetOU *OrgUnit, schemas *PolicySchemas) []*PolicyModificationRequest {
+	var requests []*PolicyModificationRequest
+	for _, policy := range policies {
+		var fields []string
+		var updateMask string
 		for _, schema := range *schemas.PolicySchemas {
 			if policy.Value.PolicySchema == schema.SchemaName {
 				for _, field := range schema.FieldDescriptions {
@@ -494,8 +520,7 @@ func (c *Client) CloneOU(customer *Customer, sourcePath, targetPath string) erro
 				fields = nil
 			}
 		}
-
-		payload.Requests = append(payload.Requests, &PolicyModificationRequest{
+		requests = append(requests, &PolicyModificationRequest{
 			PolicyTargetKey: PolicyTargetKey{
 				TargetResource: fmt.Sprintf("orgunits/%s", strings.TrimPrefix(targetOU.ID, "id:")),
 			},
@@ -503,12 +528,5 @@ func (c *Client) CloneOU(customer *Customer, sourcePath, targetPath string) erro
 			UpdateMask:  updateMask,
 		})
 	}
-
-	c.Log.Println("Cloning policy:", &payload.Requests)
-	_, err = do[any](c, "POST", url, nil, payload)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return requests
 }

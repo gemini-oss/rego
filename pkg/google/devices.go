@@ -193,11 +193,8 @@ func (c *Client) ResolvePolicySchemas(customer *Customer, ou *OrgUnit) (*Resolve
 	if c.GetCache(cacheKey, &cache) {
 		return &cache, nil
 	}
-	policies := &ResolvedPolicies{
-		Direct:           new([]*ResolvedPolicy),
-		Inherited:        new([]*ResolvedPolicy),
-		ResolvedPolicies: new([]*ResolvedPolicy),
-	}
+	policies := new(ResolvedPolicies)
+	policies.Init()
 
 	req := &PolicyRequest{
 		PolicyTargetKey: PolicyTargetKey{
@@ -211,20 +208,28 @@ func (c *Client) ResolvePolicySchemas(customer *Customer, ou *OrgUnit) (*Resolve
 	if err != nil {
 		return nil, err
 	}
-	*policies.ResolvedPolicies = append(*policies.ResolvedPolicies, *userPolicies.ResolvedPolicies...)
+	*policies.Users.ResolvedPolicies = append(*policies.Users.ResolvedPolicies, *userPolicies.ResolvedPolicies...)
+
+	for _, policy := range *policies.Users.ResolvedPolicies {
+		if strings.Contains(policy.SourceKey.TargetResource, strings.TrimPrefix(ou.ID, "id:")) {
+			*policies.Users.Direct = append(*policies.Users.Direct, policy)
+		} else {
+			*policies.Users.Inherited = append(*policies.Users.Inherited, policy)
+		}
+	}
 
 	req.PolicySchemaFilter = "chrome.devices.*"
 	devicePolicies, err := doPaginated[ResolvedPolicies](c, "POST", url, nil, req)
 	if err != nil {
 		return nil, err
 	}
-	*policies.ResolvedPolicies = append(*policies.ResolvedPolicies, *devicePolicies.ResolvedPolicies...)
+	*policies.Devices.ResolvedPolicies = append(*policies.Devices.ResolvedPolicies, *devicePolicies.ResolvedPolicies...)
 
-	for _, policy := range *policies.ResolvedPolicies {
+	for _, policy := range *policies.Devices.ResolvedPolicies {
 		if strings.Contains(policy.SourceKey.TargetResource, strings.TrimPrefix(ou.ID, "id:")) {
-			*policies.Direct = append(*policies.Direct, policy)
+			*policies.Devices.Direct = append(*policies.Devices.Direct, policy)
 		} else {
-			*policies.Inherited = append(*policies.Inherited, policy)
+			*policies.Devices.Inherited = append(*policies.Devices.Inherited, policy)
 		}
 	}
 

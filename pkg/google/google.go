@@ -164,6 +164,7 @@ func (c *Client) ImpersonateUser(email string) error {
 
 	// Update the HTTP client of the client object
 	c.HTTP = requests.NewClient(jwtClient, headers, nil)
+	c.HTTP.BodyType = requests.JSON
 
 	return nil
 }
@@ -340,6 +341,7 @@ func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
 			if err != nil {
 				return nil, err
 			}
+			c.HTTP.BodyType = requests.JSON
 
 			return c, nil
 		}
