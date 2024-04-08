@@ -319,6 +319,7 @@ type User struct {
 	LastUpdated           time.Time        `json:"lastUpdated,omitempty"`           // The timestamp when the user was last updated.
 	PasswordChanged       time.Time        `json:"passwordChanged,omitempty"`       // The timestamp when the user's password was last changed.
 	Profile               *UserProfile     `json:"profile,omitempty"`               // The user's profile.
+	Scope                 string           `json:"scope,omitempty"`                 // The user's assignment to an application [Individually,group assigned] {"USER","GROUP"}
 	Status                string           `json:"status,omitempty"`                // The status of the user.
 	StatusChanged         time.Time        `json:"statusChanged,omitempty"`         // The timestamp when the user's status was last changed.
 	TransitioningToStatus string           `json:"transitioningToStatus,omitempty"` // The status that the user is transitioning to.

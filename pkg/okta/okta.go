@@ -127,9 +127,11 @@ func NewClient(verbosity int) *Client {
 
 	headers := requests.Headers{
 		"Authorization": "SSWS " + token,
-		"Accept":        "application/json",
-		"Content-Type":  "application/json",
+		"Accept":        requests.JSON,
+		"Content-Type":  requests.JSON,
 	}
+	httpClient := requests.NewClient(nil, headers, nil)
+	httpClient.BodyType = requests.JSON
 
 	// Look into `Functional Options` patterns for a better way to handle this (and other clients while we're at it)
 	encryptionKey := []byte(config.GetEnv("REGO_ENCRYPTION_KEY"))
@@ -149,7 +151,7 @@ func NewClient(verbosity int) *Client {
 
 	return &Client{
 		BaseURL: BaseURL,
-		HTTP:    requests.NewClient(nil, headers, rl),
+		HTTP:    httpClient,
 		Log:     log,
 		Cache:   cache,
 	}

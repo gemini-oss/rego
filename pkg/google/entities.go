@@ -1529,17 +1529,17 @@ type ResolvedPolicies struct {
 }
 
 func newResolvedPolicies() *ResolvedPolicies {
-    return &ResolvedPolicies{
-        SortedPolicies:    newSortedPolicies(),
-        ResolvedPolicies: new([]*ResolvedPolicy),
-    }
+	return &ResolvedPolicies{
+		SortedPolicies:   newSortedPolicies(),
+		ResolvedPolicies: new([]*ResolvedPolicy),
+	}
 }
 
 func (r *ResolvedPolicies) Init() {
-    r.SortedPolicies = newSortedPolicies()
-    r.Users = newResolvedPolicies()
-    r.Devices = newResolvedPolicies()
-    r.ResolvedPolicies = new([]*ResolvedPolicy)
+	r.SortedPolicies = newSortedPolicies()
+	r.Users = newResolvedPolicies()
+	r.Devices = newResolvedPolicies()
+	r.ResolvedPolicies = new([]*ResolvedPolicy)
 }
 
 func (r ResolvedPolicies) Append(result interface{}) {
@@ -1560,10 +1560,10 @@ type SortedPolicies struct {
 }
 
 func newSortedPolicies() *SortedPolicies {
-    return &SortedPolicies{
-        Direct:    new([]*ResolvedPolicy),
-        Inherited: new([]*ResolvedPolicy),
-    }
+	return &SortedPolicies{
+		Direct:    new([]*ResolvedPolicy),
+		Inherited: new([]*ResolvedPolicy),
+	}
 }
 
 // https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies.orgunits/batchModify#request-body
