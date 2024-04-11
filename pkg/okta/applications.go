@@ -119,11 +119,6 @@ func (c *Client) GetApplicationUser(appID string, userID string) (*User, error) 
 func (c *Client) ConvertApplicationAssignment(appID string, userID string) (*User, error) {
 	url := c.BuildURL(OktaApps, appID, "users", userID)
 
-	var cache User
-	if c.GetCache(url, &cache) {
-		return &cache, nil
-	}
-
 	user, err := c.GetApplicationUser(appID, userID)
 	if err != nil {
 		return nil, err
@@ -141,6 +136,5 @@ func (c *Client) ConvertApplicationAssignment(appID string, userID string) (*Use
 		return nil, err
 	}
 
-	c.SetCache(url, user, 5*time.Minute)
 	return user, nil
 }

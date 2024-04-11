@@ -47,6 +47,11 @@ func ToMap(item interface{}, includeZeroValues bool) (map[string]interface{}, er
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Field(i)
 
+		// Skip unexported fields
+		if !field.CanInterface() {
+			continue
+		}
+
 		if !includeZeroValues && field.IsZero() {
 			continue
 		}
