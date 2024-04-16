@@ -40,7 +40,7 @@ type AssetQuery struct {
 /*
  * List all Hardware Assets in Snipe-IT
  * /api/v1/hardware
- * - https://snipe-it.readme.io/reference/hardware
+ * - https://snipe-it.readme.io/reference/hardware-create
  */
 func (c *Client) GetAllAssets() (*HardwareList, error) {
 	assets := &HardwareList{}

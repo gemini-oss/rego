@@ -23,29 +23,31 @@ import (
 )
 
 var (
-	AdminDirectory           = fmt.Sprintf("%s/admin/directory/v1", AdminBaseURL)                            // https://developers.google.com/admin-sdk/reference-overview
-	DirectoryASPS            = fmt.Sprintf("%s/users/%s/asps", AdminDirectory, "%s")                         // https://developers.google.com/admin-sdk/directory/reference/rest/v1/asps
-	DirectoryChannels        = fmt.Sprintf("%s/channels", AdminDirectory)                                    // https://developers.google.com/admin-sdk/directory/reference/rest/v1/channels
-	DirectoryChromeOSDevices = fmt.Sprintf("%s/customer/%s/devices/chromeos", AdminDirectory, "%s")          // https://developers.google.com/admin-sdk/directory/reference/rest/v1/chromeosdevices
-	DirectoryCustomers       = fmt.Sprintf("%s/customers/%s", AdminDirectory, "%s")                          // https://developers.google.com/admin-sdk/directory/reference/rest/v1/customers
-	DirectoryDomains         = fmt.Sprintf("%s/domains", AdminDirectory)                                     // https://developers.google.com/admin-sdk/directory/reference/rest/v1/domains
-	DirectoryGroups          = fmt.Sprintf("%s/groups", AdminDirectory)                                      // https://developers.google.com/admin-sdk/directory/reference/rest/v1/groups
-	DirectoryMembers         = fmt.Sprintf("%s/groups/%s/members", AdminDirectory, "%s")                     // https://developers.google.com/admin-sdk/directory/reference/rest/v1/members
-	DirectoryMobileDevices   = fmt.Sprintf("%s/customer/%s/devices/mobile", AdminDirectory, "%s")            // https://developers.google.com/admin-sdk/directory/reference/rest/v1/mobiledevices
-	DirectoryOrgUnits        = fmt.Sprintf("%s/customer/%s/orgunits", AdminDirectory, "%s")                  // https://developers.google.com/admin-sdk/directory/reference/rest/v1/orgunits
-	DirectoryPrivileges      = fmt.Sprintf("%s/privileges", AdminDirectory)                                  // https://developers.google.com/admin-sdk/directory/reference/rest/v1/privileges
-	DirectoryResources       = fmt.Sprintf("%s/customer/%s/resources", AdminDirectory, "%s")                 // https://developers.google.com/admin-sdk/directory/reference/rest/v1/resources
-	DirectoryRoleAssignments = fmt.Sprintf("%s/customer/%s/roleassignments", AdminDirectory, "%s")           // https://developers.google.com/admin-sdk/directory/reference/rest/v1/roleassignments
-	DirectoryRoles           = fmt.Sprintf("%s/customer/%s/roles", AdminDirectory, "%s")                     // https://developers.google.com/admin-sdk/directory/reference/rest/v1/roles
-	DirectorySchemas         = fmt.Sprintf("%s/schemas", AdminDirectory)                                     // https://developers.google.com/admin-sdk/directory/reference/rest/v1/schemas
-	DirectoryTokens          = fmt.Sprintf("%s/tokens", AdminDirectory)                                      // https://developers.google.com/admin-sdk/directory/reference/rest/v1/tokens
-	DirectoryUsers           = fmt.Sprintf("%s/users", AdminDirectory)                                       // https://developers.google.com/admin-sdk/directory/reference/rest/v1/users
-	AdminReports             = fmt.Sprintf("%s/admin/reports/v1", AdminBaseURL)                              // https://developers.google.com/admin-sdk/reports/reference/rest
-	ReportsActivities        = fmt.Sprintf("%s/activity/users/%s/applications/%s", AdminReports, "%s", "%s") // https://developers.google.com/admin-sdk/reports/reference/rest/v1/activities
-	ReportsChannels          = fmt.Sprintf("%s/channels", AdminReports)                                      // https://developers.google.com/admin-sdk/reports/reference/rest/v1/channels
-	ReportsCustomerUsage     = fmt.Sprintf("%s/customerUsageReports", AdminReports)                          // https://developers.google.com/admin-sdk/reports/reference/rest/v1/customerUsageReports
-	ReportsEntityUsage       = fmt.Sprintf("%s/entityUsageReports", AdminReports)                            // https://developers.google.com/admin-sdk/reports/reference/rest/v1/entityUsageReports
-	ReportsUserUsage         = fmt.Sprintf("%s/userUsageReport", AdminReports)                               // https://developers.google.com/admin-sdk/reports/reference/rest/v1/userUsageReport
+	AdminDirectory           = fmt.Sprintf("%s/admin/directory/v1", AdminBaseURL)                             // https://developers.google.com/admin-sdk/reference-overview
+	DirectoryASPS            = fmt.Sprintf("%s/users/%s/asps", AdminDirectory, "%s")                          // https://developers.google.com/admin-sdk/directory/reference/rest/v1/asps
+	DirectoryChannels        = fmt.Sprintf("%s/channels", AdminDirectory)                                     // https://developers.google.com/admin-sdk/directory/reference/rest/v1/channels
+	DirectoryChromeOSDevices = fmt.Sprintf("%s/customer/%s/devices/chromeos", AdminDirectory, "%s")           // https://developers.google.com/admin-sdk/directory/reference/rest/v1/chromeosdevices
+	DirectoryCustomers       = fmt.Sprintf("%s/customers/%s", AdminDirectory, "%s")                           // https://developers.google.com/admin-sdk/directory/reference/rest/v1/customers
+	DirectoryDomains         = fmt.Sprintf("%s/domains", AdminDirectory)                                      // https://developers.google.com/admin-sdk/directory/reference/rest/v1/domains
+	DirectoryGroups          = fmt.Sprintf("%s/groups", AdminDirectory)                                       // https://developers.google.com/admin-sdk/directory/reference/rest/v1/groups
+	DirectoryMembers         = fmt.Sprintf("%s/groups/%s/members", AdminDirectory, "%s")                      // https://developers.google.com/admin-sdk/directory/reference/rest/v1/members
+	DirectoryMobileDevices   = fmt.Sprintf("%s/customer/%s/devices/mobile", AdminDirectory, "%s")             // https://developers.google.com/admin-sdk/directory/reference/rest/v1/mobiledevices
+	DirectoryOrgUnits        = fmt.Sprintf("%s/customer/%s/orgunits", AdminDirectory, "%s")                   // https://developers.google.com/admin-sdk/directory/reference/rest/v1/orgunits
+	DirectoryPrivileges      = fmt.Sprintf("%s/privileges", AdminDirectory)                                   // https://developers.google.com/admin-sdk/directory/reference/rest/v1/privileges
+	DirectoryResources       = fmt.Sprintf("%s/customer/%s/resources", AdminDirectory, "%s")                  // https://developers.google.com/admin-sdk/directory/reference/rest/v1/resources
+	DirectoryRoleAssignments = fmt.Sprintf("%s/customer/%s/roleassignments", AdminDirectory, "%s")            // https://developers.google.com/admin-sdk/directory/reference/rest/v1/roleassignments
+	DirectoryRoles           = fmt.Sprintf("%s/customer/%s/roles", AdminDirectory, "%s")                      // https://developers.google.com/admin-sdk/directory/reference/rest/v1/roles
+	DirectorySchemas         = fmt.Sprintf("%s/schemas", AdminDirectory)                                      // https://developers.google.com/admin-sdk/directory/reference/rest/v1/schemas
+	DirectoryTokens          = fmt.Sprintf("%s/tokens", AdminDirectory)                                       // https://developers.google.com/admin-sdk/directory/reference/rest/v1/tokens
+	DirectoryUsers           = fmt.Sprintf("%s/users", AdminDirectory)                                        // https://developers.google.com/admin-sdk/directory/reference/rest/v1/users
+	AdminDirectoryBeta       = fmt.Sprintf("%s/admin/directory/v1.1beta1", AdminBaseURL)                      // https://support.google.com/chrome/a/answer/9681204?ref_topic=9301744
+	DirectoryChromeBrowsers  = fmt.Sprintf("%s/customer/%s/devices/chromebrowsers", AdminDirectoryBeta, "%s") // https://support.google.com/chrome/a/answer/9681204?ref_topic=9301744
+	AdminReports             = fmt.Sprintf("%s/admin/reports/v1", AdminBaseURL)                               // https://developers.google.com/admin-sdk/reports/reference/rest
+	ReportsActivities        = fmt.Sprintf("%s/activity/users/%s/applications/%s", AdminReports, "%s", "%s")  // https://developers.google.com/admin-sdk/reports/reference/rest/v1/activities
+	ReportsChannels          = fmt.Sprintf("%s/channels", AdminReports)                                       // https://developers.google.com/admin-sdk/reports/reference/rest/v1/channels
+	ReportsCustomerUsage     = fmt.Sprintf("%s/customerUsageReports", AdminReports)                           // https://developers.google.com/admin-sdk/reports/reference/rest/v1/customerUsageReports
+	ReportsEntityUsage       = fmt.Sprintf("%s/entityUsageReports", AdminReports)                             // https://developers.google.com/admin-sdk/reports/reference/rest/v1/entityUsageReports
+	ReportsUserUsage         = fmt.Sprintf("%s/userUsageReport", AdminReports)                                // https://developers.google.com/admin-sdk/reports/reference/rest/v1/userUsageReport
 )
 
 /*
