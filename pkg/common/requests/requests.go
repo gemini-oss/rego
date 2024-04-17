@@ -18,6 +18,7 @@ import (
 type Headers map[string]string
 
 const (
+	All               = "*/*"                               // RFC-7231 (https://www.rfc-editor.org/rfc/rfc7231.html)
 	Atom              = "application/atom+xml"              // RFC-4287 (https://www.rfc-editor.org/rfc/rfc4287.html)
 	CSS               = "text/css"                          // RFC-2318 (https://www.rfc-editor.org/rfc/rfc2318.html)
 	Excel             = "application/vnd.ms-excel"          // Proprietary
@@ -179,8 +180,9 @@ func SetFormURLEncodedPayload(req *http.Request, data interface{}) error {
 	for key, value := range parameters {
 		switch v := value.(type) {
 		case []interface{}:
+			arrayKey := fmt.Sprintf("%s[]", key)
 			for _, item := range v {
-				formData.Add(key, fmt.Sprintf("%v", item))
+				formData.Add(arrayKey, fmt.Sprintf("%v", item))
 			}
 		default:
 			formData.Add(key, fmt.Sprintf("%v", value))

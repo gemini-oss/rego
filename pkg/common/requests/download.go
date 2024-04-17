@@ -14,7 +14,12 @@ import (
 
 func (c *Client) DownloadFile(url, filepath, filename string) error {
 
-	resp, err := c.httpClient.Get(url)
+	req, err := c.CreateRequest("GET", url)
+	if err != nil {
+		return fmt.Errorf("error creating request: %w", err)
+	}
+
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("error performing request: %w", err)
 	}
