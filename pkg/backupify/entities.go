@@ -28,6 +28,7 @@ type Client struct {
 	exportToken string           // exportToken is the token used to export data from Backupify.
 }
 
+type AppType string // AppType is the type of Backupify application.
 // END OF BACKUPIFY CLIENT STRUCTS
 //----------------------------------------------------------------------
 
@@ -161,13 +162,14 @@ type User struct {
 	Email          string      `json:"email,omitempty"`          // Email address
 	ID             int         `json:"id,omitempty"`             // Unique identifier
 	LatestSnap     interface{} `json:"latestSnap,omitempty"`     // Latest snapshot ID
-	LocalSize      int         `json:"localSize,omitempty"`      // Local size
+	LocalSize      int64       `json:"localSize,omitempty"`      // Local size
 	Name           string      `json:"name,omitempty"`           // Name of the item
-	OwnSize        int         `json:"ownSize,omitempty"`        // Owned size
+	OwnSize        int64       `json:"ownSize,omitempty"`        // Owned size
 	Path           string      `json:"path,omitempty"`           // File path
 	PerfectBackups []Snapshot  `json:"perfectBackups,omitempty"` // List of perfect backups
 	ReferencedSize int         `json:"referencedSize,omitempty"` // Referenced size
 	Snapshots      []Snapshot  `json:"snapshots,omitempty"`      // List of snapshots
+	SnapshotDates  *Snapshots  `json:"snapshotDates,omitempty"`  // Map of snapshot dates
 	Status         string      `json:"status,omitempty"`         // Status of the item
 	StorageFormat  string      `json:"storageFormat,omitempty"`  // Storage format
 	UpdatedAt      int64       `json:"updatedAt,omitempty"`      // Update timestamp
@@ -175,8 +177,11 @@ type User struct {
 	UsedBytesFloat float64     `json:"usedBytesFloat,omitempty"` // Used bytes in float format
 }
 
+type Snapshots map[string][]Snapshot // Map of snapshot dates
+
 type Snapshot struct {
-	SnapshotId int64 `json:"snapshotId,omitempty"` // ID of the snapshot
+	ID   int64  `json:"snapshotId,omitempty"`         // ID of the snapshot
+	Date string `json:"formattedForButton,omitempty"` // Text formatted for display on a button.
 }
 
 type UserPayload struct {
@@ -207,5 +212,16 @@ type Search struct {
 	Regex bool   `json:"regex"` // Regex flag
 }
 
+type SnapshotsPayload struct {
+	AppType   AppType `json:"appType"`   // Type of Backupify application
+	ServiceID int     `json:"serviceId"` // Identity to target. e.g. [userID]
+}
+
 // END OF BACKUPIFY USER STRUCTS
 //----------------------------------------------------------------------
+
+type DeletePayload struct {
+	Type    string  `json:"type"`    // Type of deletion
+	AppType AppType `json:"appType"` // Type of Backupify application
+	ID      int     `json:"id"`      // Identity to target. e.g. [snapshotID]
+}

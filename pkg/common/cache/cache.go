@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/gob"
 	"errors"
+	"path/filepath"
 	"os"
 	"sync"
 	"time"
@@ -59,7 +60,7 @@ func NewCache(args ...interface{}) (*Cache, error) {
 		case []byte:
 			opts.EncryptionKey = v
 		case string:
-			opts.PersistencePath = v
+			opts.PersistencePath = filepath.Join(os.TempDir(), v)
 		case bool:
 			opts.InMemory = v
 		case int:

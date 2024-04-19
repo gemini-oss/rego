@@ -26,12 +26,12 @@ import (
 const (
 	backupifyBaseURL    = "https://%s.backupify.com/%s"
 	customerServices    = "%s/customerServices"
+	delete              = "%s/delete"
 	download            = "%s/download"
 	getActivities       = "%s/getActivities"
 	restoreExportAction = "%s/restoreExportAction"
+	serviceSnapshots    = "%s/serviceSnaps"
 )
-
-type AppType string
 
 var (
 	kilobyte    float64 = 1024
@@ -137,7 +137,7 @@ func NewClient(verbosity int) *Client {
 		log.Fatal("REGO_ENCRYPTION_KEY is not set")
 	}
 
-	cache, err := cache.NewCache(encryptionKey, "/tmp/rego_cache_backupify.gob", 1000000)
+	cache, err := cache.NewCache(encryptionKey, "rego_cache_backupify.gob", 1000000)
 	if err != nil {
 		panic(err)
 	}

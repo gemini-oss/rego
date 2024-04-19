@@ -16,12 +16,14 @@ package backupify
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/gemini-oss/rego/pkg/common/requests"
 )
 
-// ActivityClient for chaining methods
+// ExportClient for chaining methods
 type ExportClient struct {
 	*Client
 }
@@ -51,24 +53,28 @@ func (c *ExportClient) ExportUsers(users *Users) error {
 }
 
 func (c *ExportClient) ExportUser(user *User) (*Exports, error) {
-	snapshotID := user.LatestSnap.(float64)
+	c.Log.Println("Perfect Backups: ", len(user.PerfectBackups))
+	c.Log.Println("Snapshots: ", len(user.Snapshots))
 
-	export, err := c.generateExport(c.exportToken, user.ID, snapshotID)
-	if err != nil {
-		c.Log.Fatal(err)
+	var exports Exports
+	for _, snapshot := range user.Snapshots {
+		export, err := c.generateExport(c.exportToken, user.ID, snapshot.ID)
+		if err != nil {
+			c.Log.Fatal(err)
+		}
+		exports = append(exports, export)
 	}
-	exports := Exports{export}
 
 	return &exports, nil
 }
 
-func (c *ExportClient) generateExport(token string, userID int, snapshotID float64) (*Export, error) {
+func (c *ExportClient) generateExport(token string, userID int, snapshotID int64) (*Export, error) {
 	url := c.BuildURL(restoreExportAction)
 
 	exportPayload := ExportPayload{
 		ActionType:         "export",
-		AppType:            "GoogleDrive",
-		SnapshotID:         fmt.Sprintf("%.0f", snapshotID),
+		AppType:            GoogleDrive,
+		SnapshotID:         fmt.Sprintf("%d", snapshotID),
 		Token:              token,
 		IncludePermissions: true,
 		IncludeAttachments: false,
@@ -115,6 +121,8 @@ func (c *ExportClient) DownloadAvailableExports(activities *Activities) {
 					},
 				}
 				c.DownloadExport(activity, export)
+				c.DeleteExport(activity, export)
+				// keep track of snapshot id
 			} else if activity.Status == "in progress" {
 				c.Log.Println("Activity is in progress. Skipping...")
 			}
@@ -136,12 +144,16 @@ func (c *ExportClient) DownloadExport(activity *Item, export *Export) error {
 	c.Log.Println("Downloading export for: ", activity.Run.Description.Services[0].ServiceEmail, "Snapshot ID", export.ResponseData.ID)
 	c.Log.Debug(url)
 
-	err := c.HTTP.DownloadFile(url,
-		fmt.Sprintf(
-			"./backupify/%s/%s",
+	pwd, err := os.Getwd()
+	if err != nil {
+		c.Log.Fatal(err)
+	}
+	err = c.HTTP.DownloadFile(url,
+		filepath.Join(pwd, fmt.Sprintf(
+			"backupify/%s/%s",
 			activity.Run.AppType,
 			activity.Run.Description.Services[0].ServiceEmail,
-		),
+		)),
 		fmt.Sprintf(
 			"%s-%s-%d.%s",
 			activity.Run.Description.Services[0].ServiceEmail,
@@ -150,6 +162,23 @@ func (c *ExportClient) DownloadExport(activity *Item, export *Export) error {
 			query.EXT,
 		),
 	)
+	if err != nil {
+		c.Log.Fatal(err)
+	}
+
+	return nil
+}
+
+func (c *ExportClient) DeleteExport(activity *Item, export *Export) error {
+	url := c.BuildURL(delete)
+
+	deleteQuery := DeletePayload{
+		Type:    "export",
+		AppType: AppType(export.ResponseData.AppType),
+		ID:      export.ResponseData.ID,
+	}
+
+	_, err := do[Export](c.Client, "POST", url, deleteQuery, nil)
 	if err != nil {
 		c.Log.Fatal(err)
 	}
