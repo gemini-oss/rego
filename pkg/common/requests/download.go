@@ -61,6 +61,11 @@ func (c *Client) DownloadFile(url, filepath, filename string) error {
 	}
 
 	// File creation
+	if _, err := os.Stat(filepath); os.IsNotExist(err) {
+		if err := os.MkdirAll(filepath, os.ModePerm); err != nil {
+			return fmt.Errorf("error creating directory: %w", err)
+		}
+	}
 	out, err := os.Create(fmt.Sprintf("%s/%s", filepath, filename))
 	if err != nil {
 		return fmt.Errorf("error creating file: %w", err)
@@ -68,6 +73,9 @@ func (c *Client) DownloadFile(url, filepath, filename string) error {
 	defer out.Close()
 
 	// Set up progress tracking
+	lineNum := getLineNumber()       // Get a unique line number for this download
+	defer releaseLineNumber(lineNum) // Ensure the line number is released after use
+
 	progressCh := make(chan progressData)
 	pr := &progress{
 		Reader:       resp.Body,
@@ -76,6 +84,7 @@ func (c *Client) DownloadFile(url, filepath, filename string) error {
 		lastUpdate:   0,
 		startTime:    time.Now(),
 		progressCh:   progressCh,
+		lineNum:      lineNum,
 	}
 	go pr.trackProgress(filename)
 

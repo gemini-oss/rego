@@ -143,10 +143,11 @@ func NewClient(verbosity int) *Client {
 	}
 
 	return &Client{
-		BaseURL: url,
-		HTTP:    httpClient,
-		Log:     log,
-		Cache:   cache,
+		BaseURL:     url,
+		HTTP:        httpClient,
+		Log:         log,
+		Cache:       cache,
+		exportToken: token,
 	}
 }
 

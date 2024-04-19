@@ -16,6 +16,7 @@ package backupify
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/gemini-oss/rego/pkg/common/requests"
 )
@@ -97,20 +98,58 @@ func (c *Client) CheckExportFilters(activities *Activities) {
 	}
 }
 
-func (c *ExportClient) DownloadExport(export *Export) error {
+func (c *ExportClient) DownloadAvailableExports(activities *Activities) {
+	c.Log.Println("Downloading all exports from Backupify...")
+
+	var wg sync.WaitGroup
+	for _, activity := range activities.Export.Items {
+		wg.Add(1)
+		go func(activity *Item) {
+			defer wg.Done()
+
+			if activity.Status == "completed" && activity.Export.Status == "Download" {
+				export := &Export{
+					ResponseData: ResponseData{
+						AppType: activity.Run.AppType,
+						ID:      activity.Run.ID,
+					},
+				}
+				c.DownloadExport(activity, export)
+			} else if activity.Status == "in progress" {
+				c.Log.Println("Activity is in progress. Skipping...")
+			}
+		}(activity)
+	}
+	wg.Wait()
+}
+
+func (c *ExportClient) DownloadExport(activity *Item, export *Export) error {
 	url := c.BuildURL(download)
 	query := ExportQuery{
 		Type:    "export",
-		AppType: "GoogleDrive",
+		AppType: export.ResponseData.AppType,
 		ID:      export.ResponseData.ID,
 		EXT:     "zip",
 	}
 
 	url = fmt.Sprintf("%s?type=%s&appType=%s&id=%d&ext=%s", url, query.Type, query.AppType, query.ID, query.EXT)
-	c.Log.Println("Downloading export from Backupify...")
-	c.Log.Println("URL:", url)
+	c.Log.Println("Downloading export for: ", activity.Run.Description.Services[0].ServiceEmail, "Snapshot ID", export.ResponseData.ID)
+	c.Log.Debug(url)
 
-	err := c.HTTP.DownloadFile(url, "", "")
+	err := c.HTTP.DownloadFile(url,
+		fmt.Sprintf(
+			"./backupify/%s/%s",
+			activity.Run.AppType,
+			activity.Run.Description.Services[0].ServiceEmail,
+		),
+		fmt.Sprintf(
+			"%s-%s-%d.%s",
+			activity.Run.Description.Services[0].ServiceEmail,
+			activity.Run.AppType,
+			export.ResponseData.ID,
+			query.EXT,
+		),
+	)
 	if err != nil {
 		c.Log.Fatal(err)
 	}

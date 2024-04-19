@@ -20,12 +20,12 @@ import (
 // ### Backupify Client Structs
 // ---------------------------------------------------------------------
 type Client struct {
-	BaseURL string           // BaseURL is the base URL for Backupify requests.
-	HTTP    *requests.Client // HTTPClient is the client used to make HTTP requests.
-	Error   string           // Error is the error message returned from the Backupify WebUI.
-	Log     *log.Logger      // Log is the logger used to log messages.
-	Cache   *cache.Cache     // Cache is the cache used to store responses from the Backupify WebUI.
-	exportToken string       // exportToken is the token used to export data from Backupify.
+	BaseURL     string           // BaseURL is the base URL for Backupify requests.
+	HTTP        *requests.Client // HTTPClient is the client used to make HTTP requests.
+	Error       string           // Error is the error message returned from the Backupify WebUI.
+	Log         *log.Logger      // Log is the logger used to log messages.
+	Cache       *cache.Cache     // Cache is the cache used to store responses from the Backupify WebUI.
+	exportToken string           // exportToken is the token used to export data from Backupify.
 }
 
 // END OF BACKUPIFY CLIENT STRUCTS
@@ -73,7 +73,7 @@ type Run struct {
 	CreatedAt             int64       `json:"createdAt,omitempty"`             // Creation timestamp
 	CustomerId            int         `json:"customerId,omitempty"`            // ID of the customer
 	Description           Description `json:"description,omitempty"`           // Description of the run
-	ID                    int64       `json:"id,omitempty"`                    // ID of the run
+	ID                    int         `json:"id,omitempty"`                    // ID of the run
 	TimeTakenMilliseconds int         `json:"timeTakenMilliseconds,omitempty"` // Time taken in milliseconds
 }
 

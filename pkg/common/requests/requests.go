@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/gemini-oss/rego/pkg/common/log"
 	rl "github.com/gemini-oss/rego/pkg/common/ratelimit"
 	"github.com/gemini-oss/rego/pkg/common/retry"
 	ss "github.com/gemini-oss/rego/pkg/common/starstruct"
@@ -41,6 +42,10 @@ const (
 	XML               = "application/xml"                   // RFC-7303 (https://www.rfc-editor.org/rfc/rfc7303.html)
 	YAML              = "application/yaml"                  // RFC-9512 (https://www.rfc-editor.org/rfc/rfc9512.html)
 	ZIP               = "application/zip"                   // RFC-1951 (https://www.rfc-editor.org/rfc/rfc1951.html)
+)
+
+var (
+	l = log.NewLogger("{requests}", log.DEBUG)
 )
 
 /*
