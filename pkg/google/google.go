@@ -256,7 +256,7 @@ func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
 		log.Fatal("REGO_ENCRYPTION_KEY is not set")
 	}
 
-	cache, err := cache.NewCache(encryptionKey, "/tmp/rego_cache_google.gob", 1000000)
+	cache, err := cache.NewCache(encryptionKey, "rego_cache_google.gob", 1000000)
 	if err != nil {
 		panic(err)
 	}

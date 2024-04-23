@@ -162,7 +162,7 @@ func NewClient(verbosity int) *Client {
 		panic("REGO_ENCRYPTION_KEY is not set.")
 	}
 
-	cache, err := cache.NewCache(encryptionKey, "/tmp/rego_cache_jamf.gob")
+	cache, err := cache.NewCache(encryptionKey, "rego_cache_jamf.gob")
 	if err != nil {
 		panic(err)
 	}

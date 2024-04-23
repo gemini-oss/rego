@@ -20,17 +20,21 @@ type TestStruct struct {
 	} `json:"address"`
 }
 
-// TestPrettyJSON tests the PrettyJSON function for various struct inputs.
-func TestPrettyJSON(t *testing.T) {
-	testStruct := TestStruct{
+var (
+	defaultTestStruct = TestStruct{
 		Name: "Anthony Dardano",
 		Age:  0,
 		Tags: []string{"Staff Enterprise Infrastructure Engineer", "DJ"},
 		Address: struct {
-			City  string "json:\"city\""
-			State string "json:\"state\""
+			City  string `json:"city"`
+			State string `json:"state"`
 		}{City: "N/A", State: "FL"},
 	}
+)
+
+// TestPrettyJSON tests the PrettyJSON function for various struct inputs.
+func TestPrettyJSON(t *testing.T) {
+	testStruct := defaultTestStruct
 
 	expectedJSON := `{
   "name": "Anthony Dardano",
@@ -62,15 +66,7 @@ func TestPrettyJSON(t *testing.T) {
 
 // TestStructToMap tests the StructToMap function for various struct inputs.
 func TestToMap(t *testing.T) {
-	testStruct := TestStruct{
-		Name: "Anthony Dardano",
-		Age:  0,
-		Tags: []string{"Staff Enterprise Infrastructure Engineer", "DJ"},
-		Address: struct {
-			City  string `json:"city"`
-			State string `json:"state"`
-		}{City: "N/A", State: "FL"},
-	}
+	testStruct := defaultTestStruct
 
 	expectedMap := map[string]interface{}{
 		"name":    "Anthony Dardano",
@@ -107,15 +103,7 @@ func TestToMap(t *testing.T) {
 
 // TestFlattenStructFields tests the FlattenStructFields function for various struct inputs.
 func TestFlattenStructFields(t *testing.T) {
-	testStruct := TestStruct{
-		Name: "Anthony Dardano",
-		Age:  0,
-		Tags: []string{"Staff Enterprise Infrastructure Engineer", "DJ"},
-		Address: struct {
-			City  string "json:\"city\""
-			State string "json:\"state\""
-		}{City: "N/A", State: "FL"},
-	}
+	testStruct := defaultTestStruct
 
 	fields := []string{"name", "age", "tags", "address.city", "address.state"}
 	expectedSlice := [][]string{
@@ -134,5 +122,156 @@ func TestFlattenStructFields(t *testing.T) {
 	}
 	if !reflect.DeepEqual(got, expectedSlice) {
 		t.Errorf("FlattenStructFields() = %v, want %v", got, expectedSlice)
+	}
+}
+
+// TestFlattenStructFieldsSelective tests the FlattenStructFields function for various struct inputs, and ensures the output is only what's desired
+func TestFlattenStructFieldsSelective(t *testing.T) {
+	testStruct := defaultTestStruct
+
+	fields := []string{"name", "tags", "address.state"}
+	expectedSlice := [][]string{
+		{"name", "Anthony Dardano"},
+		{"tags.0", "Staff Enterprise Infrastructure Engineer"},
+		{"tags.1", "DJ"},
+		{"address.state", "FL"},
+	}
+
+	got, err := starstruct.FlattenStructFields(testStruct, &fields)
+	if err != nil {
+		t.Errorf("FlattenStructFields() error = %v, wantErr false", err)
+		return
+	}
+	if !reflect.DeepEqual(got, expectedSlice) {
+		t.Errorf("FlattenStructFields() = %v, want %v", got, expectedSlice)
+	}
+}
+
+// TestGenerateFieldNames tests the FlattenStructFields function for dynamic field generation using TestStruct.
+func TestGenerateFieldNames(t *testing.T) {
+	testStruct := defaultTestStruct
+
+	// Testing with direct struct
+	fields, err := starstruct.GenerateFieldNames("", reflect.ValueOf(testStruct))
+	if err != nil {
+		t.Errorf("GenerateFieldNames() error = %v, wantErr false", err)
+		return
+	}
+
+	expectedFields := []string{"name", "age", "tags", "address.city", "address.state"}
+	if !reflect.DeepEqual(*fields, expectedFields) {
+		t.Errorf("GenerateFieldNames() fields = %v, want %v", *fields, expectedFields)
+	}
+
+	// Testing with a pointer to a struct (single level of indirection)
+	ptrToStruct := &testStruct
+	fields, err = starstruct.GenerateFieldNames("", reflect.ValueOf(ptrToStruct))
+	if err != nil {
+		t.Errorf("GenerateFieldNames() error with pointer to struct = %v, wantErr false", err)
+		return
+	}
+	if !reflect.DeepEqual(*fields, expectedFields) {
+		t.Errorf("GenerateFieldNames() got = %v, want %v for pointer to struct", *fields, expectedFields)
+	}
+
+	// Testing with a pointer to a pointer to a struct (two levels of indirection)
+	ptrToPtrToStruct := &ptrToStruct
+	fields, err = starstruct.GenerateFieldNames("", reflect.ValueOf(ptrToPtrToStruct))
+	if err != nil {
+		t.Errorf("GenerateFieldNames() error with pointer to pointer to struct = %v, wantErr false", err)
+		return
+	}
+	if !reflect.DeepEqual(*fields, expectedFields) {
+		t.Errorf("GenerateFieldNames() got = %v, want %v for pointer to pointer to struct", *fields, expectedFields)
+	}
+
+	// Test with a slice of pointers to structs
+	sliceOfPtrsToStructs := []*TestStruct{ptrToStruct, ptrToStruct}
+	fields, err = starstruct.GenerateFieldNames("", reflect.ValueOf(sliceOfPtrsToStructs))
+	if err != nil {
+		t.Errorf("GenerateFieldNames() error with slice of pointers to structs = %v, wantErr false", err)
+		return
+	}
+	if !reflect.DeepEqual(*fields, expectedFields) {
+		t.Errorf("GenerateFieldNames() got = %v, want %v for slice of pointers to structs", *fields, expectedFields)
+	}
+
+	// Test with non-struct and non-slice (should return error)
+	nonStructInput := 123
+	_, err = starstruct.GenerateFieldNames("", reflect.ValueOf(nonStructInput))
+	if err == nil {
+		t.Errorf("GenerateFieldNames() did not return error for non-struct and non-slice input")
+	}
+}
+
+// TestKeyOrderingInMap checks the numerical ordering of keys representing indices in a slice.
+func TestKeyOrderingInMap(t *testing.T) {
+	testStruct := struct {
+		Items []string `json:"items"`
+	}{
+		Items: []string{"first", "second", "third", "fourth"},
+	}
+
+	expectedSlice := [][]string{
+		{"items.0", "first"},
+		{"items.1", "second"},
+		{"items.2", "third"},
+		{"items.3", "fourth"},
+	}
+
+	fields := []string{"items"}
+	gotSlice, err := starstruct.FlattenStructFields(testStruct, &fields)
+	if err != nil {
+		t.Errorf("FlattenStructFields() error = %v", err)
+		return
+	}
+
+	if !reflect.DeepEqual(gotSlice, expectedSlice) {
+		t.Errorf("FlattenStructFields() got = %v, want %v", gotSlice, expectedSlice)
+	}
+}
+
+// TestComplexNestedStructureOrdering ensures that nested structures are ordered properly.
+func TestComplexNestedStructureOrdering(t *testing.T) {
+	testStruct := struct {
+		Config struct {
+			Settings []struct {
+				Key   string `json:"key"`
+				Value string `json:"value"`
+			} `json:"settings"`
+		} `json:"config"`
+	}{
+		Config: struct {
+			Settings []struct {
+				Key   string `json:"key"`
+				Value string `json:"value"`
+			} `json:"settings"`
+		}{
+			Settings: []struct {
+				Key   string `json:"key"`
+				Value string `json:"value"`
+			}{
+				{Key: "timeout", Value: "30s"},
+				{Key: "retry", Value: "5"},
+			},
+		},
+	}
+
+	expectedSlice := [][]string{
+		{"config.settings.0.key", "timeout"},
+		{"config.settings.0.value", "30s"},
+		{"config.settings.1.key", "retry"},
+		{"config.settings.1.value", "5"},
+	}
+
+	fields := []string{"config.settings"}
+	gotSlice, err := starstruct.FlattenStructFields(testStruct, &fields)
+	if err != nil {
+		t.Errorf("FlattenStructFields() error = %v", err)
+		return
+	}
+
+	if !reflect.DeepEqual(gotSlice, expectedSlice) {
+		t.Errorf("FlattenStructFields() got = %v, want %v", gotSlice, expectedSlice)
 	}
 }

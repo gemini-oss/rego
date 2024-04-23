@@ -14,6 +14,7 @@ package google
 
 import (
 	"fmt"
+	"reflect"
 
 	ss "github.com/gemini-oss/rego/pkg/common/starstruct"
 )
@@ -227,4 +228,74 @@ func (c *Client) FormatHeaderAndAutoSize(spreadsheetId string, rows int, columns
 	}
 
 	return nil
+}
+
+/*
+ * # Save to Sheet
+ * - Saves a variety of data types to a Google Sheet (array, map, slice, struct)
+ */
+func (c *Client) SaveToSheet(data interface{}, sheetID string, headers *[]string) error {
+	// Dereference all pointers first to simplify further processing
+	val, err := ss.DerefPointers(reflect.ValueOf(data))
+	if err != nil {
+		return err
+	}
+
+	// Handle sheet creation if ID isn't provided
+	if sheetID == "" {
+		c.Log.Println("Creating new sheet as no sheet ID was provided.")
+		sheet, err := c.CreateSpreadsheet()
+		if err != nil {
+			return err
+		}
+		sheetID = sheet.SpreadsheetID
+	}
+
+	// Generate headers if not provided
+	if headers == nil {
+		headers, err = ss.GenerateFieldNames("", val)
+		if err != nil {
+			return err
+		}
+	}
+
+	vr, err := prepareAndGenerateValueRange(val, headers)
+	if err != nil {
+		return err
+	}
+
+	c.Log.Println("Updating spreadsheet data.")
+	if err := c.UpdateSpreadsheet(sheetID, vr); err != nil {
+		return err
+	}
+
+	c.Log.Println("Auto-formatting the spreadsheet.")
+	rows := len(vr.Values)
+	columns := len(vr.Values[0])
+	c.FormatHeaderAndAutoSize(sheetID, rows, columns)
+
+	return nil
+}
+
+func prepareAndGenerateValueRange(val reflect.Value, headers *[]string) (*ValueRange, error) {
+	var sheetData []interface{}
+
+	switch val.Kind() {
+	case reflect.Map:
+		sheetData = make([]interface{}, 0, val.Len())
+		for _, key := range val.MapKeys() {
+			sheetData = append(sheetData, val.MapIndex(key).Interface())
+		}
+	case reflect.Slice, reflect.Array:
+		sheetData = make([]interface{}, val.Len())
+		for i := 0; i < val.Len(); i++ {
+			sheetData[i] = val.Index(i).Interface()
+		}
+	case reflect.Struct:
+		sheetData = []interface{}{val.Interface()}
+	default:
+		return nil, fmt.Errorf("unsupported data type: %s", val.Kind())
+	}
+
+	return GenerateValueRange(sheetData, headers), nil
 }
