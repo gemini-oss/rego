@@ -343,7 +343,12 @@ func (c *Client) SaveRoleReport(reports []*RoleReport) (*Spreadsheet, error) {
 	}
 
 	c.Log.Println("Creating new spreadsheet for role report")
-	spreadsheet, err := c.CreateSpreadsheet()
+	sheet := &Spreadsheet{
+		Properties: &SpreadsheetProperties{
+			Title: fmt.Sprintf("{Google} Entitlement Review %s", time.Now().Format("2006-01-02")),
+		},
+	}
+	spreadsheet, err := c.CreateSpreadsheet(sheet)
 	if err != nil {
 		return nil, err
 	}
@@ -357,7 +362,7 @@ func (c *Client) SaveRoleReport(reports []*RoleReport) (*Spreadsheet, error) {
 	c.Log.Println("Formatting spreadsheet")
 	rows := len(vr.Values)
 	columns := len(headers)
-	c.FormatHeaderAndAutoSize(spreadsheet.SpreadsheetID, rows, columns)
+	c.FormatHeaderAndAutoSize(spreadsheet.SpreadsheetID, &spreadsheet.Sheets[0], rows, columns)
 
 	return spreadsheet, nil
 }

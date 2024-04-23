@@ -15,6 +15,7 @@ package google
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	ss "github.com/gemini-oss/rego/pkg/common/starstruct"
 )
@@ -33,10 +34,15 @@ var (
  * Query Parameters for Sheet Values
  */
 type SheetValueQuery struct {
-	ValueInputOption             string // How the input data should be interpreted. Accepted values are: RAW or USER_ENTERED. The default is USER_ENTERED.
-	IncludeValuesInResponse      bool   // Determines if the update response should include the values of the cells that were updated. By default, responses do not include the updated values. If the range to write was larger than the range actually written, the response includes all values in the requested range (excluding trailing empty rows and columns).
-	ResponseValueRenderOption    string // Determines how values in the response should be rendered. The default render option is FORMATTED_VALUE.
-	ResponseDateTimeRenderOption string // Determines how dates, times, and durations in the response should be rendered. This is ignored if responseValueRenderOption is FORMATTED_VALUE. The default dateTime render option is SERIAL_NUMBER.
+	Ranges                       []string `url:"ranges,omitempty"`                        // The ranges to retrieve from the spreadsheet.
+	IncludeGridData              bool     `url:"includeGridData,omitempty"`              // True if grid data should be returned. This parameter is ignored if a field mask was set in the request.
+	MajorDimension               string   `url:"majorDimension,omitempty"`               // https://developers.google.com/sheets/api/reference/rest/v4/Dimension
+	ValueRenderOption            string   `url:"valueRenderOption,omitempty"`            // https://developers.google.com/sheets/api/reference/rest/v4/ValueRenderOption
+	DateTimeRenderOption         string   `url:"dateTimeRenderOption,omitempty"`         // https://developers.google.com/sheets/api/reference/rest/v4/DateTimeRenderOption
+	ValueInputOption             string   `url:"valueInputOption,omitempty"`             // How the input data should be interpreted. Accepted values are: RAW or USER_ENTERED. The default is USER_ENTERED.
+	IncludeValuesInResponse      bool     `url:"includeValuesInResponse,omitempty"`      // Determines if the update response should include the values of the cells that were updated. By default, responses do not include the updated values. If the range to write was larger than the range actually written, the response includes all values in the requested range (excluding trailing empty rows and columns).
+	ResponseValueRenderOption    string   `url:"responseValueRenderOption,omitempty"`    // Determines how values in the response should be rendered. The default render option is FORMATTED_VALUE.
+	ResponseDateTimeRenderOption string   `url:"responseDateTimeRenderOption,omitempty"` // Determines how dates, times, and durations in the response should be rendered. This is ignored if responseValueRenderOption is FORMATTED_VALUE. The default dateTime render option is SERIAL_NUMBER.
 }
 
 /*
@@ -59,10 +65,15 @@ func VerifySheetValueRange(vr *ValueRange) error {
 /*
  * Generate Google Sheets ValueRange from a slice of any structs
  */
-func GenerateValueRange(data []interface{}, headers *[]string) *ValueRange {
+func GenerateValueRange(data []interface{}, sheetName string, headers *[]string) *ValueRange {
 	vr := &ValueRange{
 		MajorDimension: "ROWS",
-		Range:          "A:ZZ",
+	}
+
+	if sheetName != "" {
+		vr.Range = fmt.Sprintf("%s!A:ZZ", sheetName)
+	} else {
+		vr.Range = "A:ZZ"
 	}
 
 	vr.Values = append(vr.Values, *headers)
@@ -90,22 +101,22 @@ func GenerateValueRange(data []interface{}, headers *[]string) *ValueRange {
  * - Creates a new spreadsheet, with basic properties.
  *   - https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/create
  */
-func (c *Client) CreateSpreadsheet() (*Spreadsheet, error) {
+func (c *Client) CreateSpreadsheet(s *Spreadsheet) (*Spreadsheet, error) {
 	url := Sheets
 
-	spreadsheet, err := do[*Spreadsheet](c, "POST", url, nil, nil)
+	spreadsheet, err := do[Spreadsheet](c, "POST", url, nil, s)
 	if err != nil {
 		return nil, err
 	}
 
-	return spreadsheet, nil
+	return &spreadsheet, nil
 }
 
 /*
  * # Spreadsheet Values: Update
- * - Sets/Replaces values in a range of a spreadsheet. The caller must specify the spreadsheet ID, range, and a valueInputOption
- *   - https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/values/{range}
- *   - https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/update
+ * Sets/Replaces values in a range of a spreadsheet. The caller must specify the spreadsheet ID, range, and a valueInputOption
+ * spreadsheets/{spreadsheetId}/values/{range}
+ * https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/update
  */
 func (c *Client) UpdateSpreadsheet(spreadsheetID string, vr *ValueRange) error {
 
@@ -161,8 +172,8 @@ func (c *Client) AppendSpreadsheet(spreadsheetID string, vr *ValueRange) error {
  * # Format Header and AutoSize
  * - Sets the header row to bold and green, and auto-sizes all columns
  */
-func (c *Client) FormatHeaderAndAutoSize(spreadsheetId string, rows int, columns int) error {
-	url := fmt.Sprintf("%s/%s:batchUpdate", Sheets, spreadsheetId)
+func (c *Client) FormatHeaderAndAutoSize(spreadsheetID string, sheet *Sheet, rows, columns int) error {
+	url := fmt.Sprintf("%s/%s:batchUpdate", Sheets, spreadsheetID)
 
 	format := &SheetBatchRequest{}
 
@@ -170,7 +181,7 @@ func (c *Client) FormatHeaderAndAutoSize(spreadsheetId string, rows int, columns
 	format.Requests = append(format.Requests, &SheetRequest{
 		RepeatCell: &RepeatCellRequest{
 			Range: &GridRange{
-				SheetID:          0,
+				SheetID:          sheet.Properties.SheetID,
 				StartRowIndex:    0,
 				EndRowIndex:      1,
 				StartColumnIndex: 0,
@@ -199,7 +210,7 @@ func (c *Client) FormatHeaderAndAutoSize(spreadsheetId string, rows int, columns
 		SetBasicFilter: &SetBasicFilterRequest{
 			Filter: &BasicFilter{
 				Range: &GridRange{
-					SheetID:          0, // Currently assumes the original sheet from a new spreadsheet
+					SheetID:          sheet.Properties.SheetID,
 					StartRowIndex:    0,
 					EndRowIndex:      rows,
 					StartColumnIndex: 0,
@@ -213,7 +224,7 @@ func (c *Client) FormatHeaderAndAutoSize(spreadsheetId string, rows int, columns
 	format.Requests = append(format.Requests, &SheetRequest{
 		AutoResizeDimensions: &AutoResizeDimensionsRequest{
 			Dimensions: &DimensionRange{
-				SheetID:    0,
+				SheetID:    sheet.Properties.SheetID,
 				Dimension:  "COLUMNS",
 				StartIndex: 0,
 				EndIndex:   columns,
@@ -234,7 +245,7 @@ func (c *Client) FormatHeaderAndAutoSize(spreadsheetId string, rows int, columns
  * # Save to Sheet
  * - Saves a variety of data types to a Google Sheet (array, map, slice, struct)
  */
-func (c *Client) SaveToSheet(data interface{}, sheetID string, headers *[]string) error {
+func (c *Client) SaveToSheet(data interface{}, sheetID, sheetName string, headers *[]string) error {
 	// Dereference all pointers first to simplify further processing
 	val, err := ss.DerefPointers(reflect.ValueOf(data))
 	if err != nil {
@@ -242,13 +253,35 @@ func (c *Client) SaveToSheet(data interface{}, sheetID string, headers *[]string
 	}
 
 	// Handle sheet creation if ID isn't provided
+	sheet := &Spreadsheet{}
 	if sheetID == "" {
 		c.Log.Println("Creating new sheet as no sheet ID was provided.")
-		sheet, err := c.CreateSpreadsheet()
+		newSpreadsheet := &Spreadsheet{
+			Properties: &SpreadsheetProperties{
+				Title: fmt.Sprintf("{Rego} New Spreadsheet %s", time.Now().Format("2006-01-02 15:04:05")),
+			},
+			Sheets: []Sheet{
+				{
+					Properties: &SheetProperties{
+						Title: sheetName,
+					},
+				},
+			},
+		}
+		sheet, err = c.CreateSpreadsheet(newSpreadsheet)
 		if err != nil {
 			return err
 		}
 		sheetID = sheet.SpreadsheetID
+	} else {
+		sheet, err = c.GetSpreadsheet(sheetID)
+		if err != nil {
+			return err
+		}
+	}
+
+	if sheetName == "" {
+		sheetName = "Sheet1"
 	}
 
 	// Generate headers if not provided
@@ -259,7 +292,7 @@ func (c *Client) SaveToSheet(data interface{}, sheetID string, headers *[]string
 		}
 	}
 
-	vr, err := prepareAndGenerateValueRange(val, headers)
+	vr, err := prepareAndGenerateValueRange(val, sheetName, headers)
 	if err != nil {
 		return err
 	}
@@ -272,12 +305,16 @@ func (c *Client) SaveToSheet(data interface{}, sheetID string, headers *[]string
 	c.Log.Println("Auto-formatting the spreadsheet.")
 	rows := len(vr.Values)
 	columns := len(vr.Values[0])
-	c.FormatHeaderAndAutoSize(sheetID, rows, columns)
+	for _, sheet := range sheet.Sheets {
+		if sheet.Properties.Title == sheetName {
+			c.FormatHeaderAndAutoSize(sheetID, &sheet, rows, columns)
+		}
+	}
 
 	return nil
 }
 
-func prepareAndGenerateValueRange(val reflect.Value, headers *[]string) (*ValueRange, error) {
+func prepareAndGenerateValueRange(val reflect.Value, sheetName string, headers *[]string) (*ValueRange, error) {
 	var sheetData []interface{}
 
 	switch val.Kind() {
@@ -297,5 +334,53 @@ func prepareAndGenerateValueRange(val reflect.Value, headers *[]string) (*ValueR
 		return nil, fmt.Errorf("unsupported data type: %s", val.Kind())
 	}
 
-	return GenerateValueRange(sheetData, headers), nil
+	return GenerateValueRange(sheetData, sheetName, headers), nil
+}
+
+/*
+ * # Spreadsheet: Get
+ * Get a spreadsheet and its properties by ID
+ * spreadsheets/{spreadsheetId}
+ * https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/get
+ */
+func (c *Client) GetSpreadsheet(sheetID string) (*Spreadsheet, error) {
+	url := fmt.Sprintf(SheetByID, sheetID)
+
+	q := SheetValueQuery{
+		IncludeGridData: false,
+	}
+
+	spreadsheet, err := do[Spreadsheet](c, "GET", url, q, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return &spreadsheet, nil
+}
+
+/*
+ * # Spreadsheet: Read
+ * Reads values from a spreadsheet
+ * spreadsheets/{spreadsheetId}/values/{range}
+ * https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/get
+ */
+func (c *Client) ReadSpreadsheetValues(sheetID, rangeNotation string) (*ValueRange, error) {
+
+	if rangeNotation == "" {
+		rangeNotation = "Sheet1!A:ZZ"
+	}
+
+	q := SheetValueQuery{
+		MajorDimension:    "ROWS",
+		ValueRenderOption: "UNFORMATTED_VALUE",
+	}
+
+	url := fmt.Sprintf("%s/%s/values/%s", Sheets, sheetID, rangeNotation)
+
+	vr, err := do[ValueRange](c, "GET", url, q, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return &vr, nil
 }

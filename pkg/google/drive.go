@@ -361,36 +361,15 @@ func (c *Client) fetchSubFiles(file *File, parentPath string, sem chan struct{},
 */
 func (c *Client) SaveFileListToSheet(fileList *FileList, sheetID string, headers *[]string) error {
 
-	if sheetID == "" {
-		c.Log.Println("No sheet ID provided, creating new sheet")
-		c.Log.Println("Creating new spreadsheet for file list")
-		sheet, err := c.CreateSpreadsheet()
-		if err != nil {
-			return err
-		}
-		sheetID = sheet.SpreadsheetID
-	}
-
-	sheetData := make([]interface{}, len(*fileList.Files))
-	for i, v := range *fileList.Files {
-		sheetData[i] = v
-	}
-
 	c.Log.Println("Saving File List to spreadsheet")
 	if headers == nil {
 		headers = &[]string{"id", "name", "path", "md5Checksum", "mimeType", "originalFilename", "owners", "parents", "shortcutDetails"}
 	}
-	vr := GenerateValueRange(sheetData, headers)
-	err := c.UpdateSpreadsheet(sheetID, vr)
+
+	err := c.SaveToSheet(fileList.Files, sheetID, (*fileList.Files)[0].ID, headers)
 	if err != nil {
 		return err
 	}
-
-	c.Log.Println("Formatting spreadsheet")
-	rows := len(vr.Values)
-	columns := len(vr.Values[0])
-	c.FormatHeaderAndAutoSize(sheetID, rows, columns)
-
 	return nil
 }
 

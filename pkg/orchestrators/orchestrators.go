@@ -12,6 +12,9 @@ This package contains some functions involving practical examples of multi-servi
 package orchestrators
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/gemini-oss/rego/pkg/active_directory"
 	"github.com/gemini-oss/rego/pkg/common/log"
 	"github.com/gemini-oss/rego/pkg/google"
@@ -41,7 +44,19 @@ func (c *Client) OktaRoleReportToGoogleSheet() error {
 		return err
 	}
 
-	sheet, err := c.Google.CreateSpreadsheet()
+	newSpreadsheet := &google.Spreadsheet{
+		Properties: &google.SpreadsheetProperties{
+			Title: fmt.Sprintf("{Okta} Entitlement Review %s", time.Now().Format("2006-01-02")),
+		},
+		Sheets: []google.Sheet{
+			{
+				Properties: &google.SheetProperties{
+					Title: "Role Report",
+				},
+			},
+		},
+	}
+	sheet, err := c.Google.CreateSpreadsheet(newSpreadsheet)
 	if err != nil {
 		return err
 	}
@@ -67,7 +82,7 @@ func (c *Client) OktaRoleReportToGoogleSheet() error {
 		return err
 	}
 
-	err = c.Google.FormatHeaderAndAutoSize(sheet.SpreadsheetID, rows, columns)
+	err = c.Google.FormatHeaderAndAutoSize(sheet.SpreadsheetID, &sheet.Sheets[0], rows, columns)
 	if err != nil {
 		return err
 	}
@@ -90,7 +105,19 @@ func (c *Client) ADReportToGoogleSheet(group string) error {
 		return err
 	}
 
-	sheet, err := c.Google.CreateSpreadsheet()
+	newSpreadsheet := &google.Spreadsheet{
+		Properties: &google.SpreadsheetProperties{
+			Title: fmt.Sprintf("{Active Directory} Entitlement Review [%s] %s", group, time.Now().Format("2006-01-02")),
+		},
+		Sheets: []google.Sheet{
+			{
+				Properties: &google.SheetProperties{
+					Title: "Role Report",
+				},
+			},
+		},
+	}
+	sheet, err := c.Google.CreateSpreadsheet(newSpreadsheet)
 	if err != nil {
 		return err
 	}
@@ -114,7 +141,7 @@ func (c *Client) ADReportToGoogleSheet(group string) error {
 		return err
 	}
 
-	err = c.Google.FormatHeaderAndAutoSize(sheet.SpreadsheetID, rows, columns)
+	err = c.Google.FormatHeaderAndAutoSize(sheet.SpreadsheetID, &sheet.Sheets[0], rows, columns)
 	if err != nil {
 		return err
 	}
