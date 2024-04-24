@@ -138,7 +138,7 @@ func (c *UsersClient) ListAllUsers() (*Users, error) {
 		users.NextPageToken = usersPage.NextPageToken
 	}
 
-	c.SetCache(url, users, 5*time.Minute)
+	c.SetCache(url, users, 30*time.Minute)
 	return &users, nil
 }
 

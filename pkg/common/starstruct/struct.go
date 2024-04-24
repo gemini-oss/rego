@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -156,7 +157,7 @@ func FlattenStructFields(item interface{}, fields *[]string) ([][]string, error)
 	}
 
 	// Convert the fieldMap to a slice and update fields with new subfields
-	fieldSlice, err := mapToSliceAndUpdateFields(fieldMap, fields)
+	fieldSlice, err := mapToSliceAndUpdateFields(&fieldMap, fields)
 	if err != nil {
 		return nil, err
 	}
@@ -236,49 +237,78 @@ func DerefPointers(val reflect.Value) (reflect.Value, error) {
 // flattenNestedStructs recursively navigates through a struct, parsing its fields and nested fields.
 // It populates a map with field names as keys and their values as values.
 func flattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]string) error {
-    val, err := DerefPointers(reflect.ValueOf(item))
-    if err != nil {
-        return err
-    }
+	val, err := DerefPointers(reflect.ValueOf(item))
+	if err != nil {
+		return err
+	}
 
-    typ := val.Type()
+	typ := val.Type()
 
-    if val.Kind() != reflect.Struct {
-        return fmt.Errorf("expected a struct or pointer to a struct, got %v", val.Kind())
-    }
+	if val.Kind() != reflect.Struct {
+		return fmt.Errorf("expected a struct or pointer to a struct, got %v", val.Kind())
+	}
 
-    // Iterate over all fields of the struct
-    for i := 0; i < val.NumField(); i++ {
-        field := typ.Field(i)
-        fieldVal := val.Field(i)
-        jsonTag := getFirstTag(field.Tag.Get("json"))
-        fullPrefix := prefix + jsonTag
+	// Determine the max index length for zero-padding for proper sorting
+	maxIndexLength := 0
+	for i := 0; i < val.NumField(); i++ {
+		if val.Field(i).Kind() == reflect.Slice {
+			length := val.Field(i).Len()
+			if length > maxIndexLength {
+				maxIndexLength = length
+			}
+		}
+	}
+	// Ensure minimum width of 2 digits
+	if maxIndexLength < 10 {
+		maxIndexLength = 10
+	}
+	indexFormat := fmt.Sprintf("%%0%dd", len(strconv.Itoa(maxIndexLength)))
 
-        if jsonTag == "-" {
-            continue // Skip fields explicitly marked to be ignored
-        }
+	// Iterate over the struct fields
+	for i := 0; i < val.NumField(); i++ {
+		field := typ.Field(i)
+		fieldVal := val.Field(i)
 
-        if fieldVal.Kind() == reflect.Slice {
-            // Handle slices: concatenate their values into a single string
-            sliceStr := make([]string, fieldVal.Len())
-            for j := 0; j < fieldVal.Len(); j++ {
-                elem := fieldVal.Index(j)
-                sliceStr[j] = fmt.Sprint(elem.Interface())
-            }
-            (*fieldMap)[fullPrefix] = strings.Join(sliceStr, ",") // Join all elements with a comma
-        } else if fieldVal.Kind() == reflect.Struct {
-            // Recursively handle nested structs
-            err := flattenNestedStructs(fieldVal.Interface(), fullPrefix+".", fieldMap)
-            if err != nil {
-                return err
-            }
-        } else {
-            // Handle basic types
-            (*fieldMap)[fullPrefix] = fmt.Sprint(fieldVal.Interface())
-        }
-    }
+		keyPrefix := prefix + getMapKey(field)
 
-    return nil
+		switch fieldVal.Kind() {
+		case reflect.Slice:
+			if fieldVal.Len() == 0 {
+				(*fieldMap)[keyPrefix+".00"] = "" // Handle empty slice
+			} else {
+				flattenSlice(fieldVal, keyPrefix, indexFormat, fieldMap)
+			}
+		case reflect.Struct:
+			// Recursively handle nested structs
+			err := flattenNestedStructs(fieldVal.Interface(), keyPrefix+".", fieldMap)
+			if err != nil {
+				return err
+			}
+		default:
+			// Handle basic types
+			(*fieldMap)[keyPrefix] = fmt.Sprint(fieldVal.Interface())
+		}
+	}
+
+	return nil
+}
+
+func flattenSlice(slice reflect.Value, keyPrefix, indexFormat string, fieldMap *map[string]string) error {
+	for j := 0; j < slice.Len(); j++ {
+		elem := slice.Index(j)
+		elemKey := fmt.Sprintf("%s.%s", keyPrefix, fmt.Sprintf(indexFormat, j))
+		if elem.Kind() == reflect.Struct {
+			// Recursively handle struct elements in a slice
+			err := flattenNestedStructs(elem.Interface(), elemKey+".", fieldMap)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Store basic slice elements
+			(*fieldMap)[elemKey] = fmt.Sprint(elem.Interface())
+		}
+	}
+	return nil
 }
 
 // getFirstTag extracts the first tag from a tag string.
@@ -307,16 +337,15 @@ func getMapKey(field reflect.StructField) string {
 }
 
 // mapToSliceAndUpdateFields converts a map to a two-dimensional slice and updates the fields with new subfields.
-func mapToSliceAndUpdateFields(fieldMap map[string]string, fields *[]string) ([][]string, error) {
+func mapToSliceAndUpdateFields(fieldMap *map[string]string, fields *[]string) ([][]string, error) {
 	// Create a map to quickly check if a field already exists
 	existingFields := make(map[string]bool)
 	for _, field := range *fields {
 		existingFields[field] = true
 	}
 
-	// Extract keys and sort them
-	sortedFields := make([]string, 0, len(fieldMap))
-	for key := range fieldMap {
+	sortedFields := make([]string, 0, len(*fieldMap))
+	for key := range *fieldMap {
 		sortedFields = append(sortedFields, key)
 	}
 	sort.Strings(sortedFields)
@@ -325,35 +354,11 @@ func mapToSliceAndUpdateFields(fieldMap map[string]string, fields *[]string) ([]
 	newFields := make([]string, 0)
 	fieldSlice := make([][]string, 0)
 
-	// Iterate over the provided fields
-	for _, field := range *fields {
-		found := false
-		// Use sorted keys for consistent order
-		for _, key := range sortedFields {
-			value := fieldMap[key]
-			if strings.HasPrefix(key, field+".") {
-				// Ensure it's a sub-field
-				fieldSlice = append(fieldSlice, []string{key, value})
+	for _, key := range sortedFields {
+		value := (*fieldMap)[key]
 
-				// Add the key to the newFields if it doesn't already exist
-				if _, exists := existingFields[key]; !exists {
-					newFields = append(newFields, key)
-					existingFields[key] = true
-				}
-
-				found = true
-			}
-		}
-
-		// If no sub-fields were found for this field, keep the original field
-		if !found {
-			value, ok := fieldMap[field]
-			if !ok {
-				return nil, fmt.Errorf("field %s not found in map", field)
-			}
-			newFields = append(newFields, field)
-			fieldSlice = append(fieldSlice, []string{field, value})
-		}
+		newFields = append(newFields, key)
+		fieldSlice = append(fieldSlice, []string{key, value})
 	}
 
 	// Update the fields pointer

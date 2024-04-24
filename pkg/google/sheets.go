@@ -88,22 +88,39 @@ func (c *SheetsClient) GenerateValueRange(data []interface{}, sheetName string, 
 		vr.Range = "A:ZZ"
 	}
 
+	// Ensure headers as the first row
 	vr.Values = append(vr.Values, *headers)
+
+	// Initialize map to track the maximum length encountered for each header
+	finalHeaders := *headers
+
+	// Collect all rows data first to determine the maxFieldLen
+	allRows := make([][][]string, 0, len(data))
 	for _, d := range data {
 		orderedData, err := ss.FlattenStructFields(d, headers)
 		if err != nil {
-			continue // Owners field is empty -- skip
+			continue // Skip this row if there was an error
 		}
-		row := make([]string, 0, len(*headers))
-		for i, value := range orderedData {
-			// If the value matches the header, append it to the row
-			if value[0] == (*headers)[i] {
-				row = append(row, value[1])
+		allRows = append(allRows, orderedData)
+		if len(orderedData) > len(finalHeaders) {
+			finalHeaders = *headers
+		}
+	}
+
+	// Now build the values for the ValueRange ensuring all rows are aligned
+	for _, rows := range allRows {
+		row := make([]string, len(finalHeaders)) // Create a slice for the row with the exact number of headers
+		for _, data := range rows {
+			for i, header := range finalHeaders {
+				if data[0] == header {
+					row[i] = data[1] // Place data in the correct column according to header
+					break
+				}
 			}
 		}
 		vr.Values = append(vr.Values, row)
 	}
-	vr.Values[0] = *headers
+	vr.Values[0] = finalHeaders // Ensure the headers are correct
 
 	return vr
 }
