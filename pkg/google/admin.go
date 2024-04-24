@@ -50,6 +50,18 @@ var (
 	ReportsUserUsage         = fmt.Sprintf("%s/userUsageReport", AdminReports)                                // https://developers.google.com/admin-sdk/reports/reference/rest/v1/userUsageReport
 )
 
+// AdminClient for chaining methods
+type AdminClient struct {
+	*Client
+}
+
+// Entry point for admin-related operations
+func (c *Client) Admin() *AdminClient {
+	return &AdminClient{
+		Client: c,
+	}
+}
+
 /*
  * Query Parameters for Admin Reports
  * https://developers.google.com/admin-sdk/reports/reference/rest/v1/activities/list#query-parameters
@@ -75,7 +87,7 @@ type ReportsQuery struct {
  * /admin/directory/v1/customer/{customer}/roles
  * https://developers.google.com/admin-sdk/directory/v1/reference/roles/list
  */
-func (c *Client) MyCustomer() (*Customer, error) {
+func (c *AdminClient) MyCustomer() (*Customer, error) {
 	url := c.BuildURL(DirectoryCustomers, &Customer{ID: "my_customer"})
 
 	var cache Customer
@@ -84,13 +96,13 @@ func (c *Client) MyCustomer() (*Customer, error) {
 	}
 
 	c.Log.Println("Getting ID of current client...")
-	customer, err := do[*Customer](c, "GET", url, nil, nil)
+	customer, err := do[Customer](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	c.SetCache(url, customer, 1*time.Hour)
-	return customer, nil
+	return &customer, nil
 }
 
 /*
@@ -98,7 +110,7 @@ func (c *Client) MyCustomer() (*Customer, error) {
  * /admin/directory/v1/customer/{customer}/roles
  * https://developers.google.com/admin-sdk/directory/v1/reference/roles/list
  */
-func (c *Client) ListAllRoles(customer *Customer) (*Roles, error) {
+func (c *AdminClient) ListAllRoles(customer *Customer) (*Roles, error) {
 	url := c.BuildURL(DirectoryRoles, customer)
 
 	var cache Roles
@@ -107,13 +119,13 @@ func (c *Client) ListAllRoles(customer *Customer) (*Roles, error) {
 	}
 
 	c.Log.Println("Getting all roles...")
-	roles, err := do[*Roles](c, "GET", url, nil, nil)
+	roles, err := do[Roles](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	c.SetCache(url, roles, 5*time.Minute)
-	return roles, nil
+	return &roles, nil
 }
 
 /*
@@ -121,7 +133,7 @@ func (c *Client) ListAllRoles(customer *Customer) (*Roles, error) {
  * /admin/directory/v1/customer/{customer}/roles/{roleId}
  * https://developers.google.com/admin-sdk/directory/v1/reference/roles/get
  */
-func (c *Client) GetRole(roleId string, customer *Customer) (*Role, error) {
+func (c *AdminClient) GetRole(roleId string, customer *Customer) (*Role, error) {
 	url := c.BuildURL(DirectoryRoles, customer, roleId)
 
 	var cache Role
@@ -130,13 +142,13 @@ func (c *Client) GetRole(roleId string, customer *Customer) (*Role, error) {
 	}
 
 	c.Log.Println("Getting role...")
-	role, err := do[*Role](c, "GET", url, nil, nil)
+	role, err := do[Role](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	c.SetCache(url, role, 5*time.Minute)
-	return role, nil
+	return &role, nil
 }
 
 /*
@@ -144,7 +156,7 @@ func (c *Client) GetRole(roleId string, customer *Customer) (*Role, error) {
  * /admin/directory/v1/customer/{customer}/roleassignments
  * https://developers.google.com/admin-sdk/directory/v1/reference/roleAssignments/list
  */
-func (c *Client) ListAllRoleAssignments(customer *Customer) (*RoleAssignment, error) {
+func (c *AdminClient) ListAllRoleAssignments(customer *Customer) (*RoleAssignment, error) {
 	url := c.BuildURL(DirectoryRoleAssignments, customer)
 
 	var cache RoleAssignment
@@ -153,13 +165,13 @@ func (c *Client) ListAllRoleAssignments(customer *Customer) (*RoleAssignment, er
 	}
 
 	c.Log.Println("Getting all role assignments...")
-	roleAssignments, err := do[*RoleAssignment](c, "GET", url, nil, nil)
+	roleAssignments, err := do[RoleAssignment](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	c.SetCache(url, roleAssignments, 5*time.Minute)
-	return roleAssignments, nil
+	return &roleAssignments, nil
 }
 
 /*
@@ -167,7 +179,7 @@ func (c *Client) ListAllRoleAssignments(customer *Customer) (*RoleAssignment, er
  * /admin/directory/v1/customer/{customer}/roleassignments
  * https://developers.google.com/admin-sdk/directory/reference/rest/v1/roleAssignments/list#query-parameters
  */
-func (c *Client) GetAssignmentsForRole(roleId string, customer *Customer) (*RoleAssignment, error) {
+func (c *AdminClient) GetAssignmentsForRole(roleId string, customer *Customer) (*RoleAssignment, error) {
 	url := c.BuildURL(DirectoryRoleAssignments, customer)
 	cacheKey := fmt.Sprintf("%s_%s", url, roleId)
 
@@ -181,13 +193,13 @@ func (c *Client) GetAssignmentsForRole(roleId string, customer *Customer) (*Role
 	}
 
 	c.Log.Println("Getting role's assignment...")
-	roleAssignment, err := do[*RoleAssignment](c, "GET", url, q, nil)
+	roleAssignment, err := do[RoleAssignment](c.Client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	c.SetCache(cacheKey, roleAssignment, 5*time.Minute)
-	return roleAssignment, nil
+	return &roleAssignment, nil
 }
 
 /*
@@ -195,7 +207,7 @@ func (c *Client) GetAssignmentsForRole(roleId string, customer *Customer) (*Role
  * /admin/directory/v1/customer/{customer}/roleassignments
  * https://developers.google.com/admin-sdk/directory/v1/reference/roleAssignments/list
  */
-func (c *Client) GetUsersFromRoleAssignments(sem chan struct{}, roleAssignments []RoleAssignment) ([]*User, error) {
+func (c *AdminClient) GetUsersFromRoleAssignments(sem chan struct{}, roleAssignments []RoleAssignment) ([]*User, error) {
 	// Make a channel for the users and their errors
 	userChannel := make(chan *User, len(roleAssignments))
 	userErrChannel := make(chan error)
@@ -207,7 +219,7 @@ func (c *Client) GetUsersFromRoleAssignments(sem chan struct{}, roleAssignments 
 		go func(assign RoleAssignment) {
 			defer userWg.Done()
 			sem <- struct{}{} // Acquire a token
-			user, err := c.GetUser(assign.AssignedTo)
+			user, err := c.Users().GetUser(assign.AssignedTo)
 			if err != nil {
 				userErrChannel <- err
 				return
@@ -238,7 +250,7 @@ func (c *Client) GetUsersFromRoleAssignments(sem chan struct{}, roleAssignments 
  * /admin/directory/v1/customer/{customer}/roleassignments/{roleId}/users
  * https://developers.google.com/admin-sdk/directory/v1/reference/roleAssignments/list
  */
-func (c *Client) GenerateRoleReport(roleId string, customer *Customer) ([]*RoleReport, error) {
+func (c *AdminClient) GenerateRoleReport(roleId string, customer *Customer) ([]*RoleReport, error) {
 
 	// Use a buffered channel as a semaphore to limit concurrent requests.
 	// 10 is the maximum number of concurrent requests.
@@ -330,7 +342,7 @@ func (c *Client) GenerateRoleReport(roleId string, customer *Customer) ([]*RoleR
  * @param reports: A slice of RoleReport structs
  * @return *Spreadsheet: A pointer to the newly created spreadsheet
  */
-func (c *Client) SaveRoleReport(reports []*RoleReport) (*Spreadsheet, error) {
+func (c *AdminClient) SaveRoleReport(reports []*RoleReport) (*Spreadsheet, error) {
 
 	// Create a ValueRange to hold the report data
 	vr := &ValueRange{}
@@ -348,13 +360,13 @@ func (c *Client) SaveRoleReport(reports []*RoleReport) (*Spreadsheet, error) {
 			Title: fmt.Sprintf("{Google} Entitlement Review %s", time.Now().Format("2006-01-02")),
 		},
 	}
-	spreadsheet, err := c.CreateSpreadsheet(sheet)
+	spreadsheet, err := c.Sheets().CreateSpreadsheet(sheet)
 	if err != nil {
 		return nil, err
 	}
 
 	c.Log.Println("Saving role report to spreadsheet")
-	err = c.UpdateSpreadsheet(spreadsheet.SpreadsheetID, vr)
+	err = c.Sheets().UpdateSpreadsheet(spreadsheet.SpreadsheetID, vr)
 	if err != nil {
 		return nil, err
 	}
@@ -362,7 +374,7 @@ func (c *Client) SaveRoleReport(reports []*RoleReport) (*Spreadsheet, error) {
 	c.Log.Println("Formatting spreadsheet")
 	rows := len(vr.Values)
 	columns := len(headers)
-	c.FormatHeaderAndAutoSize(spreadsheet.SpreadsheetID, &spreadsheet.Sheets[0], rows, columns)
+	c.Sheets().FormatHeaderAndAutoSize(spreadsheet.SpreadsheetID, &spreadsheet.Sheets[0], rows, columns)
 
 	return spreadsheet, nil
 }
@@ -370,7 +382,7 @@ func (c *Client) SaveRoleReport(reports []*RoleReport) (*Spreadsheet, error) {
 /*
  * Find the file ownership using the Reports API
  */
-func (c *Client) GetFileOwnership(fileID string) (string, error) {
+func (c *AdminClient) GetFileOwnership(fileID string) (string, error) {
 	c.Log.Println("Getting file ownership...")
 	c.Log.Debug("fileID:", fileID)
 	fileReport := &Report{}
@@ -383,7 +395,7 @@ func (c *Client) GetFileOwnership(fileID string) (string, error) {
 
 	url := c.BuildURL(ReportsActivities, nil, "all", "drive")
 
-	fileReport, err := do[*Report](c, "GET", url, q, nil)
+	fileReport, err := do[*Report](c.Client, "GET", url, q, nil)
 	if err != nil {
 		return "", err
 	}
@@ -410,7 +422,7 @@ func (c *Client) GetFileOwnership(fileID string) (string, error) {
  * /admin/directory/v1/customer/{customerId}/orgunits/{orgUnitPath=**}
  * https://developers.google.com/admin-sdk/directory/reference/rest/v1/orgunits/get
  */
-func (c *Client) RootOU(customer *Customer) (*OrgUnit, error) {
+func (c *AdminClient) RootOU(customer *Customer) (*OrgUnit, error) {
 	url := c.BuildURL(DirectoryOrgUnits, customer)
 	cacheKey := fmt.Sprintf("%s_%s", url, "root")
 
@@ -420,7 +432,7 @@ func (c *Client) RootOU(customer *Customer) (*OrgUnit, error) {
 	}
 
 	c.Log.Println("Getting ROOT org unit...")
-	ou, err := do[*OrgUnit](c, "GET", url, nil, nil)
+	ou, err := do[*OrgUnit](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -439,7 +451,7 @@ func (c *Client) RootOU(customer *Customer) (*OrgUnit, error) {
  * /admin/directory/v1/customer/{customerId}/orgunits/{orgUnitPath=**}
  * https://developers.google.com/admin-sdk/directory/reference/rest/v1/orgunits/get
  */
-func (c *Client) GetOU(customer *Customer, orgUnitPath string) (*OrgUnit, error) {
+func (c *AdminClient) GetOU(customer *Customer, orgUnitPath string) (*OrgUnit, error) {
 	url := c.BuildURL(DirectoryOrgUnits, customer, strings.TrimPrefix(orgUnitPath, "/"))
 
 	var cache OrgUnit
@@ -448,13 +460,13 @@ func (c *Client) GetOU(customer *Customer, orgUnitPath string) (*OrgUnit, error)
 	}
 
 	c.Log.Println("Getting org unit...")
-	ou, err := do[*OrgUnit](c, "GET", url, nil, nil)
+	ou, err := do[OrgUnit](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	c.SetCache(url, ou, 5*time.Minute)
-	return ou, nil
+	return &ou, nil
 }
 
 /*
@@ -462,10 +474,10 @@ func (c *Client) GetOU(customer *Customer, orgUnitPath string) (*OrgUnit, error)
  * chromepolicy.googleapis.com/v1/{customer=customers/*}/policies/orgunits:batchModify
  * https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies.orgunits/batchModify
  */
-func (c *Client) CloneOU(customer *Customer, sourcePath, targetPath string) error {
+func (c *AdminClient) CloneOU(customer *Customer, sourcePath, targetPath string) error {
 	url := c.BuildURL(DevicePolicies, customer, "orgunits:batchModify")
 
-	schemas, err := c.ListAllDevicePolicySchemas(customer)
+	schemas, err := c.Devices().ListAllDevicePolicySchemas(customer)
 	if err != nil {
 		return err
 	}
@@ -475,7 +487,7 @@ func (c *Client) CloneOU(customer *Customer, sourcePath, targetPath string) erro
 		return err
 	}
 
-	sourcePolicies, err := c.ResolvePolicySchemas(customer, sourceOU)
+	sourcePolicies, err := c.Devices().ResolvePolicySchemas(customer, sourceOU)
 	if err != nil {
 		return err
 	}
@@ -490,7 +502,7 @@ func (c *Client) CloneOU(customer *Customer, sourcePath, targetPath string) erro
 	}
 
 	c.Log.Println("Cloning user policies...")
-	_, err = do[any](c, "POST", url, nil, userPayload)
+	_, err = do[any](c.Client, "POST", url, nil, userPayload)
 	if err != nil {
 		return err
 	}
@@ -501,7 +513,7 @@ func (c *Client) CloneOU(customer *Customer, sourcePath, targetPath string) erro
 	}
 
 	c.Log.Println("Cloning device policies...")
-	_, err = do[any](c, "POST", url, nil, devicePayload)
+	_, err = do[any](c.Client, "POST", url, nil, devicePayload)
 	if err != nil {
 		return err
 	}

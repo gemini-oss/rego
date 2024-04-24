@@ -14,7 +14,20 @@ package google
 
 import (
 	"fmt"
+	"time"
 )
+
+// UsersClient for chaining methods
+type UsersClient struct {
+	*Client
+}
+
+// Entry point for user-related operations
+func (c *Client) Users() *UsersClient {
+	return &UsersClient{
+		Client: c,
+	}
+}
 
 /*
  * Query Parameters for Drive Files
@@ -87,7 +100,14 @@ func (u *UserQuery) ValidateQuery() error {
  * /admin/directory/v1/users
  * https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list
  */
-func (c *Client) ListAllUsers() (*Users, error) {
+func (c *UsersClient) ListAllUsers() (*Users, error) {
+	url := DirectoryUsers
+
+	var cache Users
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
 	q := UserQuery{}
 
 	err := q.ValidateQuery()
@@ -97,10 +117,7 @@ func (c *Client) ListAllUsers() (*Users, error) {
 	q.MaxResults = 500
 	q.Projection = BASIC
 
-	url := DirectoryUsers
-	c.Log.Debug("url:", url)
-
-	users, err := do[*Users](c, "GET", url, q, nil)
+	users, err := do[Users](c.Client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +130,7 @@ func (c *Client) ListAllUsers() (*Users, error) {
 			PageToken:  users.NextPageToken,
 		}
 
-		usersPage, err := do[*Users](c, "GET", url, q, nil)
+		usersPage, err := do[Users](c.Client, "GET", url, q, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -121,7 +138,8 @@ func (c *Client) ListAllUsers() (*Users, error) {
 		users.NextPageToken = usersPage.NextPageToken
 	}
 
-	return users, nil
+	c.SetCache(url, users, 5*time.Minute)
+	return &users, nil
 }
 
 /*
@@ -129,7 +147,7 @@ func (c *Client) ListAllUsers() (*Users, error) {
  * /admin/directory/v1/users
  * https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list
  */
-func (c *Client) SearchUsers(q *UserQuery) (*Users, error) {
+func (c *UsersClient) SearchUsers(q *UserQuery) (*Users, error) {
 	err := q.ValidateQuery()
 	if err != nil {
 		return nil, err
@@ -138,12 +156,12 @@ func (c *Client) SearchUsers(q *UserQuery) (*Users, error) {
 	url := DirectoryUsers
 	c.Log.Debug("url:", url)
 
-	users, err := do[*Users](c, "GET", url, q, nil)
+	users, err := do[Users](c.Client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return users, nil
+	return &users, nil
 }
 
 /*
@@ -151,14 +169,14 @@ func (c *Client) SearchUsers(q *UserQuery) (*Users, error) {
  * /admin/directory/v1/users/{userKey}
  * https://developers.google.com/admin-sdk/directory/v1/reference/users/get
  */
-func (c *Client) GetUser(userKey string) (*User, error) {
+func (c *UsersClient) GetUser(userKey string) (*User, error) {
 	url := fmt.Sprintf(DirectoryUsers+"/%s", userKey)
 	c.Log.Debug("url:", url)
 
-	user, err := do[*User](c, "GET", url, nil, nil)
+	user, err := do[User](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return user, nil
+	return &user, nil
 }

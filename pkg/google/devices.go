@@ -26,15 +26,15 @@ var (
 
 // DeviceClient for chaining methods
 type DeviceClient struct {
-	client *Client
-	query  DeviceQuery
+	*Client
+	DeviceQuery
 }
 
 // Entry point for device-related operations
 func (c *Client) Devices() *DeviceClient {
 	return &DeviceClient{
-		client: c,
-		query: DeviceQuery{ // Default query parameters
+		Client: c,
+		DeviceQuery: DeviceQuery{ // Default query parameters
 			MaxResults: 500,
 		},
 	}
@@ -57,19 +57,19 @@ type DeviceQuery struct {
 
 // ### Chainable DeviceClient Methods
 // ---------------------------------------------------------------------
-func (dc *DeviceClient) MaxResults(max int) *DeviceClient {
-	dc.query.MaxResults = max
-	return dc
+func (c *DeviceClient) MaxResults(max int) *DeviceClient {
+	c.DeviceQuery.MaxResults = max
+	return c
 }
 
-func (dc *DeviceClient) PageToken(token string) *DeviceClient {
-	dc.query.PageToken = token
-	return dc
+func (c *DeviceClient) PageToken(token string) *DeviceClient {
+	c.DeviceQuery.PageToken = token
+	return c
 }
 
-func (dc *DeviceClient) Query(query string) *DeviceClient {
-	dc.query.Query = query
-	return dc
+func (c *DeviceClient) Query(query string) *DeviceClient {
+	c.DeviceQuery.Query = query
+	return c
 }
 
 // END OF CHAINABLE METHODS
@@ -106,22 +106,22 @@ type PolicyTargetKey struct {
  * admin/directory/v1/customer/{customerId}/devices/chromeos
  * https://developers.google.com/admin-sdk/directory/reference/rest/v1/chromeosdevices/list
  */
-func (dc *DeviceClient) ListAllChromeOS(customer *Customer) (*ChromeOSDevices, error) {
-	dc.client.Log.Println("Getting all ChromeOS Devices...")
+func (c *DeviceClient) ListAllChromeOS(customer *Customer) (*ChromeOSDevices, error) {
+	c.Log.Println("Getting all ChromeOS Devices...")
 
-	url := dc.client.BuildURL(DirectoryChromeOSDevices, customer)
+	url := c.BuildURL(DirectoryChromeOSDevices, customer)
 
 	var cache ChromeOSDevices
-	if dc.client.GetCache(url, &cache) {
+	if c.GetCache(url, &cache) {
 		return &cache, nil
 	}
 
-	devices, err := doPaginated[ChromeOSDevices](dc.client, "GET", url, dc.query, nil)
+	devices, err := doPaginated[ChromeOSDevices](c.Client, "GET", url, c.DeviceQuery, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	dc.client.SetCache(url, devices, 5*time.Minute)
+	c.SetCache(url, devices, 5*time.Minute)
 	return devices, nil
 }
 
@@ -130,24 +130,24 @@ func (dc *DeviceClient) ListAllChromeOS(customer *Customer) (*ChromeOSDevices, e
  * admin/directory/v1/customer/{customerId}/devices/chromeos
  * https://developers.google.com/admin-sdk/directory/reference/rest/v1/chromeosdevices/list
  */
-func (dc *DeviceClient) ListAllProvisionedChromeOS(customer *Customer) (*ChromeOSDevices, error) {
-	dc.client.Log.Println("Getting all ChromeOS Devices...")
+func (c *DeviceClient) ListAllProvisionedChromeOS(customer *Customer) (*ChromeOSDevices, error) {
+	c.Log.Println("Getting all ChromeOS Devices...")
 
-	url := dc.client.BuildURL(DirectoryChromeOSDevices, customer)
+	url := c.BuildURL(DirectoryChromeOSDevices, customer)
 
 	var cache ChromeOSDevices
-	if dc.client.GetCache(url, &cache) {
+	if c.GetCache(url, &cache) {
 		return &cache, nil
 	}
 
-	dc.Query("status:provisioned")
+	c.Query("status:provisioned")
 
-	devices, err := doPaginated[ChromeOSDevices](dc.client, "GET", url, dc.query, nil)
+	devices, err := doPaginated[ChromeOSDevices](c.Client, "GET", url, c.DeviceQuery, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	dc.client.SetCache(url, devices, 5*time.Minute)
+	c.SetCache(url, devices, 5*time.Minute)
 	return devices, nil
 }
 
@@ -156,7 +156,7 @@ func (dc *DeviceClient) ListAllProvisionedChromeOS(customer *Customer) (*ChromeO
  * chromepolicy.googleapis.com/v1/{customerId}/policySchemas
  * https://developers.google.com/chrome/policy/reference/rest/v1/customers.policySchemas/list
  */
-func (c *Client) ListAllDevicePolicySchemas(customer *Customer) (*PolicySchemas, error) {
+func (c *DeviceClient) ListAllDevicePolicySchemas(customer *Customer) (*PolicySchemas, error) {
 	c.Log.Println("Getting all ChromeOS Device Policy Schemas...")
 	q := &PolicyQuery{
 		PageSize: 1000,
@@ -169,7 +169,7 @@ func (c *Client) ListAllDevicePolicySchemas(customer *Customer) (*PolicySchemas,
 		return &cache, nil
 	}
 
-	policySchemas, err := doPaginated[PolicySchemas](c, "GET", url, q, nil)
+	policySchemas, err := doPaginated[PolicySchemas](c.Client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +183,7 @@ func (c *Client) ListAllDevicePolicySchemas(customer *Customer) (*PolicySchemas,
  * chromepolicy.googleapis.com/v1/{customerId}/policies:resolve
  * https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies/resolve
  */
-func (c *Client) ResolvePolicySchemas(customer *Customer, ou *OrgUnit) (*ResolvedPolicies, error) {
+func (c *DeviceClient) ResolvePolicySchemas(customer *Customer, ou *OrgUnit) (*ResolvedPolicies, error) {
 	c.Log.Println("Getting all ChromeOS Device Policies...")
 
 	url := c.BuildURL(DevicePolicies, customer, ":resolve")
@@ -204,7 +204,7 @@ func (c *Client) ResolvePolicySchemas(customer *Customer, ou *OrgUnit) (*Resolve
 	}
 
 	req.PolicySchemaFilter = "chrome.users.*"
-	userPolicies, err := doPaginated[ResolvedPolicies](c, "POST", url, nil, req)
+	userPolicies, err := doPaginated[ResolvedPolicies](c.Client, "POST", url, nil, req)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +219,7 @@ func (c *Client) ResolvePolicySchemas(customer *Customer, ou *OrgUnit) (*Resolve
 	}
 
 	req.PolicySchemaFilter = "chrome.devices.*"
-	devicePolicies, err := doPaginated[ResolvedPolicies](c, "POST", url, nil, req)
+	devicePolicies, err := doPaginated[ResolvedPolicies](c.Client, "POST", url, nil, req)
 	if err != nil {
 		return nil, err
 	}

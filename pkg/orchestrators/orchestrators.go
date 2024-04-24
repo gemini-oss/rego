@@ -56,7 +56,7 @@ func (c *Client) OktaRoleReportToGoogleSheet() error {
 			},
 		},
 	}
-	sheet, err := c.Google.CreateSpreadsheet(newSpreadsheet)
+	sheet, err := c.Google.Sheets().CreateSpreadsheet(newSpreadsheet)
 	if err != nil {
 		return err
 	}
@@ -77,12 +77,12 @@ func (c *Client) OktaRoleReportToGoogleSheet() error {
 	rows := len(vr.Values)
 	columns := len(headers)
 
-	err = c.Google.UpdateSpreadsheet(sheet.SpreadsheetID, vr)
+	err = c.Google.Sheets().UpdateSpreadsheet(sheet.SpreadsheetID, vr)
 	if err != nil {
 		return err
 	}
 
-	err = c.Google.FormatHeaderAndAutoSize(sheet.SpreadsheetID, &sheet.Sheets[0], rows, columns)
+	err = c.Google.Sheets().FormatHeaderAndAutoSize(sheet.SpreadsheetID, &sheet.Sheets[0], rows, columns)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func (c *Client) ADReportToGoogleSheet(group string) error {
 			},
 		},
 	}
-	sheet, err := c.Google.CreateSpreadsheet(newSpreadsheet)
+	sheet, err := c.Google.Sheets().CreateSpreadsheet(newSpreadsheet)
 	if err != nil {
 		return err
 	}
@@ -136,12 +136,12 @@ func (c *Client) ADReportToGoogleSheet(group string) error {
 	rows := len(vr.Values)
 	columns := len(headers)
 
-	err = c.Google.UpdateSpreadsheet(sheet.SpreadsheetID, vr)
+	err = c.Google.Sheets().UpdateSpreadsheet(sheet.SpreadsheetID, vr)
 	if err != nil {
 		return err
 	}
 
-	err = c.Google.FormatHeaderAndAutoSize(sheet.SpreadsheetID, &sheet.Sheets[0], rows, columns)
+	err = c.Google.Sheets().FormatHeaderAndAutoSize(sheet.SpreadsheetID, &sheet.Sheets[0], rows, columns)
 	if err != nil {
 		return err
 	}

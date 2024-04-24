@@ -16,6 +16,18 @@ import (
 	"time"
 )
 
+// PermissionsClient for chaining methods
+type PermissionsClient struct {
+	*Client
+}
+
+// Entry point for permissions-related operations
+func (c *Client) Permissions() *PermissionsClient {
+	return &PermissionsClient{
+		Client: c,
+	}
+}
+
 /*
  * Query Parameters for Permissions
  * Reference: https://developers.google.com/drive/api/reference/rest/v3/permissions/create#query-parameters
@@ -53,7 +65,7 @@ func (d *PermissionsQuery) IsEmpty() bool {
  * @param {string} fileId - The ID of the file or shortcut.
  * https://developers.google.com/drive/api/reference/rest/v3/permissions/list
  */
-func (c *Client) GetPermissionList(driveID string) (*PermissionList, error) {
+func (c *PermissionsClient) GetPermissionList(driveID string) (*PermissionList, error) {
 	url := c.BuildURL(DriveFiles, nil, driveID, "permissions")
 
 	var cache PermissionList
@@ -61,7 +73,7 @@ func (c *Client) GetPermissionList(driveID string) (*PermissionList, error) {
 		return &cache, nil
 	}
 
-	permissions, err := do[*PermissionList](c, "GET", url, nil, nil)
+	permissions, err := do[*PermissionList](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +89,7 @@ func (c *Client) GetPermissionList(driveID string) (*PermissionList, error) {
  * @param {string} permissionId - The ID of the permission.
  * https://developers.google.com/drive/api/reference/rest/v3/permissions/get
  */
-func (c *Client) GetPermissionDetails(driveID string, permissionID string) (*Permission, error) {
+func (c *PermissionsClient) GetPermissionDetails(driveID string, permissionID string) (*Permission, error) {
 	url := c.BuildURL(DriveFiles, nil, driveID, "permissions", permissionID)
 
 	var cache Permission
@@ -85,13 +97,13 @@ func (c *Client) GetPermissionDetails(driveID string, permissionID string) (*Per
 		return &cache, nil
 	}
 
-	permission, err := do[*Permission](c, "GET", url, nil, nil)
+	permission, err := do[Permission](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	c.SetCache(url, permission, 5*time.Minute)
-	return permission, nil
+	return &permission, nil
 }
 
 /*
@@ -102,7 +114,7 @@ func (c *Client) GetPermissionDetails(driveID string, permissionID string) (*Per
  * @param {string} permissionId - The ID of the permission.
  * https://developers.google.com/drive/api/reference/rest/v3/permissions/create
  */
-func (c *Client) TransferOwnership(driveID string, newOwner string) (*Permission, error) {
+func (c *PermissionsClient) TransferOwnership(driveID string, newOwner string) (*Permission, error) {
 	url := c.BuildURL(DriveFiles, nil, driveID, "permissions")
 
 	permission := &Permission{
@@ -115,7 +127,7 @@ func (c *Client) TransferOwnership(driveID string, newOwner string) (*Permission
 		TransferOwnership: true,
 	}
 
-	permission, err := do[*Permission](c, "POST", url, q, permission)
+	permission, err := do[*Permission](c.Client, "POST", url, q, permission)
 	if err != nil {
 		return nil, err
 	}

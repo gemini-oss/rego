@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
-	"strconv"
 	"strings"
 	"unicode"
 )
@@ -151,7 +150,7 @@ func FlattenStructFields(item interface{}, fields *[]string) ([][]string, error)
 	// Create a map to hold the fields and their values
 	fieldMap := make(map[string]string)
 	// Recursively parse the struct
-	err = flattenNestedStructs(item, "", fieldMap)
+	err = flattenNestedStructs(item, "", &fieldMap)
 	if err != nil {
 		return nil, err
 	}
@@ -236,72 +235,50 @@ func DerefPointers(val reflect.Value) (reflect.Value, error) {
 
 // flattenNestedStructs recursively navigates through a struct, parsing its fields and nested fields.
 // It populates a map with field names as keys and their values as values.
-func flattenNestedStructs(obj interface{}, prefix string, fieldMap map[string]string) error {
-	val := reflect.ValueOf(obj)
-	typ := reflect.TypeOf(obj)
+func flattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]string) error {
+    val, err := DerefPointers(reflect.ValueOf(item))
+    if err != nil {
+        return err
+    }
 
-	// Check if the passed obj is a pointer and dereference it if it is
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-		typ = typ.Elem()
-	}
+    typ := val.Type()
 
-	// Check if the dereferenced obj is a struct
-	if val.Kind() != reflect.Struct {
-		return fmt.Errorf("expected a struct or pointer to a struct, got %v", val.Kind())
-	}
+    if val.Kind() != reflect.Struct {
+        return fmt.Errorf("expected a struct or pointer to a struct, got %v", val.Kind())
+    }
 
-	// Determine the max index length for zero-padding
-	maxIndexLength := 0
-	for i := 0; i < val.NumField(); i++ {
-		if val.Field(i).Kind() == reflect.Slice {
-			length := val.Field(i).Len()
-			if length > maxIndexLength {
-				maxIndexLength = length
-			}
-		}
-	}
-	indexFormat := fmt.Sprintf("%%0%dd", len(strconv.Itoa(maxIndexLength)))
+    // Iterate over all fields of the struct
+    for i := 0; i < val.NumField(); i++ {
+        field := typ.Field(i)
+        fieldVal := val.Field(i)
+        jsonTag := getFirstTag(field.Tag.Get("json"))
+        fullPrefix := prefix + jsonTag
 
-	// Iterate over all fields of the struct
-	for i := 0; i < val.NumField(); i++ {
-		field := typ.Field(i)
-		fieldVal := val.Field(i)
+        if jsonTag == "-" {
+            continue // Skip fields explicitly marked to be ignored
+        }
 
-		// Handle different kinds of fields (struct, slice, others)
-		switch fieldVal.Kind() {
-		case reflect.Struct:
-			// Recursively parse struct fields
-			jsonTag := getFirstTag(field.Tag.Get("json"))
-			err := flattenNestedStructs(fieldVal.Interface(), prefix+jsonTag+".", fieldMap)
-			if err != nil {
-				return err
-			}
+        if fieldVal.Kind() == reflect.Slice {
+            // Handle slices: concatenate their values into a single string
+            sliceStr := make([]string, fieldVal.Len())
+            for j := 0; j < fieldVal.Len(); j++ {
+                elem := fieldVal.Index(j)
+                sliceStr[j] = fmt.Sprint(elem.Interface())
+            }
+            (*fieldMap)[fullPrefix] = strings.Join(sliceStr, ",") // Join all elements with a comma
+        } else if fieldVal.Kind() == reflect.Struct {
+            // Recursively handle nested structs
+            err := flattenNestedStructs(fieldVal.Interface(), fullPrefix+".", fieldMap)
+            if err != nil {
+                return err
+            }
+        } else {
+            // Handle basic types
+            (*fieldMap)[fullPrefix] = fmt.Sprint(fieldVal.Interface())
+        }
+    }
 
-		case reflect.Slice:
-			// Recursively parse slice elements if they are struct; add directly to map if not
-			jsonTag := getFirstTag(field.Tag.Get("json"))
-			for j := 0; j < fieldVal.Len(); j++ {
-				elem := fieldVal.Index(j)
-				index := fmt.Sprintf(indexFormat, j) // Zero-padded index
-				if elem.Kind() == reflect.Struct {
-					err := flattenNestedStructs(elem.Interface(), prefix+jsonTag+"."+index+".", fieldMap)
-					if err != nil {
-						return err
-					}
-				} else {
-					key := prefix + jsonTag + "." + index
-					fieldMap[key] = fmt.Sprint(elem.Interface())
-				}
-			}
-
-		default:
-			// Parse non-struct and non-slice fields
-			fieldMap[prefix+getMapKey(field)] = fmt.Sprint(fieldVal.Interface())
-		}
-	}
-
-	return nil
+    return nil
 }
 
 // getFirstTag extracts the first tag from a tag string.

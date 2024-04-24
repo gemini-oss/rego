@@ -30,6 +30,18 @@ var (
 	DriveRevisions   = fmt.Sprintf("%s/revisions", DriveBaseURL)   // https://developers.google.com/drive/api/v3/reference/revisions
 )
 
+// DriveClient for chaining methods
+type DriveClient struct {
+	*Client
+}
+
+// Entry point for drive-related operations
+func (c *Client) Drive() *DriveClient {
+	return &DriveClient{
+		Client: c,
+	}
+}
+
 /*
  * Query Parameters for Drive Files
  * Reference: https://developers.google.com/drive/api/reference/rest/v3/files/list#query-parameters
@@ -116,7 +128,7 @@ func (d *DriveFileQuery) ValidateQuery() error {
 - @param {string} fileId - The ID of the file or shortcut.
 - https://developers.google.com/drive/api/v3/reference/files/get
 */
-func (c *Client) GetFile(driveID string) (*File, error) {
+func (c *DriveClient) GetFile(driveID string) (*File, error) {
 	url := c.BuildURL(DriveFiles, nil, driveID)
 
 	q := DriveFileQuery{
@@ -124,12 +136,12 @@ func (c *Client) GetFile(driveID string) (*File, error) {
 		SupportsAllDrives: true,
 	}
 
-	file, err := do[*File](c, "GET", url, q, nil)
+	file, err := do[File](c.Client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return file, nil
+	return &file, nil
 }
 
 /*
@@ -138,7 +150,7 @@ _Create Google Drive File/Folder_
   - drive/v3/files
   - https://developers.google.com/drive/api/v3/reference/files/update
 */
-func (c *Client) CreateFile(file *File) (*File, error) {
+func (c *DriveClient) CreateFile(file *File) (*File, error) {
 	if file == nil {
 		file = &File{
 			MimeType: "application/vnd.google-apps.folder",
@@ -148,7 +160,7 @@ func (c *Client) CreateFile(file *File) (*File, error) {
 
 	url := DriveFiles
 
-	file, err := do[*File](c, "POST", url, nil, &file)
+	file, err := do[*File](c.Client, "POST", url, nil, &file)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +175,7 @@ func (c *Client) CreateFile(file *File) (*File, error) {
  * @param {File} folder - The folder to move the file to
  * https://developers.google.com/drive/api/v3/reference/files/update
  */
-func (c *Client) MoveFileToFolder(file *File, folder *File) error {
+func (c *DriveClient) MoveFileToFolder(file *File, folder *File) error {
 	url := c.BuildURL(DriveFiles, nil, file.ID)
 
 	if file.Parents == nil {
@@ -182,7 +194,7 @@ func (c *Client) MoveFileToFolder(file *File, folder *File) error {
 		SupportsAllDrives: true,
 	}
 
-	_, err := do[any](c, "PATCH", url, q, nil)
+	_, err := do[any](c.Client, "PATCH", url, q, nil)
 	if err != nil {
 		return err
 	}
@@ -197,19 +209,19 @@ func (c *Client) MoveFileToFolder(file *File, folder *File) error {
  * @param {File} folder - The folder to move the file to
  * https://developers.google.com/drive/api/v3/reference/files/update
  */
-func (c *Client) CopyFileToFolder(file *File, folder *File) error {
+func (c *DriveClient) CopyFileToFolder(file *File, folder *File) error {
 	url := c.BuildURL(DriveFiles, nil, file.ID, "copy")
 
 	q := DriveFileQuery{
 		SupportsAllDrives: true,
 	}
 
-	copy, err := do[*File](c, "POST", url, q, nil)
+	copy, err := do[File](c.Client, "POST", url, q, nil)
 	if err != nil {
 		return err
 	}
 
-	c.MoveFileToFolder(copy, folder)
+	c.MoveFileToFolder(&copy, folder)
 
 	return nil
 }
@@ -219,7 +231,7 @@ func (c *Client) CopyFileToFolder(file *File, folder *File) error {
  * drive/v3/files
  * https://developers.google.com/drive/api/v3/reference/files/list
  */
-func (c *Client) GetRootFileList() (*FileList, error) {
+func (c *DriveClient) GetRootFileList() (*FileList, error) {
 	file := File{
 		ID:   "root",
 		Path: "/",
@@ -235,7 +247,7 @@ func (c *Client) GetRootFileList() (*FileList, error) {
  * @param {DriveFileQuery} q - The query parameters to use
  * https://developers.google.com/drive/api/v3/reference/files/list
  */
-func (c *Client) GetFileList(file *File, q *DriveFileQuery) (*FileList, error) {
+func (c *DriveClient) GetFileList(file *File, q *DriveFileQuery) (*FileList, error) {
 	cacheKey := fmt.Sprintf("drive_filelist_%s", file.ID)
 
 	var cache FileList
@@ -265,11 +277,10 @@ func (c *Client) GetFileList(file *File, q *DriveFileQuery) (*FileList, error) {
 	}
 
 	c.SetCache(cacheKey, allFiles, 5*time.Minute)
-
 	return allFiles, nil
 }
 
-func (c *Client) initFilePath(file *File) error {
+func (c *DriveClient) initFilePath(file *File) error {
 	if file.ID != "root" {
 		var err error
 		file.Path, err = c.GetFilePath(file.ID)
@@ -296,7 +307,7 @@ func determineParentPath(file *File) string {
 	return file.Path
 }
 
-func (c *Client) processFileList(q *DriveFileQuery, parentPath string, allFiles *FileList) error {
+func (c *DriveClient) processFileList(q *DriveFileQuery, parentPath string, allFiles *FileList) error {
 	sem := make(chan struct{}, 10)
 	filesChannel := make(chan *FileList)
 	filesErrChannel := make(chan error)
@@ -344,7 +355,7 @@ func (c *Client) processFileList(q *DriveFileQuery, parentPath string, allFiles 
 	return nil
 }
 
-func (c *Client) fetchSubFiles(file *File, parentPath string, sem chan struct{}, filesChannel chan<- *FileList, filesErrChannel chan<- error, wg *sync.WaitGroup) {
+func (c *DriveClient) fetchSubFiles(file *File, parentPath string, sem chan struct{}, filesChannel chan<- *FileList, filesErrChannel chan<- error, wg *sync.WaitGroup) {
 	defer wg.Done()
 	sem <- struct{}{}
 	defer func() { <-sem }()
@@ -359,14 +370,14 @@ func (c *Client) fetchSubFiles(file *File, parentPath string, sem chan struct{},
 /*
 # Save File List to Google Sheet
 */
-func (c *Client) SaveFileListToSheet(fileList *FileList, sheetID string, headers *[]string) error {
+func (c *DriveClient) SaveFileListToSheet(fileList *FileList, sheetID string, headers *[]string) error {
 
 	c.Log.Println("Saving File List to spreadsheet")
 	if headers == nil {
 		headers = &[]string{"id", "name", "path", "md5Checksum", "mimeType", "originalFilename", "owners", "parents", "shortcutDetails"}
 	}
 
-	err := c.SaveToSheet(fileList.Files, sheetID, (*fileList.Files)[0].ID, headers)
+	err := c.Sheets().SaveToSheet(fileList.Files, sheetID, (*fileList.Files)[0].ID, headers)
 	if err != nil {
 		return err
 	}
@@ -379,15 +390,15 @@ func (c *Client) SaveFileListToSheet(fileList *FileList, sheetID string, headers
  * drive/v3/files
  * https://developers.google.com/drive/api/v3/reference/files/list
  */
-func (c *Client) fetchFilesPage(q DriveFileQuery) (*FileList, error) {
+func (c *DriveClient) fetchFilesPage(q DriveFileQuery) (*FileList, error) {
 	url := c.BuildURL(DriveFiles, nil)
 
-	filesPage, err := do[*FileList](c, "GET", url, q, nil)
+	filesPage, err := do[FileList](c.Client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return filesPage, nil
+	return &filesPage, nil
 }
 
 /*
@@ -397,7 +408,7 @@ func (c *Client) fetchFilesPage(q DriveFileQuery) (*FileList, error) {
  * @param {string} id - The ID of the file or shortcut to get the path of.
  * https://developers.google.com/drive/api/v3/reference/files/get
  */
-func (c *Client) GetFilePath(id string) (string, error) {
+func (c *DriveClient) GetFilePath(id string) (string, error) {
 	file, err := c.GetFile(id)
 	if err != nil {
 		return "", err
