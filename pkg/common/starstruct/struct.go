@@ -141,15 +141,19 @@ func FlattenStructFields(item interface{}, fields *[]string) ([][]string, error)
 	}
 
 	// If no fields are provided, generate them dynamically
+	var sortFields bool
 	if fields == nil || len(*fields) == 0 {
 		fields, err = GenerateFieldNames("", val)
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		sortFields = false
 	}
 
 	// Create a map to hold the fields and their values
 	fieldMap := make(map[string]string)
+
 	// Recursively parse the struct
 	err = flattenNestedStructs(item, "", &fieldMap)
 	if err != nil {
@@ -157,7 +161,7 @@ func FlattenStructFields(item interface{}, fields *[]string) ([][]string, error)
 	}
 
 	// Convert the fieldMap to a slice and update fields with new subfields
-	fieldSlice, err := mapToSliceAndUpdateFields(&fieldMap, fields)
+	fieldSlice, err := mapToSliceAndUpdateFields(&fieldMap, fields, sortFields)
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +278,7 @@ func flattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 		switch fieldVal.Kind() {
 		case reflect.Slice:
 			if fieldVal.Len() == 0 {
-				(*fieldMap)[keyPrefix+".00"] = "" // Handle empty slice
+				(*fieldMap)[keyPrefix] = "" // Handle empty slice
 			} else {
 				flattenSlice(fieldVal, keyPrefix, indexFormat, fieldMap)
 			}
@@ -337,28 +341,36 @@ func getMapKey(field reflect.StructField) string {
 }
 
 // mapToSliceAndUpdateFields converts a map to a two-dimensional slice and updates the fields with new subfields.
-func mapToSliceAndUpdateFields(fieldMap *map[string]string, fields *[]string) ([][]string, error) {
-	// Create a map to quickly check if a field already exists
-	existingFields := make(map[string]bool)
-	for _, field := range *fields {
-		existingFields[field] = true
-	}
-
-	sortedFields := make([]string, 0, len(*fieldMap))
-	for key := range *fieldMap {
-		sortedFields = append(sortedFields, key)
-	}
-	sort.Strings(sortedFields)
-
+func mapToSliceAndUpdateFields(fieldMap *map[string]string, fields *[]string, sortFields bool) ([][]string, error) {
 	// Prepare slices for results and new fields
-	newFields := make([]string, 0)
+	var newFields []string
 	fieldSlice := make([][]string, 0)
 
-	for _, key := range sortedFields {
-		value := (*fieldMap)[key]
+	// Store all keys that start with the same top-level prefix in the fieldMap
+	prefixMap := make(map[string][]string)
+	for key := range *fieldMap {
+		prefix := strings.Split(key, ".")[0]
+		prefixMap[prefix] = append(prefixMap[prefix], key)
+	}
 
-		newFields = append(newFields, key)
-		fieldSlice = append(fieldSlice, []string{key, value})
+	// Use the ordered fields to determine output order
+	for _, field := range *fields {
+		prefix := strings.Split(field, ".")[0]
+		if keys, found := prefixMap[prefix]; found {
+			for _, key := range keys {
+				if strings.HasPrefix(key, prefix) {
+					newFields = append(newFields, key)
+					value := (*fieldMap)[key]
+					fieldSlice = append(fieldSlice, []string{key, value})
+				}
+			}
+			delete(prefixMap, prefix) // Prevent reprocessing same prefix
+		}
+	}
+
+	// Sort the newFields array if needed
+	if sortFields {
+		sort.Strings(newFields)
 	}
 
 	// Update the fields pointer
