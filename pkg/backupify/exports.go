@@ -18,7 +18,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/gemini-oss/rego/pkg/common/requests"
 )
@@ -104,14 +106,24 @@ func (c *Client) CheckExportFilters(activities *Activities) {
 	}
 }
 
-func (c *ExportClient) DownloadAvailableExports(activities *Activities) {
+func (c *ExportClient) DownloadAvailableExports(activities *Activities) [][]string {
 	c.Log.Println("Downloading all exports from Backupify...")
 
+	// Initialize exportReports with headers
+	var exportReports = make([][]string, 1, len(activities.Export.Items)+1)
+	exportReports[0] = []string{"Service Email", "Snapshot ID", "URL", "Download Path", "File Name", "Export ID", "Downloaded At"}
+
+	// Buffered channel to limit concurrent downloads
+	sem := make(chan struct{}, 5)
+
+	var mu sync.Mutex
 	var wg sync.WaitGroup
 	for _, activity := range activities.Export.Items {
 		wg.Add(1)
 		go func(activity *Item) {
 			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
 
 			if activity.Status == "completed" && activity.Export.Status == "Download" {
 				export := &Export{
@@ -120,18 +132,24 @@ func (c *ExportClient) DownloadAvailableExports(activities *Activities) {
 						ID:      activity.Run.ID,
 					},
 				}
-				c.DownloadExport(activity, export)
-				c.DeleteExport(activity, export)
-				// keep track of snapshot id
+				report, err := c.DownloadExport(activity, export)
+				if err != nil {
+					c.Log.Fatal(err)
+				}
+				mu.Lock()
+				exportReports = append(exportReports, report)
+				mu.Unlock()
 			} else if activity.Status == "in progress" {
 				c.Log.Println("Activity is in progress. Skipping...")
 			}
 		}(activity)
 	}
 	wg.Wait()
+
+	return exportReports
 }
 
-func (c *ExportClient) DownloadExport(activity *Item, export *Export) error {
+func (c *ExportClient) DownloadExport(activity *Item, export *Export) ([]string, error) {
 	url := c.BuildURL(download)
 	query := ExportQuery{
 		Type:    "export",
@@ -141,32 +159,44 @@ func (c *ExportClient) DownloadExport(activity *Item, export *Export) error {
 	}
 
 	url = fmt.Sprintf("%s?type=%s&appType=%s&id=%d&ext=%s", url, query.Type, query.AppType, query.ID, query.EXT)
-	c.Log.Println("Downloading export for: ", activity.Run.Description.Services[0].ServiceEmail, "Snapshot ID", export.ResponseData.ID)
+	c.Log.Println("Downloading Export for: ", activity.Run.Description.Services[0].ServiceEmail, "Snapshot ID: ", activity.Run.Description.Snapshot, "Export ID: ", export.ResponseData.ID)
 	c.Log.Debug(url)
 
 	pwd, err := os.Getwd()
 	if err != nil {
 		c.Log.Fatal(err)
 	}
-	err = c.HTTP.DownloadFile(url,
-		filepath.Join(pwd, fmt.Sprintf(
-			"backupify/%s/%s",
-			activity.Run.AppType,
-			activity.Run.Description.Services[0].ServiceEmail,
-		)),
-		fmt.Sprintf(
-			"%s-%s-%d.%s",
-			activity.Run.Description.Services[0].ServiceEmail,
-			activity.Run.AppType,
-			export.ResponseData.ID,
-			query.EXT,
-		),
+
+	downloadPath := filepath.Join(pwd, fmt.Sprintf(
+		"backupify/%s/%s",
+		activity.Run.AppType,
+		activity.Run.Description.Services[0].ServiceEmail,
+	))
+
+	fileName := fmt.Sprintf(
+		"%s-%s-snap_%d-exp_%d.%s",
+		strings.Split(activity.Run.Description.Services[0].ServiceEmail, "@")[0],
+		activity.Run.AppType,
+		activity.Run.Description.Snapshot,
+		export.ResponseData.ID,
+		query.EXT,
 	)
+
+	err = c.HTTP.DownloadFile(url, downloadPath, fileName)
 	if err != nil {
 		c.Log.Fatal(err)
 	}
 
-	return nil
+	downloadReport := []string{
+		activity.Run.Description.Services[0].ServiceEmail,    // Service Email
+		fmt.Sprintf("%d", activity.Run.Description.Snapshot), // Snapshot ID
+		url,          // URL
+		downloadPath, // Download Path
+		fileName,     // File Name
+		fmt.Sprintf("%d", export.ResponseData.ID), // Export ID
+		time.Now().Format("2006-01-02 15:04:05"),  // Downloaded At
+	}
+	return downloadReport, nil
 }
 
 func (c *ExportClient) DeleteExport(activity *Item, export *Export) error {

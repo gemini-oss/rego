@@ -129,6 +129,13 @@ func (pr *progress) trackProgress(filename string) {
 
 		// Calculate the number of '█' symbols for the progress bar.
 		completed := int(10 * data.percentComplete / 100)
+
+		// Ensure the progress bar does not exceed 100%
+		if completed > 10 {
+			completed = 10
+		} else if completed < 0 {
+			completed = 0
+		}
 		bar := strings.Repeat("█", completed) + strings.Repeat(" ", 10-completed)
 
 		// Format elapsed time.
@@ -141,7 +148,6 @@ func (pr *progress) trackProgress(filename string) {
 			l.Println(progressLog)
 			resetCursor(pr.lineNum)
 			mu.Unlock()
-			time.Sleep(1 * time.Second)
 			continue
 		} else {
 			progressLog := fmt.Sprintf(progressFormat, time.Now().Format("2006/01/02 03:04:05 PM"), data.percentComplete, bar, filename, currentBytes, totalBytes, speedStr, elapsedTime)

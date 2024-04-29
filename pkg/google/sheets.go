@@ -321,9 +321,15 @@ func (c *SheetsClient) SaveToSheet(data interface{}, sheetID, sheetName string, 
 		}
 	}
 
-	vr, err := c.prepareAndGenerateValueRange(val, sheetName, headers)
-	if err != nil {
-		return err
+	vr := &ValueRange{}
+	switch v := data.(type) {
+	case [][]string:
+		vr.Values = v
+	default:
+		vr, err = c.prepareAndGenerateValueRange(val, sheetName, headers)
+		if err != nil {
+			return err
+		}
 	}
 
 	c.Log.Println("Updating spreadsheet data.")
@@ -340,6 +346,7 @@ func (c *SheetsClient) SaveToSheet(data interface{}, sheetID, sheetName string, 
 		}
 	}
 
+	c.Log.Println("Sheet updated successfully: ", sheet.SpreadsheetURL)
 	return nil
 }
 

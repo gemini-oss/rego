@@ -10,6 +10,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/gemini-oss/rego/pkg/common/cache"
+	"github.com/gemini-oss/rego/pkg/common/config"
 	"github.com/gemini-oss/rego/pkg/common/log"
 	rl "github.com/gemini-oss/rego/pkg/common/ratelimit"
 	"github.com/gemini-oss/rego/pkg/common/retry"
@@ -56,6 +58,7 @@ var (
 type Client struct {
 	httpClient  *http.Client
 	BodyType    string
+	Cache       *cache.Cache
 	Headers     Headers
 	RateLimiter *rl.RateLimiter
 }
@@ -66,15 +69,29 @@ type Client struct {
  * @return *Client
  */
 func NewClient(c *http.Client, headers Headers, rateLimiter *rl.RateLimiter) *Client {
+	log := log.NewLogger("{requests}", log.INFO)
+
+	encryptionKey := []byte(config.GetEnv("REGO_ENCRYPTION_KEY"))
+	if len(encryptionKey) == 0 {
+		log.Fatal("REGO_ENCRYPTION_KEY is not set")
+	}
+
+	cache, err := cache.NewCache(encryptionKey, "rego_cache_requests.gob", 1000000)
+	if err != nil {
+		panic(err)
+	}
+
 	if c != nil {
 		return &Client{
 			httpClient:  c,
+			Cache:       cache,
 			Headers:     headers,
 			RateLimiter: rateLimiter,
 		}
 	}
 	return &Client{
 		httpClient:  &http.Client{},
+		Cache:       cache,
 		Headers:     headers,
 		RateLimiter: rateLimiter,
 	}
