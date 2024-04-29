@@ -10,6 +10,9 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+
+	"golang.org/x/text/cases"
+    "golang.org/x/text/language"
 )
 
 /*
@@ -101,6 +104,57 @@ func sliceToInterface(v reflect.Value, includeZeroValues bool) ([]interface{}, e
 		}
 	}
 	return result, nil
+}
+
+// TableToStructs converts a [][]string into a slice of structs, with the first row as headers.
+func TableToStructs(data [][]string) ([]interface{}, error) {
+    if len(data) == 0 {
+        return nil, fmt.Errorf("data is empty")
+    }
+
+    headers := data[0]
+    var results []interface{}
+
+    // Create a dynamic struct type based on headers
+    var fields []reflect.StructField
+    c := cases.Title(language.English)
+    for _, header := range headers {
+        safeHeader := c.String(strings.ReplaceAll(header, " ", ""))
+        safeHeader = ensureValidIdentifier(safeHeader) // Make sure it's a valid Go identifier
+        fields = append(fields, reflect.StructField{
+            Name: safeHeader,
+            Type: reflect.TypeOf(""),
+            Tag:  reflect.StructTag(fmt.Sprintf(`json:"%s"`, header)),
+        })
+    }
+    structType := reflect.StructOf(fields)
+
+    // Populate the struct instances
+    for _, row := range data[1:] {
+        if len(row) != len(headers) {
+            return nil, fmt.Errorf("data row does not match headers length")
+        }
+        instance := reflect.New(structType).Elem()
+        for i, value := range row {
+            instance.Field(i).SetString(value)
+        }
+        results = append(results, instance.Interface())
+    }
+
+    return results, nil
+}
+
+// ensureValidIdentifier makes sure the string is a valid Go identifier.
+func ensureValidIdentifier(name string) string {
+    if name == "" || !isLetter(rune(name[0])) {
+        name = "Field" + name // Prefix to ensure it's a valid identifier
+    }
+    return name
+}
+
+// isLetter checks if the rune is a letter (unicode compliant)
+func isLetter(ch rune) bool {
+    return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z') || ch == '_'
 }
 
 func camelKey(s string) string {

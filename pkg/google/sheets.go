@@ -313,19 +313,19 @@ func (c *SheetsClient) SaveToSheet(data interface{}, sheetID, sheetName string, 
 		sheetName = "Sheet1"
 	}
 
-	// Generate headers if not provided
-	if headers == nil {
-		headers, err = ss.GenerateFieldNames("", val)
-		if err != nil {
-			return err
-		}
-	}
-
 	vr := &ValueRange{}
 	switch v := data.(type) {
 	case [][]string:
 		vr.Values = v
 	default:
+		// Generate headers if not provided
+		if headers == nil {
+			headers, err = ss.GenerateFieldNames("", val)
+			if err != nil {
+				return err
+			}
+		}
+
 		vr, err = c.prepareAndGenerateValueRange(val, sheetName, headers)
 		if err != nil {
 			return err
@@ -408,7 +408,7 @@ func (c *SheetsClient) ReadSpreadsheetValues(sheetID, rangeNotation string) (*Va
 
 	q := SheetValueQuery{
 		MajorDimension:    "ROWS",
-		ValueRenderOption: "UNFORMATTED_VALUE",
+		ValueRenderOption: "FORMATTED_VALUE",
 	}
 
 	url := fmt.Sprintf("%s/%s/values/%s", Sheets, sheetID, rangeNotation)

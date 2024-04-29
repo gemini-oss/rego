@@ -26,7 +26,7 @@ type DownloadMetadata struct {
 	Checksum      string    // For checksum validation (optional)
 }
 
-func (c *Client) DownloadFile(url, directory, filename string) error {
+func (c *Client) DownloadFile(url, directory, filename string, allowDuplicates bool) error {
 
 	cacheKey := "download_meta_" + filename
 
@@ -75,11 +75,15 @@ func (c *Client) DownloadFile(url, directory, filename string) error {
 	fileInfo, err := os.Stat(completeFilePath)
 	if err == nil {
 		// Check if the file is already completely downloaded.
-		if fileInfo.Size()-resp.ContentLength == 0 {
+		if allowDuplicates && fileInfo.Size()-resp.ContentLength == 0 {
 			completeFilePath = generateNewFilepath(directory, filename)
 			cacheKey = "download_meta_" + filepath.Base(completeFilePath) // Update cache key for new file
 			metadata.FileName = filepath.Base(completeFilePath)
 			metadata.BytesReceived = 0 // Reset since we will consider this a new download
+		}
+		if !allowDuplicates && fileInfo.Size() == resp.ContentLength {
+			c.Log.Printf("Duplicates disabled. File already downloaded: %s\n", filename)
+			return nil
 		}
 	}
 

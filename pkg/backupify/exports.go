@@ -182,7 +182,7 @@ func (c *ExportClient) DownloadExport(activity *Item, export *Export) ([]string,
 		query.EXT,
 	)
 
-	err = c.HTTP.DownloadFile(url, downloadPath, fileName)
+	err = c.HTTP.DownloadFile(url, downloadPath, fileName, false)
 	if err != nil {
 		c.Log.Fatal(err)
 	}

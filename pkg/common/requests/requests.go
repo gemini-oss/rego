@@ -60,6 +60,7 @@ type Client struct {
 	BodyType    string
 	Cache       *cache.Cache
 	Headers     Headers
+	Log         *log.Logger
 	RateLimiter *rl.RateLimiter
 }
 
@@ -69,11 +70,9 @@ type Client struct {
  * @return *Client
  */
 func NewClient(c *http.Client, headers Headers, rateLimiter *rl.RateLimiter) *Client {
-	log := log.NewLogger("{requests}", log.INFO)
-
 	encryptionKey := []byte(config.GetEnv("REGO_ENCRYPTION_KEY"))
 	if len(encryptionKey) == 0 {
-		log.Fatal("REGO_ENCRYPTION_KEY is not set")
+		l.Fatal("REGO_ENCRYPTION_KEY is not set")
 	}
 
 	cache, err := cache.NewCache(encryptionKey, "rego_cache_requests.gob", 1000000)
@@ -86,6 +85,7 @@ func NewClient(c *http.Client, headers Headers, rateLimiter *rl.RateLimiter) *Cl
 			httpClient:  c,
 			Cache:       cache,
 			Headers:     headers,
+			Log:         l,
 			RateLimiter: rateLimiter,
 		}
 	}
@@ -93,6 +93,7 @@ func NewClient(c *http.Client, headers Headers, rateLimiter *rl.RateLimiter) *Cl
 		httpClient:  &http.Client{},
 		Cache:       cache,
 		Headers:     headers,
+		Log:         l,
 		RateLimiter: rateLimiter,
 	}
 }

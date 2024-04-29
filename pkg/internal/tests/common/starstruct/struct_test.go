@@ -275,3 +275,45 @@ func TestComplexNestedStructureOrdering(t *testing.T) {
 		t.Errorf("FlattenStructFields() got = %v, want %v", gotSlice, expectedSlice)
 	}
 }
+
+// TestFromTableToStructs tests converting a [][]string with headers as the first row into a slice of dynamic structs.
+func TestFromTableToStructs(t *testing.T) {
+	// Define a sample input where the first row is headers and subsequent rows are data
+	table := [][]string{
+		{"Name", "Age", "City"},
+		{"Anthony", "30", "Miami"},
+		{"Dardano", "25", "New York"},
+	}
+
+	// Call the FromTableToStructs function
+	results, err := starstruct.TableToStructs(table)
+	if err != nil {
+		t.Errorf("TableToStructs() error = %v, wantErr nil", err)
+		return
+	}
+
+	// Define what we expect the resulting structs to look like in JSON format for simplicity
+	expected := []map[string]interface{}{
+		{"Name": "Anthony", "Age": "30", "City": "Miami"},
+		{"Name": "Dardano", "Age": "25", "City": "New York"},
+	}
+
+	// Check if the results match the expected output
+	if len(results) != len(expected) {
+		t.Errorf("TableToStructs() got %d results, want %d", len(results), len(expected))
+		return
+	}
+
+	for i, result := range results {
+		// Convert each struct to a map for easy comparison
+		resultMap, err := starstruct.ToMap(result, true)
+		if err != nil {
+			t.Errorf("ToMap() error = %v", err)
+			continue
+		}
+
+		if !reflect.DeepEqual(resultMap, expected[i]) {
+			t.Errorf("TableToStructs() result %d = %v, want %v", i, resultMap, expected[i])
+		}
+	}
+}
