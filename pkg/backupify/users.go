@@ -103,6 +103,7 @@ func (c *UserClient) GetAllUsers() (*Users, error) {
 
 	var allUsers Users
 	for {
+		c.Log.Printf("Getting users %d-%d from Backupify...", userPayload.Start, userPayload.Start+userPayload.Length-1)
 		users, err := do[Users](c.Client, "POST", url, nil, userPayload)
 		if err != nil {
 			c.Log.Fatal(err)
@@ -128,12 +129,25 @@ func (c *UserClient) GetAllUsers() (*Users, error) {
 	return &allUsers, nil
 }
 
+// Initialize a map to count users and sum storage by the first letter of their email
+func (c *UserClient) UserStorageReport(users *Users) map[string]UserCounts {
+
+	userCountsByLetter := make(map[string]UserCounts)
+	for email, user := range users.Map() {
+		firstLetter := strings.ToUpper(string(email[0])) // Ensure the letter is uppercase
+		stats := userCountsByLetter[firstLetter]
+		stats.Count++
+		stats.TotalStorage += user.UsedBytesFloat
+		userCountsByLetter[firstLetter] = stats
+	}
+
+	return userCountsByLetter
+}
+
 func (c *UserClient) convertUserBytes(users *Users, useBinary bool) {
 	var wg sync.WaitGroup
 	var kilobyte float64
-	if useBinary {
-		kilobyte = 1024 // Binary unit (powers of 1024)
-	} else {
+	if !useBinary {
 		kilobyte = 1000 // Decimal unit (powers of 1000)
 	}
 

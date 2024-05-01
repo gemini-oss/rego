@@ -40,6 +40,7 @@ var (
 	terabyte    float64 = 1024 * gigabyte
 	GoogleDrive AppType = "GoogleDrive"
 	SharedDrive AppType = "GoogleTeamDrives"
+	GoogleMail  AppType = "GoogleMail"
 )
 
 // BuildURL builds a URL for a given resource and identifiers.

@@ -154,6 +154,14 @@ type Users struct {
 	RecordsFiltered int     `json:"recordsFiltered,omitempty"` // Number of filtered records
 }
 
+func (u *Users) Map() map[string]*User {
+    userMap := make(map[string]*User)
+    for _, user := range u.Data {
+        userMap[user.Email] = user
+    }
+    return userMap
+}
+
 type User struct {
 	AppType        string      `json:"appType,omitempty"`        // Type of the application
 	CreatedAt      int64       `json:"createdAt,omitempty"`      // Creation timestamp
@@ -224,4 +232,9 @@ type DeletePayload struct {
 	Type    string  `json:"type"`    // Type of deletion
 	AppType AppType `json:"appType"` // Type of Backupify application
 	ID      int     `json:"id"`      // Identity to target. e.g. [snapshotID]
+}
+
+type UserCounts struct {
+	Count        int
+	TotalStorage float64
 }
