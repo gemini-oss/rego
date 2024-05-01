@@ -155,11 +155,11 @@ type Users struct {
 }
 
 func (u *Users) Map() map[string]*User {
-    userMap := make(map[string]*User)
-    for _, user := range u.Data {
-        userMap[user.Email] = user
-    }
-    return userMap
+	userMap := make(map[string]*User)
+	for _, user := range u.Data {
+		userMap[user.Email] = user
+	}
+	return userMap
 }
 
 type User struct {

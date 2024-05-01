@@ -1,0 +1,58 @@
+name: Manual Tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Base version (e.g., v1.2.3)'
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0                            # Ensures git history is fully checked out
+          ssh-known-hosts: github.com               # Needed to push to GitHub
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}   # Needed to push to GitHub
+          submodules: true                          # Needed since Hugo theme is a submodule
+
+      - name: Setup SSH
+        run: |
+            mkdir -p ~/.ssh
+            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+            chmod 600 ~/.ssh/id_ed25519
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+            git config --global user.name "Anthony Dardano"
+            git config --global user.email "anthony.dardano@gemini.com"
+            git config --global user.signingkey ~/.ssh/id_ed25519
+            git config --global gpg.format ssh
+            git config --global commit.gpgsign true
+            git config --global push.autoSetupRemote true
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '>=1.22'
+
+      - name: Validate Version Input
+        run: |
+          if ! [[ "${{ github.event.inputs.version }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Version input is invalid. Please use the format 'vX.Y.Z'."
+          exit 1
+
+          fi
+
+      - name: Create and Push Tag
+        run: |
+          BASE_VERSION=${{ github.event.inputs.version }}
+          DATE=$(date -u +"%Y.%m.%d")
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          FULL_TAG="${BASE_VERSION}-${DATE}-${COMMIT_HASH}"
+          echo "Creating tag $FULL_TAG"
+          git tag $FULL_TAG
+          git push origin $FULL_TAG

@@ -1,4 +1,4 @@
-name: Go Module Release Tags
+name: Auto-Increment Tag (Patch)
 
 on:
   push:
@@ -37,8 +37,29 @@ jobs:
         with:
           go-version: '>=1.22'
 
-      - name: Tag New Version
+      - name: Install jq
+        run: sudo apt-get install jq
+
+      - name: Fetch the latest tag and create new tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          DATE_TIME=$(date -u +"%Y%m%d.%H%M%S")
-          git tag $DATE_TIME
-          git push origin $DATE_TIME
+          # Fetch the latest release
+          LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+          echo "Latest tag: $LATEST_TAG"
+
+          # Increment the version part of the tag
+          BASE_VERSION=$(echo $LATEST_TAG | sed -E 's/(v[0-9]+\.[0-9]+\.)([0-9]+)(-.*)?/\1/')
+          PATCH_VERSION=$(echo $LATEST_TAG | sed -E 's/v[0-9]+\.[0-9]+\.([0-9]+)(-.*)?/\1/')
+          NEW_PATCH_VERSION=$((PATCH_VERSION + 1))
+          NEW_TAG="${BASE_VERSION}${NEW_PATCH_VERSION}"
+
+          # Get the current date in YYYY.MM.DD format and the last commit's short hash
+          DATE=$(date -u +"%Y.%m.%d")
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+
+          # Create the new full tag
+          FULL_TAG="${NEW_TAG}-${DATE}-${COMMIT_HASH}"
+          echo "Creating new tag $FULL_TAG"
+          git tag $FULL_TAG
+          git push origin $FULL_TAG
