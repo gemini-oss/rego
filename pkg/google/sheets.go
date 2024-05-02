@@ -313,7 +313,9 @@ func (c *SheetsClient) SaveToSheet(data interface{}, sheetID, sheetName string, 
 		sheetName = "Sheet1"
 	}
 
-	vr := &ValueRange{}
+	vr := &ValueRange{
+		Range: fmt.Sprintf("%s!A:ZZ", sheetName),
+	}
 	switch v := data.(type) {
 	case [][]string:
 		vr.Values = v

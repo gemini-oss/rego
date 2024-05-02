@@ -33,3 +33,7 @@ run: build
 clean:
 	go clean
 	rm ${BINARY}
+
+# Flush the cache and any tests
+flush:
+	@/bin/bash -c 'if compgen -G "$$TMPDIR/rego_*" > /dev/null; then rm -rf $$TMPDIR/rego_*; fi'

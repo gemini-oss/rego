@@ -47,59 +47,70 @@ func (c *Client) DownloadFile(url, directory, filename string, allowDuplicates b
 		TotalSize:     -1,
 	}
 
+	// Use a HEAD request to fetch headers for filename extraction
+	// https://developer.mozilla.org/en-US/docs/web/http/methods/head
+	req, _ := c.CreateRequest("HEAD", url)
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("error performing HEAD request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Extract filename if not provided
+	if filename == "" {
+		extractFilename(url, filename, resp, metadata)
+	}
+
+	// Ensure the directory exists
+	if directory == "" {
+		directory = "rego_downloads"
+	}
 	if _, err := os.Stat(directory); os.IsNotExist(err) {
 		if err := os.MkdirAll(directory, os.ModePerm); err != nil { // os.ModePerm
 			return fmt.Errorf("error creating directory: %w", err)
 		}
 	}
 
-	// Resume the correct download if duplicates exist
-	completeFilePath, bytesReceived, err := findLatestDownload(directory, filename)
+	// Find the correct download if duplicates exist
+	completeFilePath, bytesReceived, err := findLatestDownload(directory, metadata.FileName)
 	if err != nil {
 		return err
 	}
 	metadata.BytesReceived = bytesReceived
 	metadata.FileName = filepath.Base(completeFilePath)
 
-	req, err := c.CreateRequest("GET", url)
-	if err != nil {
-		return fmt.Errorf("error creating request: %w", err)
-	}
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("error performing request: %w", err)
-	}
-	defer resp.Body.Close()
-
 	fileInfo, err := os.Stat(completeFilePath)
 	if err == nil {
 		// Check if the file is already completely downloaded.
 		if allowDuplicates && fileInfo.Size()-resp.ContentLength == 0 {
-			completeFilePath = generateNewFilepath(directory, filename)
+			completeFilePath = generateNewFilepath(directory, metadata.FileName)
 			cacheKey = "download_meta_" + filepath.Base(completeFilePath) // Update cache key for new file
 			metadata.FileName = filepath.Base(completeFilePath)
 			metadata.BytesReceived = 0 // Reset since we will consider this a new download
 		}
 		if !allowDuplicates && fileInfo.Size() == resp.ContentLength {
-			c.Log.Printf("Duplicates disabled. File already downloaded: %s\n", filename)
+			c.Log.Printf("Duplicates disabled. File already downloaded: %s\n", metadata.FileName)
 			return nil
 		}
 	}
 
+	// Start or resume the download
+	req, err = c.CreateRequest("GET", url)
+	if err != nil {
+		return fmt.Errorf("error creating request: %w", err)
+	}
+
 	// Set the Range header if part of the file already exists
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range
-	req.Header.Set("Range", fmt.Sprintf("bytes=%d-", metadata.BytesReceived))
+	if metadata.BytesReceived > 0 {
+		req.Header.Set("Range", fmt.Sprintf("bytes=%d-", bytesReceived))
+	}
+
 	resp, err = c.httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("error performing request: %w", err)
 	}
 	defer resp.Body.Close()
-
-	if metadata.BytesReceived == 0 {
-		extractFilename(url, filename, resp, metadata)
-		completeFilePath = filepath.Join(directory, metadata.FileName)
-	}
 
 	// File creation/resumption
 	var out *os.File

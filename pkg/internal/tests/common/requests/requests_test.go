@@ -13,20 +13,23 @@ import (
 	"github.com/gemini-oss/rego/pkg/common/requests"
 )
 
-type roundTripperFunc func(req *http.Request) *http.Response
+type roundTripperFunc func(req *http.Request) (*http.Response, error)
 
 func (f roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
-	return f(req), nil
+	return f(req)
 }
 
-func mockHTTPClient(responseBody string, statusCode int) *http.Client {
+func mockHTTPClient(responseBody string, statusCode int, err error) *http.Client {
 	return &http.Client{
-		Transport: roundTripperFunc(func(req *http.Request) *http.Response {
+		Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+			if err != nil {
+				return nil, err
+			}
 			return &http.Response{
 				StatusCode: statusCode,
 				Body:       io.NopCloser(bytes.NewBufferString(responseBody)),
 				Header:     make(http.Header),
-			}
+			}, nil
 		}),
 	}
 }
@@ -205,7 +208,7 @@ func TestSetFormURLEncodedPayload(t *testing.T) {
 			"Valid Form Data",
 			FormDataStruct{Field1: "test", Field2: 123, Field3: []string{"one", "two"}},
 			false,
-			"field1=test&field2=123&field3=one&field3=two",
+			"field1=test&field2=123&field3%5B%5D=one&field3%5B%5D=two",
 			true,
 		},
 		{
@@ -251,7 +254,7 @@ func TestSetFormURLEncodedPayload(t *testing.T) {
 
 func TestDoRequest(t *testing.T) {
 	// Mock HTTP client for simulating responses
-	mockClient := mockHTTPClient("mock response", http.StatusOK)
+	mockClient := mockHTTPClient("mock response", http.StatusOK, nil)
 
 	tests := []struct {
 		name       string
@@ -337,21 +340,21 @@ func TestRetryLogic(t *testing.T) {
 
 	// Mock HTTP client to simulate rate-limited responses
 	mockClient := &http.Client{
-		Transport: roundTripperFunc(func(req *http.Request) *http.Response {
+		Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
 			requestCount++
-			header := make(http.Header) // Initialize the Header field
-			if requestCount <= 3 {      // Simulate being rate-limited
+			if requestCount <= 3 { // Simulate being rate-limited for the first three requests
 				return &http.Response{
 					StatusCode: rateLimitStatusCode,
 					Body:       io.NopCloser(bytes.NewBufferString(rateLimitedResponse)),
-					Header:     header,
-				}
+					Header:     make(http.Header),
+				}, nil
 			}
+			// Return a normal response on the fourth request
 			return &http.Response{
 				StatusCode: normalStatusCode,
 				Body:       io.NopCloser(bytes.NewBufferString(normalResponse)),
-				Header:     header,
-			}
+				Header:     make(http.Header),
+			}, nil
 		}),
 	}
 
