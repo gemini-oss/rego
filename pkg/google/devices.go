@@ -32,12 +32,20 @@ type DeviceClient struct {
 
 // Entry point for device-related operations
 func (c *Client) Devices() *DeviceClient {
-	return &DeviceClient{
+	dc := &DeviceClient{
 		Client: c,
 		DeviceQuery: DeviceQuery{ // Default query parameters
 			MaxResults: 500,
 		},
 	}
+
+	// https://developers.google.com/admin-sdk/directory/v1/limits
+	dc.HTTP.RateLimiter.Available = 2400
+	dc.HTTP.RateLimiter.Limit = 2400
+	dc.HTTP.RateLimiter.Interval = 1 * time.Minute
+	dc.HTTP.RateLimiter.Log.Verbosity = c.Log.Verbosity
+
+	return dc
 }
 
 /*

@@ -15,6 +15,7 @@ https://{node-url}.backupify.com/{customerID}/{service}/serviceSnaps
 package backupify
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -32,10 +33,15 @@ func (c *Client) Snapshots() *SnapshotClient {
 
 func (c *SnapshotClient) GetSnapshotDates(appType AppType, user *User) (*Snapshots, error) {
 	url := c.BuildURL(serviceSnapshots)
-	c.Log.Println("Getting formatted snapshots from Backupify...")
+	cacheKey := fmt.Sprintf("%d_%s_%s", user.ID, user.Name, string(appType))
+	c.Log.Println("Get dates for", appType, "Backupify snapshots:", user.Email, "(", user.ID, ")")
+
+	if (*user).Snapshots == nil || len((*user).Snapshots) == 0 {
+		return nil, fmt.Errorf("no snapshots found for user %d", user.ID)
+	}
 
 	var cache Snapshots
-	if c.GetCache(user.Email, &cache) {
+	if c.GetCache(cacheKey, &cache) {
 		return &cache, nil
 	}
 
@@ -49,6 +55,6 @@ func (c *SnapshotClient) GetSnapshotDates(appType AppType, user *User) (*Snapsho
 		c.Log.Fatal(err)
 	}
 
-	c.SetCache(user.Email, snapshots, 3*time.Hour)
+	c.SetCache(cacheKey, snapshots, 24*time.Hour)
 	return &snapshots, nil
 }

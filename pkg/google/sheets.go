@@ -37,9 +37,17 @@ type SheetsClient struct {
 
 // Entry point for sheets-related operations
 func (c *Client) Sheets() *SheetsClient {
-	return &SheetsClient{
+	sc := &SheetsClient{
 		Client: c,
 	}
+
+	// https://developers.google.com/sheets/api/limits
+	sc.HTTP.RateLimiter.Available = 60
+	sc.HTTP.RateLimiter.Limit = 60
+	sc.HTTP.RateLimiter.Interval = 1 * time.Minute
+	sc.HTTP.RateLimiter.Log.Verbosity = c.Log.Verbosity
+
+	return sc
 }
 
 /*

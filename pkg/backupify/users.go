@@ -33,12 +33,13 @@ func (c *Client) Users() *UserClient {
 }
 
 // GetAllUsers() retrieves all users from Backupify.
-func (c *UserClient) GetAllUsers() (*Users, error) {
+func (c *UserClient) GetAllUsers(appType AppType) (*Users, error) {
 	url := c.BuildURL(customerServices)
+	cache_key := fmt.Sprintf("%s_%s", url, string(appType))
 	c.Log.Println("Getting all users from Backupify...")
 
 	var cache Users
-	if c.GetCache(url, &cache) {
+	if c.GetCache(cache_key, &cache) {
 		return &cache, nil
 	}
 
@@ -98,12 +99,12 @@ func (c *UserClient) GetAllUsers() (*Users, error) {
 			Value: "",
 			Regex: false,
 		},
-		AppType: "GoogleDrive",
+		AppType: appType,
 	}
 
 	var allUsers Users
 	for {
-		c.Log.Printf("Getting users %d-%d from Backupify...", userPayload.Start, userPayload.Start+userPayload.Length-1)
+		c.Log.Printf("Getting users %d-%d from Backupify %s...", userPayload.Start, userPayload.Start+userPayload.Length-1, appType)
 		users, err := do[Users](c.Client, "POST", url, nil, userPayload)
 		if err != nil {
 			c.Log.Fatal(err)
@@ -125,7 +126,7 @@ func (c *UserClient) GetAllUsers() (*Users, error) {
 	}
 	c.convertUserBytes(&allUsers, false)
 
-	c.SetCache(url, allUsers, 3*time.Hour)
+	c.SetCache(cache_key, allUsers, 6*time.Hour)
 	return &allUsers, nil
 }
 

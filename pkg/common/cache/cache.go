@@ -157,8 +157,7 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 	}
 
 	// Update the expiration time upon access
-	newExpiration := time.Now().Add(1 * time.Minute) // or some other default duration
-	d.Expires = newExpiration
+	d.Expires = d.Expires.Add(1 * time.Minute)
 	c.data[key] = d
 
 	c.updateAccess(key)

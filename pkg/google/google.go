@@ -262,7 +262,7 @@ func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
 	}
 
 	// https://developers.google.com/drive/api/guides/limits
-	rl := ratelimit.NewRateLimiter(12000)
+	rl := ratelimit.NewRateLimiter(12000, 75*time.Second)
 	rl.Log.Verbosity = verbosity
 
 	c := &Client{

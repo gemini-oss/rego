@@ -37,9 +37,17 @@ type DriveClient struct {
 
 // Entry point for drive-related operations
 func (c *Client) Drive() *DriveClient {
-	return &DriveClient{
+	dc := &DriveClient{
 		Client: c,
 	}
+
+	// https://developers.google.com/drive/api/guides/limits
+	dc.HTTP.RateLimiter.Available = 12000
+	dc.HTTP.RateLimiter.Limit = 12000
+	dc.HTTP.RateLimiter.Interval = 1 * time.Minute
+	dc.HTTP.RateLimiter.Log.Verbosity = c.Log.Verbosity
+
+	return dc
 }
 
 /*

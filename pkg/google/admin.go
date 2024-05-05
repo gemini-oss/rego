@@ -57,9 +57,17 @@ type AdminClient struct {
 
 // Entry point for admin-related operations
 func (c *Client) Admin() *AdminClient {
-	return &AdminClient{
+	ac := &AdminClient{
 		Client: c,
 	}
+
+	// https://developers.google.com/admin-sdk/directory/v1/limits
+	ac.HTTP.RateLimiter.Available = 2400
+	ac.HTTP.RateLimiter.Limit = 2400
+	ac.HTTP.RateLimiter.Interval = 1 * time.Minute
+	ac.HTTP.RateLimiter.Log.Verbosity = c.Log.Verbosity
+
+	return ac
 }
 
 /*

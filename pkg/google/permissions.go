@@ -23,9 +23,17 @@ type PermissionsClient struct {
 
 // Entry point for permissions-related operations
 func (c *Client) Permissions() *PermissionsClient {
-	return &PermissionsClient{
+	pc := &PermissionsClient{
 		Client: c,
 	}
+
+	// https://developers.google.com/drive/api/guides/limits
+	pc.HTTP.RateLimiter.Available = 12000
+	pc.HTTP.RateLimiter.Limit = 12000
+	pc.HTTP.RateLimiter.Interval = 1 * time.Minute
+	pc.HTTP.RateLimiter.Log.Verbosity = c.Log.Verbosity
+
+	return pc
 }
 
 /*
