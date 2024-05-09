@@ -13,6 +13,8 @@ https://developer.okta.com/docs/api/
 package snipeit
 
 import (
+	"reflect"
+
 	"github.com/gemini-oss/rego/pkg/common/cache"
 	"github.com/gemini-oss/rego/pkg/common/log"
 	"github.com/gemini-oss/rego/pkg/common/requests"
@@ -43,6 +45,26 @@ func (pl PaginatedList[E]) Append(elements *[]*E) {
 
 func (pl PaginatedList[E]) Elements() *[]*E {
 	return pl.Rows
+}
+
+func (pl PaginatedList[E]) Map() map[interface{}]*E {
+    result := make(map[interface{}]*E)
+    for _, item := range *pl.Rows {
+        switch entity := any(item).(type) {
+        case *Hardware:
+            result[entity.Serial] = item
+        case *User:
+            result[entity.Email] = item
+		default:
+            // Fallback to the `ID` field if available
+            value := reflect.ValueOf(item).Elem()
+            if idField := value.FieldByName("ID"); idField.IsValid() {
+                id := idField.Interface()
+                result[id] = item
+            }
+        }
+    }
+    return result
 }
 
 // QueryInterface defines methods for queries with pagination and filtering
