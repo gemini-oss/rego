@@ -13,10 +13,22 @@ https://developer.okta.com/docs/api/
 package snipeit
 
 import (
-	"encoding/json"
-	"fmt"
-	"sync"
+	"time"
 )
+
+// AssetClient for chaining methods
+type AssetClient struct {
+	*Client
+}
+
+// Entry point for asset-related operations
+func (c *Client) Assets() *AssetClient {
+	ac := &AssetClient{
+		Client: c,
+	}
+
+	return ac
+}
 
 /*
  * Query Parameters for Assets
@@ -37,108 +49,69 @@ type AssetQuery struct {
 	StatusID       int    `url:"status_id,omitempty"`       // Return only assets associated with the specified status ID.
 }
 
+// ### AssetQuery implements QueryInterface
+// ---------------------------------------------------------------------
+func (q *AssetQuery) Copy() QueryInterface {
+	return &AssetQuery{
+		Limit:          q.Limit,
+		Offset:         q.Offset,
+		Search:         q.Search,
+		OrderNumber:    q.OrderNumber,
+		Sort:           q.Sort,
+		Order:          q.Order,
+		ModelID:        q.ModelID,
+		CategoryID:     q.CategoryID,
+		ManufacturerID: q.ManufacturerID,
+		CompanyID:      q.CompanyID,
+		LocationID:     q.LocationID,
+		Status:         q.Status,
+		StatusID:       q.StatusID,
+	}
+}
+
+func (q *AssetQuery) GetLimit() int {
+	return q.Limit
+}
+
+func (q *AssetQuery) SetLimit(limit int) {
+	q.Limit = limit
+}
+
+func (q *AssetQuery) GetOffset() int {
+	return q.Offset
+}
+
+func (q *AssetQuery) SetOffset(offset int) {
+	q.Offset = offset
+}
+
+// END OF QUERYINTERFACE METHODS
+//---------------------------------------------------------------------
+
 /*
  * List all Hardware Assets in Snipe-IT
  * /api/v1/hardware
  * - https://snipe-it.readme.io/reference/hardware-create
  */
-func (c *Client) GetAllAssets() (*HardwareList, error) {
-	assets := &HardwareList{}
+func (c *AssetClient) GetAllAssets() (*HardwareList, error) {
+
+	url := c.BuildURL(Assets)
 
 	q := AssetQuery{
 		Limit:  500,
 		Offset: 0,
 	}
 
-	c.HTTP.RateLimiter.Start()
+	var cache HardwareList
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
 
-	url := fmt.Sprintf(Assets, c.BaseURL)
-	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
+	assets, err := doConcurrent[HardwareList](c.Client, "GET", url, &q, nil)
 	if err != nil {
-		return nil, err
-	}
-	c.Log.Debug(res.Status)
-	c.Log.Trace(string(body))
-
-	err = json.Unmarshal(body, &assets)
-	if err != nil {
-		return nil, err
+		c.Log.Fatalf("Error fetching hardware list: %v", err)
 	}
 
-	// Use a buffered channel as a semaphore to limit concurrent requests.
-	sem := make(chan struct{}, 10)
-
-	// WaitGroup to ensure all go routines complete their tasks.
-	var wg sync.WaitGroup
-
-	// Buffered channel to hold device pages result from each goroutine
-	assetsCh := make(chan map[string]*HardwareList, assets.Total)
-
-	// Buffered channel to hold any errors that occur while getting device pages
-	rolesErrCh := make(chan error)
-
-	for next_page := true; next_page; next_page = (q.Offset < assets.Total) {
-
-		remainingAssets := assets.Total - q.Offset
-		if remainingAssets < q.Limit {
-			q.Limit = remainingAssets
-		}
-
-		wg.Add(1)
-
-		// Start a new goroutine to get the next device page
-		go func(q AssetQuery) {
-			// Release one semaphore resource when the goroutine completes
-			defer wg.Done()
-
-			sem <- struct{}{} // acquire one semaphore resource
-			page := &HardwareList{}
-
-			res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
-			if err != nil {
-				rolesErrCh <- err
-				return
-			}
-
-			c.Log.Debug("Response Status:", res.Status)
-			c.Log.Trace("Response Body: ", string(body))
-
-			err = json.Unmarshal(body, &page)
-			if err != nil {
-				rolesErrCh <- err
-				return
-			}
-
-			newPage := make(map[string]*HardwareList)
-			newPage[fmt.Sprint(q.Offset)] = page
-			assetsCh <- newPage
-			<-sem // release one semaphore resource
-		}(q) // Pass the query to the goroutine
-
-		q.Offset += q.Limit
-	}
-
-	// Wait for all goroutines to finish and close channels
-	go func() {
-		wg.Wait()
-		close(assetsCh)
-		close(rolesErrCh)
-	}()
-
-	// Collect devices from all pages
-	for deviceRecords := range assetsCh {
-		for _, results := range deviceRecords {
-			assets.Rows = append(assets.Rows, results.Rows...)
-		}
-	}
-
-	// Check if there were any errors
-	if len(rolesErrCh) > 0 {
-		// Handle or return errors. For simplicity, only returning the first error here
-		return nil, <-rolesErrCh
-	}
-
-	c.HTTP.RateLimiter.Stop()
-
+	c.SetCache(url, assets, 5*time.Minute)
 	return assets, nil
 }

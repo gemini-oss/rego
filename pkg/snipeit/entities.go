@@ -27,16 +27,40 @@ type Client struct {
 	Cache   *cache.Cache     // Cache for the SnipeIT API.
 }
 
+// PaginatedList is a generic structure representing a paginated response from SnipeIT with items of any type.
+type PaginatedList[E any] struct {
+	Total int   `json:"total,omitempty"` // The total number of items.
+	Rows  *[]*E `json:"rows,omitempty"`  // An array of items.
+}
+
+func (pl PaginatedList[E]) TotalCount() int {
+	return pl.Total
+}
+
+func (pl PaginatedList[E]) Append(elements *[]*E) {
+	*pl.Rows = append(*pl.Rows, *elements...)
+}
+
+func (pl PaginatedList[E]) Elements() *[]*E {
+	return pl.Rows
+}
+
+// QueryInterface defines methods for queries with pagination and filtering
+type QueryInterface interface {
+	Copy() QueryInterface
+	GetLimit() int
+	SetLimit(int)
+	GetOffset() int
+	SetOffset(int)
+}
+
 // END OF SNIPEIT CLIENT STRUCTS
 //---------------------------------------------------------------------
 
 // ### Assets
 // -------------------------------------------------------------------------
 // Source: https://snipe-it.readme.io/reference/hardware-list
-type HardwareList struct {
-	Total int         `json:"total,omitempty"` // The total number of hardware items.
-	Rows  []*Hardware `json:"rows,omitempty"`  // An array of hardware items.
-}
+type HardwareList = PaginatedList[Hardware]
 
 // Hardware represents an individual hardware item.
 // https://snipe-it.readme.io/reference/hardware-list#sortable-columns
@@ -83,13 +107,13 @@ type Hardware struct {
 	AvailableActions *AvailableActions `json:"available_actions,omitempty"` // Available actions for the hardware item.
 }
 
-// ### Accessories
+// END OF ASSETS STRUCTS
+//-------------------------------------------------------------------------
 
+// ### Accessories
+// -------------------------------------------------------------------------
 // Source: https://snipe-it.readme.io/reference/accessories
-type AccessoryList struct {
-	Total int          `json:"total,omitempty"` // Total count of rows
-	Rows  []*Accessory `json:"rows,omitempty"`  // Array of row objects
-}
+type AccessoryList = PaginatedList[Accessory]
 
 // Accessory represents an individual accessory.
 // https://snipe-it.readme.io/reference/accessories#sortable-columns
@@ -116,13 +140,13 @@ type Accessory struct {
 	UserCanCheckout  bool              `json:"user_can_checkout,omitempty"` // If the user can checkout the accessory
 }
 
+// END OF ACCESSORIES STRUCTS
+//-------------------------------------------------------------------------
+
 // ### Categories
 // -------------------------------------------------------------------------
 // Source: https://snipe-it.readme.io/reference/categories
-type CategoryList struct {
-	Total int         `json:"total,omitempty"` // Total count of rows
-	Rows  []*Category `json:"rows,omitempty"`  // Array of row objects
-}
+type CategoryList = PaginatedList[Category]
 
 // Category represents an individual category.
 // https://snipe-it.readme.io/reference/categories#sortable-columns
@@ -149,10 +173,7 @@ type Category struct {
 
 // ### Locations
 // -------------------------------------------------------------------------
-type LocationList struct {
-	Total int         `json:"total,omitempty"` // The total number of hardware items.
-	Rows  []*Location `json:"rows,omitempty"`  // An array of hardware items.
-}
+type LocationList = PaginatedList[Location]
 
 type Location struct {
 	ID             int              `json:"id,omitempty"`                    // The ID of the location.
@@ -183,10 +204,7 @@ type Location struct {
 
 // ### Users
 // -------------------------------------------------------------------------
-type UserList struct {
-	Total int     `json:"total,omitempty"` // Total count of rows
-	Rows  []*User `json:"rows,omitempty"`  // Array of row objects
-}
+type UserList = PaginatedList[User]
 
 type User struct {
 	Activated          bool              `json:"activated"`                     // Specifies if the user is active or not

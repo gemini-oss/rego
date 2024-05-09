@@ -13,12 +13,25 @@ https://snipe-it.readme.io/reference/locations
 package snipeit
 
 import (
-	"encoding/json"
-	"fmt"
+	"time"
 )
 
+// LocationClient for chaining methods
+type LocationClient struct {
+	*Client
+}
+
+// Entry point for locations-related operations
+func (c *Client) Locations() *LocationClient {
+	lc := &LocationClient{
+		Client: c,
+	}
+
+	return lc
+}
+
 /*
- * Query Parameters for Assets
+ * Query Parameters for Locations
  */
 type LocationQuery struct {
 	Limit       int    `url:"limit,omitempty"`        // Specify the number of results you wish to return. Defaults to 50.
@@ -30,30 +43,60 @@ type LocationQuery struct {
 	Expand      string `url:"expand,omitempty"`       // Expand the results to include full details of the associated model, category, and manufacturer.
 }
 
+// ### LocationQuery implements QueryInterface
+// ---------------------------------------------------------------------
+func (q *LocationQuery) Copy() QueryInterface {
+	return &LocationQuery{
+		Limit:       q.Limit,
+		Offset:      q.Offset,
+		Search:      q.Search,
+		OrderNumber: q.OrderNumber,
+		Sort:        q.Sort,
+		Order:       q.Order,
+	}
+}
+
+func (q *LocationQuery) GetLimit() int {
+	return q.Limit
+}
+
+func (q *LocationQuery) SetLimit(limit int) {
+	q.Limit = limit
+}
+
+func (q *LocationQuery) GetOffset() int {
+	return q.Offset
+}
+
+func (q *LocationQuery) SetOffset(offset int) {
+	q.Offset = offset
+}
+
+// END OF QUERYINTERFACE METHODS
+//---------------------------------------------------------------------
+
 /*
  * # List all Locations in Snipe-IT
  * /api/v1/locations
  * - https://snipe-it.readme.io/reference/locations
  */
-func (c *Client) GetAllLocations() (*LocationList, error) {
-	locations := &LocationList{}
-
-	q := AssetQuery{
+func (c *LocationClient) GetAllLocations() (*LocationList, error) {
+	url := c.BuildURL(Locations)
+	q := LocationQuery{
 		Limit: 50,
 	}
 
-	url := fmt.Sprintf(Locations, c.BaseURL)
-	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
-	if err != nil {
-		return nil, err
+	var cache LocationList
+	if c.GetCache(url, &cache) {
+		return &cache, nil
 	}
-	c.Log.Debug("Response from GetAllAccessories: ", res.Status)
-	c.Log.Debug("Body from GetAllAccessories: ", string(body))
 
-	err = json.Unmarshal(body, &locations)
+	locations, err := doConcurrent[LocationList](c.Client, "GET", url, &q, nil)
 	if err != nil {
-		return nil, err
+		c.Log.Fatalf("Error fetching hardware list: %v", err)
 	}
+
+	c.SetCache(url, locations, 5*time.Minute)
 
 	return locations, nil
 }
