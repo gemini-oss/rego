@@ -33,9 +33,9 @@ func (c *Client) Users() *UserClient {
 }
 
 // GetAllUsers() retrieves all users from Backupify.
-func (c *UserClient) GetAllUsers(appType AppType) (*Users, error) {
+func (c *UserClient) GetAllUsers() (*Users, error) {
 	url := c.BuildURL(customerServices)
-	cache_key := fmt.Sprintf("%s_%s", url, string(appType))
+	cache_key := fmt.Sprintf("%s_%s", url, string(c.AppType))
 	c.Log.Println("Getting all users from Backupify...")
 
 	var cache Users
@@ -99,12 +99,12 @@ func (c *UserClient) GetAllUsers(appType AppType) (*Users, error) {
 			Value: "",
 			Regex: false,
 		},
-		AppType: appType,
+		AppType: c.AppType,
 	}
 
 	var allUsers Users
 	for {
-		c.Log.Printf("Getting users %d-%d from Backupify %s...", userPayload.Start, userPayload.Start+userPayload.Length-1, appType)
+		c.Log.Printf("Getting users %d-%d from Backupify %s...", userPayload.Start, userPayload.Start+userPayload.Length-1, c.AppType)
 		users, err := do[Users](c.Client, "POST", url, nil, userPayload)
 		if err != nil {
 			c.Log.Fatal(err)

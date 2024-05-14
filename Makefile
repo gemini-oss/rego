@@ -9,6 +9,10 @@ BINARY=rego
 build:
 	go build -tags "$(tags)" -o ${BINARY} main.go
 
+# Builds the project for Windows
+windows:
+	GOOS=windows GOARCH=amd64 go build -tags "$(tags)" -o ${BINARY} main.go
+
 # Runs tests
 test:
 	go test -v ./...

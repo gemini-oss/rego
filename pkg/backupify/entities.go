@@ -26,6 +26,7 @@ type Client struct {
 	Log         *log.Logger      // Log is the logger used to log messages.
 	Cache       *cache.Cache     // Cache is the cache used to store responses from the Backupify WebUI.
 	exportToken string           // exportToken is the token used to export data from Backupify.
+	AppType     AppType          // AppType is the type of Backupify application.
 }
 
 type AppType string // AppType is the type of Backupify application.
@@ -47,6 +48,30 @@ type Activities struct {
 type ActivityDetail struct {
 	HasActive bool    `json:"hasActive,omitempty"` // Indicates if there is an active status
 	Items     []*Item `json:"items,omitempty"`     // List of individual items in the activity
+}
+
+func (ad *ActivityDetail) Map() map[int64]*Item {
+	activityMap := make(map[int64]*Item)
+	for _, item := range ad.Items {
+		// Skip items based on export status
+		status := item.Export.Status
+		if status == "Expired" || status == "Deleted" {
+			continue
+		}
+
+		snapshot := item.Run.Description.Snapshot
+		// Check if an item already exists for this snapshot ID
+		if duplicateSnapshot, exists := activityMap[snapshot]; exists {
+			// Update the map only if the current item has a newer creation time
+			if item.Run.CreatedAt > duplicateSnapshot.Run.CompletedAt {
+				activityMap[snapshot] = item
+			}
+		} else {
+			// If no item exists for this snapshot, add the current item to the map
+			activityMap[snapshot] = item
+		}
+	}
+	return activityMap
 }
 
 type Item struct {

@@ -21,8 +21,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/gemini-oss/rego/pkg/common/requests"
 )
 
 // ExportClient for chaining methods
@@ -44,14 +42,19 @@ type ExportQuery struct {
 	EXT     string `json:"ext"`     // Extension of the file. e.g. 'zip'
 }
 
-func (c *ExportClient) ExportUsers(users *Users) error {
+func (c *ExportClient) ExportUsers(users *Users) ([]Exports, error) {
+	var totalExports []Exports
 	for _, user := range users.Data {
-		_, err := c.ExportUser(user)
+		exports, err := c.ExportUser(user)
 		if err != nil {
-			c.Log.Fatal(err)
+			c.Log.Warning("Error exporting user: ", user.ID, " ", user.Email)
+			c.Log.Warning(err)
+			continue
 		}
+		totalExports = append(totalExports, *exports)
+		time.Sleep(1 * time.Second)
 	}
-	return nil
+	return totalExports, nil
 }
 
 func (c *ExportClient) ExportUser(user *User) (*Exports, error) {
@@ -60,33 +63,35 @@ func (c *ExportClient) ExportUser(user *User) (*Exports, error) {
 
 	var exports Exports
 	for _, snapshot := range user.Snapshots {
-		export, err := c.generateExport(c.exportToken, user.ID, snapshot.ID)
+		export, err := c.generateExport(user.ID, snapshot.ID)
 		if err != nil {
-			c.Log.Fatal(err)
+			c.Log.Warning("Error exporting snapshot: ", user.ID, " ", snapshot.ID)
+			c.Log.Warning(err)
+			continue
 		}
 		exports = append(exports, export)
+		time.Sleep(1 * time.Second)
 	}
 
 	return &exports, nil
 }
 
-func (c *ExportClient) generateExport(token string, userID int, snapshotID int64) (*Export, error) {
+func (c *ExportClient) generateExport(userID int, snapshotID int64) (*Export, error) {
 	url := c.BuildURL(restoreExportAction)
 
 	exportPayload := ExportPayload{
 		ActionType:         "export",
-		AppType:            GoogleDrive,
+		AppType:            c.AppType,
 		SnapshotID:         fmt.Sprintf("%d", snapshotID),
-		Token:              token,
+		Token:              c.exportToken,
 		IncludePermissions: true,
 		IncludeAttachments: false,
 		Services:           []interface{}{userID},
 	}
 
-	c.HTTP.Headers["Accept"] = requests.All
 	export, err := do[Export](c.Client, "POST", url, nil, exportPayload)
 	if err != nil {
-		c.Log.Fatal(err)
+		return nil, err
 	}
 
 	c.Log.Println("Export started: ", export.ResponseData.ID)

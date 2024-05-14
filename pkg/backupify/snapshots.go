@@ -31,10 +31,10 @@ func (c *Client) Snapshots() *SnapshotClient {
 	}
 }
 
-func (c *SnapshotClient) GetSnapshotDates(appType AppType, user *User) (*Snapshots, error) {
+func (c *SnapshotClient) GetSnapshotDates(user *User) (*Snapshots, error) {
 	url := c.BuildURL(serviceSnapshots)
-	cacheKey := fmt.Sprintf("%d_%s_%s", user.ID, user.Name, string(appType))
-	c.Log.Println("Get dates for", appType, "Backupify snapshots:", user.Email, "(", user.ID, ")")
+	cacheKey := fmt.Sprintf("%d_%s_%s", user.ID, user.Name, string(c.AppType))
+	c.Log.Println("Get dates for", c.AppType, "Backupify snapshots:", user.Email, "(", user.ID, ")")
 
 	if (*user).Snapshots == nil || len((*user).Snapshots) == 0 {
 		return nil, fmt.Errorf("no snapshots found for user %d", user.ID)
@@ -46,7 +46,7 @@ func (c *SnapshotClient) GetSnapshotDates(appType AppType, user *User) (*Snapsho
 	}
 
 	snapshotsPayload := SnapshotsPayload{
-		AppType:   appType,
+		AppType:   c.AppType,
 		ServiceID: user.ID,
 	}
 

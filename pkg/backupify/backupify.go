@@ -88,6 +88,8 @@ func (c *Client) GetCache(key string, target interface{}) bool {
 	return true
 }
 
+type ClientOption func(*Client)
+
 /*
   - # Generate Backupify Client
   - @param logger *log.Logger
@@ -100,7 +102,7 @@ func (c *Client) GetCache(key string, target interface{}) bool {
 
 ```
 */
-func NewClient(verbosity int) *Client {
+func NewClient(verbosity int, opts ...ClientOption) *Client {
 	log := log.NewLogger("{backupify}", verbosity)
 
 	nodeURL := config.GetEnv("BACKUPIFY_NODE_URL")
@@ -143,13 +145,19 @@ func NewClient(verbosity int) *Client {
 		panic(err)
 	}
 
-	return &Client{
+	c := &Client{
 		BaseURL:     url,
 		HTTP:        httpClient,
 		Log:         log,
 		Cache:       cache,
 		exportToken: token,
 	}
+
+	for _, opt := range opts {
+		opt(c)
+	}
+
+	return c
 }
 
 /*

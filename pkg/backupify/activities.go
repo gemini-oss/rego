@@ -13,6 +13,7 @@ This package initializes all the methods for functions which interact with Backu
 package backupify
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -28,17 +29,18 @@ func (c *Client) Activities() *ActivityClient {
 	}
 }
 
-func (c *ActivityClient) GetActivities(appType AppType) (*Activities, error) {
+func (c *ActivityClient) GetActivities() (*Activities, error) {
 	url := c.BuildURL(getActivities)
+	cache_key := fmt.Sprintf("%s_%s", getActivities, c.AppType)
 	c.Log.Println("Getting activities from Backupify...")
 
 	var cache Activities
-	if c.GetCache(url, &cache) {
+	if c.GetCache(cache_key, &cache) {
 		return &cache, nil
 	}
 
 	activitiesPayload := ActivitiesPayload{
-		AppType: appType,
+		AppType: c.AppType,
 	}
 
 	activities, err := do[ActivitiesResponse](c.Client, "POST", url, nil, activitiesPayload)
@@ -46,6 +48,6 @@ func (c *ActivityClient) GetActivities(appType AppType) (*Activities, error) {
 		c.Log.Fatal(err)
 	}
 
-	c.SetCache(url, activities.Activities, 5*time.Minute)
+	c.SetCache(cache_key, activities.Activities, 5*time.Minute)
 	return &activities.Activities, nil
 }
