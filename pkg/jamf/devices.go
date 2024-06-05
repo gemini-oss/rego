@@ -81,7 +81,7 @@ func (d *DeviceQuery) IsEmpty() bool {
 }
 
 /*
- * Validate the query parameters for the Files resource
+ * Validate the query parameters for Jamf devices
  */
 func (d *DeviceQuery) ValidateQuery() error {
 	if d.Sections != nil {
@@ -151,11 +151,14 @@ func (dc *DeviceClient) ListAllComputers() (*Computers, error) {
 	}
 
 	q := &DeviceQuery{
-		Sections: []string{
-			Section.General,
-		},
 		Page:     0,
 		PageSize: 100,
+	}
+
+	// TO DO: Implement a functional option pattern for query parameters
+	// For now, we will use the chainable methods
+	if dc.query.Sections != nil {
+		q.Sections = dc.query.Sections
 	}
 
 	computers, err := doConcurrent[Computers](dc.client, "GET", url, q, nil)
@@ -226,6 +229,12 @@ func (dc *DeviceClient) ListAllMobileDevices() (*MobileDevices, error) {
 	q := &DeviceQuery{
 		Page:     0,
 		PageSize: 100,
+	}
+
+	// TO DO: Implement a functional option pattern for query parameters
+	// For now, we will use the chainable methods
+	if dc.query.Sections != nil {
+		q.Sections = dc.query.Sections
 	}
 
 	md, err := doConcurrent[MobileDevices](dc.client, "GET", url, q, nil)
