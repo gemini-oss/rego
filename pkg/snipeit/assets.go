@@ -91,7 +91,7 @@ func (q *AssetQuery) SetOffset(offset int) {
 /*
  * List all Hardware Assets in Snipe-IT
  * /api/v1/hardware
- * - https://snipe-it.readme.io/reference/hardware-create
+ * - https://snipe-it.readme.io/reference/hardware-list
  */
 func (c *AssetClient) GetAllAssets() (*HardwareList, error) {
 
@@ -114,4 +114,27 @@ func (c *AssetClient) GetAllAssets() (*HardwareList, error) {
 
 	c.SetCache(url, assets, 5*time.Minute)
 	return assets, nil
+}
+
+/*
+ * Get Hardware Assets by Serial
+ * /api/v1/hardware/byserial/{serial}
+ * - https://snipe-it.readme.io/reference/hardware-by-serial
+ */
+ func (c *AssetClient) GetAssetBySerial(serial string) (*HardwareList, error) {
+
+	url := c.BuildURL(Assets, "byserial", serial)
+
+	var cache HardwareList
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	asset, err := do[HardwareList](c.Client, "GET", url, nil, nil)
+	if err != nil {
+		c.Log.Fatalf("Error fetching hardware asset: %v", err)
+	}
+
+	c.SetCache(url, asset, 5*time.Minute)
+	return &asset, nil
 }
