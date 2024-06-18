@@ -147,6 +147,7 @@ type Exports []*Export
 type Export struct {
 	ResponseData ResponseData `json:"responseData,omitempty"` // Container for the response data
 	Status       string       `json:"state,omitempty"`        // Current status of the export
+	SnapshotDate string       `json:"snapshotDate,omitempty"` // Date and time of the snapshot
 }
 
 type ResponseData struct {

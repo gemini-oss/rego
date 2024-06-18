@@ -136,6 +136,7 @@ func (c *ExportClient) DownloadAvailableExports(activities *Activities) [][]stri
 						AppType: activity.Run.AppType,
 						ID:      activity.Run.ID,
 					},
+					SnapshotDate: activity.Export.SnapshotDate,
 				}
 				report, err := c.DownloadExport(activity, export)
 				if err != nil {
@@ -178,12 +179,21 @@ func (c *ExportClient) DownloadExport(activity *Item, export *Export) ([]string,
 		activity.Run.Description.Services[0].ServiceEmail,
 	))
 
+	switch export.SnapshotDate {
+	case "":
+		c.Log.Warning("Snapshot date is empty. Using export ID in place of snapshot date.")
+		export.SnapshotDate = fmt.Sprintf("exp_%d", export.ResponseData.ID)
+	default:
+		// Convert `MM/DD/YYYY` to `YYYY_MM_DD`
+		export.SnapshotDate = strings.ReplaceAll(strings.ReplaceAll(export.SnapshotDate[6:] + "_" + export.SnapshotDate[:2] + "_" + export.SnapshotDate[3:5], "/", ""), " ", "")
+	}
+
 	fileName := fmt.Sprintf(
-		"%s-%s-snap_%d-exp_%d.%s",
+		"%s-%s-snap_%d-%s.%s",
 		strings.Split(activity.Run.Description.Services[0].ServiceEmail, "@")[0],
 		activity.Run.AppType,
 		activity.Run.Description.Snapshot,
-		export.ResponseData.ID,
+		export.SnapshotDate,
 		query.EXT,
 	)
 
