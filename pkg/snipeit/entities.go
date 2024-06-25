@@ -216,7 +216,9 @@ type Location struct {
 	CreatedAt      *DateInfo        `json:"created_at,omitempty"`            // The date the location was created.
 	UpdatedAt      *DateInfo        `json:"updated_at,omitempty"`            // The date the location was updated.
 	Parent         *Record          `json:"parent,omitempty"`                // The parent location of the location.
+	ParentID       int              `json:"parent_id,omitempty"`             // The ID of the parent location.
 	Manager        *Record          `json:"manager,omitempty"`               // The manager of the location.
+	ManagerID      int              `json:"manager_id,omitempty"`            // The ID of the manager.
 	Children       []Location       `json:"children,omitempty"`              // The children of the location.
 	Actions        AvailableActions `json:"available_actions,omitempty"`     // The available actions on the location.
 }

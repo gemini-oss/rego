@@ -121,7 +121,7 @@ func (c *AssetClient) GetAllAssets() (*HardwareList, error) {
  * /api/v1/hardware/byserial/{serial}
  * - https://snipe-it.readme.io/reference/hardware-by-serial
  */
- func (c *AssetClient) GetAssetBySerial(serial string) (*HardwareList, error) {
+func (c *AssetClient) GetAssetBySerial(serial string) (*HardwareList, error) {
 
 	url := c.BuildURL(Assets, "byserial", serial)
 

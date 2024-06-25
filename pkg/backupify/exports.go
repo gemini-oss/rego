@@ -185,7 +185,7 @@ func (c *ExportClient) DownloadExport(activity *Item, export *Export) ([]string,
 		export.SnapshotDate = fmt.Sprintf("exp_%d", export.ResponseData.ID)
 	default:
 		// Convert `MM/DD/YYYY` to `YYYY_MM_DD`
-		export.SnapshotDate = strings.ReplaceAll(strings.ReplaceAll(export.SnapshotDate[6:] + "_" + export.SnapshotDate[:2] + "_" + export.SnapshotDate[3:5], "/", ""), " ", "")
+		export.SnapshotDate = strings.ReplaceAll(strings.ReplaceAll(export.SnapshotDate[6:]+"_"+export.SnapshotDate[:2]+"_"+export.SnapshotDate[3:5], "/", ""), " ", "")
 	}
 
 	fileName := fmt.Sprintf(
