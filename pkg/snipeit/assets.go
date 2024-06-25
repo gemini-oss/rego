@@ -94,7 +94,6 @@ func (q *AssetQuery) SetOffset(offset int) {
  * - https://snipe-it.readme.io/reference/hardware-list
  */
 func (c *AssetClient) GetAllAssets() (*HardwareList, error) {
-
 	url := c.BuildURL(Assets)
 
 	q := AssetQuery{
@@ -122,7 +121,6 @@ func (c *AssetClient) GetAllAssets() (*HardwareList, error) {
  * - https://snipe-it.readme.io/reference/hardware-by-serial
  */
 func (c *AssetClient) GetAssetBySerial(serial string) (*HardwareList, error) {
-
 	url := c.BuildURL(Assets, "byserial", serial)
 
 	var cache HardwareList
@@ -137,4 +135,57 @@ func (c *AssetClient) GetAssetBySerial(serial string) (*HardwareList, error) {
 
 	c.SetCache(url, asset, 5*time.Minute)
 	return &asset, nil
+}
+
+/*
+ * # Create an asset in Snipe-IT
+ * /api/v1/hardware
+ * - https://snipe-it.readme.io/reference/hardware-create
+ */
+func (c *AssetClient) CreateAsset(p *Hardware) (*Hardware, error) {
+	url := c.BuildURL(Assets)
+
+	hardware, err := do[SnipeITResponse[Hardware]](c.Client, "POST", url, nil, p)
+	if err != nil {
+		c.Log.Fatalf("Error creating asset: %v", err)
+	}
+
+	return hardware.Payload, nil
+}
+
+/* Partially updates a specific asset in Snipe-IT
+ * /api/v1/hardware/{id}
+ * - https://snipe-it.readme.io/reference/hardware-partial-update
+ */
+func (c *AssetClient) PartialUpdateAsset(id int, p *Hardware) (*Hardware, error) {
+	url := c.BuildURL(Assets, id)
+
+	hardware, err := do[SnipeITResponse[Hardware]](c.Client, "PATCH", url, nil, p)
+	if err != nil {
+		c.Log.Fatalf("Error updating asset: %v", err)
+	}
+
+	c.SetCache(url, hardware, 5*time.Minute)
+	return hardware.Payload, nil
+}
+
+/*
+ * # Delete an asset in Snipe-IT
+ * /api/v1/hardware/{id}
+ * - https://snipe-it.readme.io/reference/hardware-delete
+ */
+func (c *AssetClient) DeleteAsset(id int) (string, error) {
+	url := c.BuildURL(Assets, id)
+
+	hardware, err := do[SnipeITResponse[Hardware]](c.Client, "DELETE", url, nil, nil)
+	if err != nil {
+		c.Log.Fatalf("Error deleting asset: %v", err)
+	}
+
+	switch hardware.Messages {
+	case "The asset was deleted successfully.", "Asset does not exist.":
+		return hardware.Messages, err
+	default:
+		return hardware.Status, err
+	}
 }

@@ -13,6 +13,7 @@ https://snipe-it.readme.io/reference/locations
 package snipeit
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -118,7 +119,7 @@ func (c *LocationClient) GetLocation(id int) (*Location, error) {
 
 	location, err := do[Location](c.Client, "GET", url, nil, nil)
 	if err != nil {
-		c.Log.Fatalf("Error fetching location: %v", err)
+		c.Log.Warningf("Error fetching location: %v", err)
 	}
 
 	c.SetCache(url, location, 5*time.Minute)
@@ -130,15 +131,15 @@ func (c *LocationClient) GetLocation(id int) (*Location, error) {
  * /api/v1/locations
  * - https://snipe-it.readme.io/reference/locations-2
  */
-func (c *LocationClient) CreateLocation(loc *Location) (*Location, error) {
+func (c *LocationClient) CreateLocation(p *Location) (*Location, error) {
 	url := c.BuildURL(Locations)
 
-	location, err := do[Location](c.Client, "POST", url, nil, loc)
+	location, err := do[SnipeITResponse[Location]](c.Client, "POST", url, nil, p)
 	if err != nil {
-		c.Log.Fatalf("Error creating location: %v", err)
+		c.Log.Warningf("Error creating location: %v", err)
 	}
 
-	return &location, nil
+	return location.Payload, err
 }
 
 /*
@@ -146,32 +147,32 @@ func (c *LocationClient) CreateLocation(loc *Location) (*Location, error) {
  * /api/v1/locations/{id}
  * - https://snipe-it.readme.io/reference/locations-3
  */
-func (c *LocationClient) UpdateLocation(id int, loc *Location) (*Location, error) {
-	url := c.BuildURL(Locations, loc.ID)
+func (c *LocationClient) UpdateLocation(id int, p *Location) (*Location, error) {
+	url := c.BuildURL(Locations, id)
 
-	location, err := do[Location](c.Client, "PUT", url, nil, loc)
+	location, err := do[SnipeITResponse[Location]](c.Client, "PUT", url, nil, p)
 	if err != nil {
-		c.Log.Fatalf("Error updating location: %v", err)
+		c.Log.Warningf("Error updating location: %v", err)
 	}
 
 	c.SetCache(url, location, 5*time.Minute)
-	return &location, nil
+	return location.Payload, err
 }
 
 /* Partially update a Location in Snipe-IT
  * /api/v1/locations/{locationId}
  * - https://snipe-it.readme.io/reference/locationsid
  */
-func (c *LocationClient) PartialUpdateLocation(id int,loc *Location) (*Location, error) {
+func (c *LocationClient) PartialUpdateLocation(id int, p *Location) (*Location, error) {
 	url := c.BuildURL(Locations, id)
 
-	location, err := do[Location](c.Client, "PATCH", url, nil, loc)
+	location, err := do[SnipeITResponse[Location]](c.Client, "PATCH", url, nil, p)
 	if err != nil {
-		c.Log.Fatalf("Error updating location: %v", err)
+		c.Log.Warningf("Error updating location: %v", err)
 	}
 
 	c.SetCache(url, location, 5*time.Minute)
-	return &location, nil
+	return location.Payload, err
 }
 
 /*
@@ -179,13 +180,14 @@ func (c *LocationClient) PartialUpdateLocation(id int,loc *Location) (*Location,
  * /api/v1/locations/{locationId}
  * - https://snipe-it.readme.io/reference/locationsid-2
  */
-func (c *LocationClient) DeleteLocation(id int) (*Location, error) {
+func (c *LocationClient) DeleteLocation(id int) error {
 	url := c.BuildURL(Locations, id)
 
-	location, err := do[Location](c.Client, "DELETE", url, nil, nil)
-	if err != nil {
-		c.Log.Fatalf("Error deleting location: %v", err)
+	// At time of writing, this endpoint only returns status 200 with accepted requests
+	location, _ := do[SnipeITResponse[Location]](c.Client, "DELETE", url, nil, nil)
+	if location.Messages != "The location was deleted successfully." {
+		c.Log.Warningf("Error deleting location: %v", location.Messages)
 	}
 
-	return &location, nil
+	return fmt.Errorf("%v", location.Messages)
 }

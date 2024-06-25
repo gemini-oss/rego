@@ -67,6 +67,14 @@ func (pl PaginatedList[E]) Map() map[interface{}]*E {
 	return result
 }
 
+// SnipeITResponse is an interface for Snipe-IT API responses
+type SnipeITResponse[E any] struct {
+	Status   string `json:"status,omitempty"`   // Status of the response
+	Messages string `json:"messages,omitempty"` // Messages associated with the response
+	Error    string `json:"error,omitempty"`    // Error associated with the respons
+	Payload  *E     `json:"payload,omitempty"`  // Payload of the response -- can be an object of any type
+}
+
 // QueryInterface defines methods for queries with pagination and filtering
 type QueryInterface interface {
 	Copy() QueryInterface
@@ -127,7 +135,10 @@ type Hardware struct {
 	UserCanCheckout  bool              `json:"user_can_checkout,omitempty"` // Whether the user can check-out the hardware item.
 	CustomFields     *CustomFields     `json:"custom_fields,omitempty"`     // Custom fields of the hardware item.
 	AvailableActions *AvailableActions `json:"available_actions,omitempty"` // Available actions for the hardware item.
+	CustomAssetFields
 }
+
+type CustomAssetFields map[string]interface{} // Custom fields of a Snipe-IT asset (This will typically be the `DB Field` property in the WebUI)
 
 // END OF ASSETS STRUCTS
 //-------------------------------------------------------------------------
