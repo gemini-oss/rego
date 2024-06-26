@@ -278,7 +278,6 @@ func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
 		"Accept":       requests.JSON,
 		"Content-Type": requests.JSON,
 	}
-	// httpClient := requests.NewClient(nil, headers)
 
 	log.Println("Loading Scopes")
 	scopes := []string{}

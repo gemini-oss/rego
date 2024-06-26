@@ -25,10 +25,10 @@ const (
 )
 
 // BuildURL builds a URL for a given resource and identifiers.
-func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
+func (c *Client) BuildURL(endpoint string, identifiers ...interface{}) string {
 	url := fmt.Sprintf(endpoint, c.BaseURL)
 	for _, id := range identifiers {
-		url = fmt.Sprintf("%s/%s", url, id)
+		url = fmt.Sprintf("%s/%v", url, id)
 	}
 	return url
 }
@@ -74,10 +74,12 @@ func NewClient(verbosity int) *Client {
 		"Accept":        requests.JSON,
 		"Content-Type":  fmt.Sprintf("%s; charset=utf-8", requests.JSON),
 	}
+	httpClient := requests.NewClient(nil, headers, nil)
+	httpClient.BodyType = requests.JSON
 
 	return &Client{
 		BaseURL:       BaseURL,
-		HTTP:          requests.NewClient(nil, headers, nil),
+		HTTP:          httpClient,
 		Log:           log,
 		Token:         token,
 		SigningSecret: signingSecret,

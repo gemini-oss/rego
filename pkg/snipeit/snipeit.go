@@ -117,6 +117,12 @@ func NewClient(verbosity int) *Client {
 		"Content-Type":  requests.JSON,
 	}
 
+	// https://snipe-it.readme.io/reference/api-throttling
+	rl := ratelimit.NewRateLimiter(120, 1*time.Minute)
+
+	httpClient := requests.NewClient(nil, headers, rl)
+	httpClient.BodyType = requests.JSON
+
 	// To Do: Look into `Functional Options` patterns for a better way to handle this
 	encryptionKey := []byte(config.GetEnv("REGO_ENCRYPTION_KEY"))
 	if len(encryptionKey) == 0 {
@@ -128,12 +134,9 @@ func NewClient(verbosity int) *Client {
 		panic(err)
 	}
 
-	// https://snipe-it.readme.io/reference/api-throttling
-	rl := ratelimit.NewRateLimiter(120, 1*time.Minute)
-
 	return &Client{
 		BaseURL: BaseURL,
-		HTTP:    requests.NewClient(nil, headers, rl),
+		HTTP:    httpClient,
 		Log:     log,
 		Cache:   cache,
 	}

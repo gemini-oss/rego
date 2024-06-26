@@ -31,10 +31,10 @@ const (
 )
 
 // BuildURL builds a URL for a given resource and identifiers. TODO: This is not correct
-func (c *Client) BuildDN(endpoint string, identifiers ...string) string {
+func (c *Client) BuildDN(endpoint string, identifiers ...interface{}) string {
 	url := fmt.Sprintf(endpoint, c.BaseDN)
 	for _, id := range identifiers {
-		url = fmt.Sprintf("%s,%s", url, id)
+		url = fmt.Sprintf("%s,%v", url, id)
 	}
 	return url
 }

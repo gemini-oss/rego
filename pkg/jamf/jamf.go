@@ -36,10 +36,10 @@ var (
 )
 
 // BuildURL builds a URL for a given resource and identifiers.
-func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
+func (c *Client) BuildURL(endpoint string, identifiers ...interface{}) string {
 	url := fmt.Sprintf(endpoint, c.BaseURL)
 	for _, id := range identifiers {
-		url = fmt.Sprintf("%s/%s", url, id)
+		url = fmt.Sprintf("%s/%v", url, id)
 	}
 	c.HTTP.UpdateBodyType(requests.JSON)
 	c.Log.Debug("url:", url)
@@ -47,10 +47,10 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
 }
 
 // BuildClassicURL builds a URL for a given resource and identifiers.
-func (c *Client) BuildClassicURL(endpoint string, identifiers ...string) string {
+func (c *Client) BuildClassicURL(endpoint string, identifiers ...interface{}) string {
 	url := fmt.Sprintf(endpoint, c.ClassicURL)
 	for _, id := range identifiers {
-		url = fmt.Sprintf("%s/%s", url, id)
+		url = fmt.Sprintf("%s/%v", url, id)
 	}
 	c.HTTP.UpdateBodyType(requests.XML)
 	c.Log.Debug("url:", url)

@@ -44,10 +44,10 @@ var (
 )
 
 // BuildURL builds a URL for a given resource and identifiers.
-func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
+func (c *Client) BuildURL(endpoint string, identifiers ...interface{}) string {
 	url := fmt.Sprintf(endpoint, c.BaseURL)
 	for _, id := range identifiers {
-		url = fmt.Sprintf("%s/%s", url, id)
+		url = fmt.Sprintf("%s/%v", url, id)
 	}
 	return url
 }
