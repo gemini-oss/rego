@@ -146,7 +146,7 @@ func (c *Client) ADReportToGoogleSheet(group string) error {
 		return err
 	}
 
-	c.Log.Println("Okta role report saved to Google Sheet.")
+	c.Log.Println("Active Directory role report saved to Google Sheet.")
 	c.Log.Println("Spreadsheet URL: ", sheet.SpreadsheetURL)
 
 	return nil
