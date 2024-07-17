@@ -123,6 +123,22 @@ func (c *Client) UpdateUser(userID string, u *User) (*User, error) {
 }
 
 /*
+ * # Deactivate a User
+ * /api/v1/users/{userId}/lifecycle/deactivate
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/deactivateUser
+ */
+func (c *Client) DeactivateUser(userID string) error {
+	url := c.BuildURL(OktaUsers, userID, "lifecycle", "deactivate")
+
+	_, err := do[interface{}](c, "POST", url, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/*
  * # Get all Assigned Application Links for a User
  * /api/v1/users/{userId}/appLinks
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/listAppLinks
@@ -164,4 +180,20 @@ func (c *Client) GetUserGroups(userID string) (*Groups, error) {
 
 	c.SetCache(url, groups, 5*time.Minute)
 	return &groups, nil
+}
+
+/*
+ * # Revoke User Sessions
+ * /api/v1/users/{userId}/sessions
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/revokeUserSessions
+ */
+func (c *Client) RevokeUserSessions(userID string) error {
+	url := c.BuildURL(OktaUsers, userID, "sessions")
+
+	_, err := do[interface{}](c, "DELETE", url, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

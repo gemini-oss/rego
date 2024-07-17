@@ -174,7 +174,7 @@ func SetJSONPayload(req *http.Request, data interface{}) error {
 	if data == nil {
 		return nil
 	}
-	p, err := ss.ToMap(data, true)
+	p, err := ss.ToMap(data, false)
 	if err != nil {
 		return err
 	}
@@ -289,7 +289,7 @@ func (c *Client) do(method string, url string, query interface{}, data interface
 	}
 
 	switch resp.StatusCode {
-	case http.StatusOK:
+	case http.StatusOK, http.StatusNoContent:
 		return resp, body, nil
 	case http.StatusTooManyRequests:
 		fmt.Println(string(body)) // Will consider logging instead of printing

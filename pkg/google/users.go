@@ -180,3 +180,20 @@ func (c *UsersClient) GetUser(userKey string) (*User, error) {
 
 	return &user, nil
 }
+
+/*
+ * Update a User's Profile
+ * /admin/directory/v1/users/{userKey}
+ * https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/update
+ */
+func (c *UsersClient) UpdateUser(userKey string, u *User) (*User, error) {
+	url := fmt.Sprintf(DirectoryUsers+"/%s", userKey)
+	c.Log.Debug("url:", url)
+
+	user, err := do[User](c.Client, "PUT", url, nil, u)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}

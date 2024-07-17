@@ -13,6 +13,7 @@ https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Appli
 package okta
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -111,14 +112,42 @@ func (c *Client) GetApplicationUser(appID string, userID string) (*User, error) 
 }
 
 /*
- * # Convert Group Assignment to Individual Assignment
+ * Get all applications assigned to a user
+ * /api/v1/apps
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Application/#tag/Application/operation/listApplications
+ */
+func (c *Client) GetUserApplications(userID string) (*Applications, error) {
+	url := c.BuildURL(OktaApps)
+
+	var cache Applications
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	q := AppQuery{
+		Filter: fmt.Sprintf("user.id eq \"%s\"", userID),
+		Expand: fmt.Sprintf("user/%s", userID),
+	}
+
+	apps, err := doPaginated[Applications](c, "GET", url, q, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	c.SetCache(url, apps, 5*time.Minute)
+	return apps, nil
+}
+
+/*
+ * # Convert Application Assignment
  * Retrieves a user assigned to an application and converts the scope to the opposite of its current value
- * /api/v1/apps/{appid}/users/{userid}
- * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/ApplicationUsers/#tag/ApplicationUsers/operation/getApplicationUser
+ * /api/v1/apps/{appid}/users
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/ApplicationUsers/#tag/ApplicationUsers/operation/assignUserToApplication
  */
 func (c *Client) ConvertApplicationAssignment(appID string, userID string) (*User, error) {
-	url := c.BuildURL(OktaApps, appID, "users", userID)
+	url := c.BuildURL(OktaApps, appID, "users")
 
+	// Get the user assigned to the application to determine the scope
 	user, err := c.GetApplicationUser(appID, userID)
 	if err != nil {
 		return nil, err
@@ -129,12 +158,40 @@ func (c *Client) ConvertApplicationAssignment(appID string, userID string) (*Use
 		"GROUP": "USER",
 		"USER":  "GROUP",
 	}
-	user.Scope = scopeSwitch[user.Scope]
 
-	user, err = do[*User](c, "POST", url, nil, user)
+	// Update the user's scope
+	payload := &map[string]string{
+		"id":    user.ID,
+		"scope": scopeSwitch[user.Scope],
+	}
+
+	user, err = do[*User](c, "POST", url, nil, payload)
 	if err != nil {
 		return nil, err
 	}
 
+	// Cache the changed user
+	c.SetCache(c.BuildURL(OktaApps, appID, "users", userID), user, 5*time.Minute)
 	return user, nil
+}
+
+/*
+ * # Remove Application Assignment
+ * Retrieves a user assigned to an application and removes the assignment
+ * /api/v1/apps/{appid}/users/{userid}
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/ApplicationUsers/#tag/ApplicationUsers/operation/unassignUserFromApplication
+ */
+func (c *Client) RemoveApplicationAssignment(appID string, userID string) error {
+	url := c.BuildURL(OktaApps, appID, "users", userID)
+
+	_, err := do[any](c, "DELETE", url, nil, nil)
+	if err != nil {
+		// If error message is not: "unexpected end of JSON input"
+		// if fmt.Errorf("unexpected end of JSON input").Error() != err.Error() {
+		// 	return err
+		// }
+		return nil
+	}
+
+	return nil
 }

@@ -71,6 +71,9 @@ func (c *Client) SetCache(key string, value interface{}, duration time.Duration)
  * GetCache retrieves an Okta API response from the cache
  */
 func (c *Client) GetCache(key string, target interface{}) bool {
+	if !c.Cache.Enabled {
+		return false
+	}
 	data, found := c.Cache.Get(key)
 	if !found {
 		return false

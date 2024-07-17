@@ -101,3 +101,19 @@ func (c *Client) ListAllGroupRules() (*GroupRules, error) {
 	c.SetCache(url, groupRules, 30*time.Minute)
 	return groupRules, nil
 }
+
+/*
+ * # Unassign a User from a Group
+ * /api/v1/groups/{groupId}/users/{userId}
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Group/#tag/Group/operation/unassignUserFromGroup
+ */
+func (c *Client) RemoveUserFromGroup(groupID string, userID string) error {
+	url := c.BuildURL(OktaGroups, groupID, "users", userID)
+
+	_, err := do[interface{}](c, "DELETE", url, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

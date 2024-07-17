@@ -12,6 +12,7 @@ This package contains many structs for handling responses from the Okta API:
 package okta
 
 import (
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -181,6 +182,7 @@ type Visibility struct {
 }
 
 type ApplicationEmbedded struct {
+	User *User `json:"user,omitempty"`
 	Users *Users `json:"users,omitempty"`
 }
 
@@ -310,6 +312,14 @@ type RoleReport struct {
 // ---------------------------------------------------------------------
 type Users []*User
 
+func (u *Users) Map() map[string]*User {
+	userMap := make(map[string]*User, len(*u))
+	for _, user := range *u {
+		userMap[user.Profile.Login] = user
+	}
+	return userMap
+}
+
 type User struct {
 	Activated             time.Time        `json:"activated,omitempty"`             // The timestamp when the user was activated.
 	Created               time.Time        `json:"created,omitempty"`               // The timestamp when the user was created.
@@ -366,6 +376,11 @@ type RecoveryQuestion struct {
 }
 
 type UserProfile struct {
+	UserProfileBase
+	CustomAttributes map[string]interface{} `json:"-"` // Custom attributes
+}
+
+type UserProfileBase struct {
 	Aliases           []string `json:"emailAliases,omitempty"`      // Custom Property: The email aliases of the user.
 	City              string   `json:"city,omitempty"`              // The city of the user's address. Maximum length is 128 characters.
 	CostCenter        string   `json:"costCenter,omitempty"`        // The cost center of the user.
@@ -382,7 +397,7 @@ type UserProfile struct {
 	Locale            string   `json:"locale,omitempty"`            // The locale of the user. Specified according to [IETF BCP 47 language tag](https://datatracker.ietf.org/doc/html/rfc5646). Example: `en-US`.
 	Login             string   `json:"login,omitempty"`             // The login name of the user.
 	Manager           string   `json:"manager,omitempty"`           // The manager of the user.
-	ManagerId         string   `json:"managerId,omitempty"`         // The ID of the user's manager.
+	ManagerID         string   `json:"managerId,omitempty"`         // The ID of the user's manager.
 	MiddleName        string   `json:"middleName,omitempty"`        // The middle name of the user.
 	MobilePhone       string   `json:"mobilePhone,omitempty"`       // The mobile phone number of the user. Maximum length is 100 characters.
 	NickName          string   `json:"nickName,omitempty"`          // The nickname of the user.
@@ -398,6 +413,41 @@ type UserProfile struct {
 	Title             string   `json:"title,omitempty"`             // The title of the user.
 	UserType          string   `json:"userType,omitempty"`          // The type of the user.
 	ZipCode           string   `json:"zipCode,omitempty"`           // The zip code of the user's address. Limit: <= 12 characters.
+}
+
+// Custom unmarshaller for UserProfile
+func (u *UserProfile) UnmarshalJSON(data []byte) error {
+	// Unmarshal into a map to capture all fields
+	var rawMap map[string]json.RawMessage
+	if err := json.Unmarshal(data, &rawMap); err != nil {
+		return err
+	}
+
+	// Unmarshal known fields
+	if err := json.Unmarshal(data, &u.UserProfileBase); err != nil {
+		return err
+	}
+
+	// Remove known fields from rawMap and keep the rest as custom fields
+	u.CustomAttributes = make(map[string]interface{})
+	for key, value := range rawMap {
+		switch key {
+		case "emailAliases", "city", "costCenter", "countryCode", "department", "displayName", "division",
+			"email", "employeeNumber", "firstName", "honorificPrefix", "honorificSuffix", "lastName",
+			"locale", "login", "manager", "managerId", "middleName", "mobilePhone", "nickName", "organization",
+			"postalAddress", "preferredLanguage", "primaryPhone", "profileUrl", "secondEmail", "state",
+			"streetAddress", "timezone", "title", "userType", "zipCode":
+			// Skip known fields
+		default:
+			var attr interface{}
+			if err := json.Unmarshal(value, &attr); err != nil {
+				return err
+			}
+			u.CustomAttributes[key] = attr
+		}
+	}
+
+	return nil
 }
 
 type UserType struct {
@@ -416,6 +466,63 @@ type UserType struct {
 type UserEmbedded interface{}
 
 // END OF OKTA USERS STRUCTS
+//---------------------------------------------------------------------
+
+// ### Okta Factor Structs
+// ---------------------------------------------------------------------
+type Factors []*Factor
+
+type Factor struct {
+	ID         string        `json:"id,omitempty"`          // The ID of the factor.
+	FactorType string        `json:"factorType,omitempty"`  // The type of factor.
+	Provider   string        `json:"provider,omitempty"`    // The provider of the factor.
+	Profile    FactorProfile `json:"profile,omitempty"`     // The profile of the factor.
+	VendorName string        `json:"vendorName,omitempty"`  // The vendor of the factor.
+	Status     string        `json:"status,omitempty"`      // The status of the factor.
+	Created    string        `json:"created,omitempty"`     // The time the factor was created.
+	Updated    string        `json:"lastUpdated,omitempty"` // The time the factor was updated.
+	Embedded   interface{}   `json:"_embedded,omitempty"`   // Embedded properties, to be revisited.
+	Links      *Links        `json:"_links,omitempty"`      // Links related to the factor.
+}
+
+type FactorProfile struct {
+	PhoneExtension int    `json:"phoneExtension,omitempty"` // The phone extension of the user.
+	PhoneNumber    string `json:"phoneNumber,omitempty"`    // The phone number of the user.
+}
+
+type FactorTypes struct {
+	Call              string `json:"call,omitempty"`                // Software OTP sent using a voice call to a registered phone number
+	SMS               string `json:"sms,omitempty"`                 // Software OTP sent using SMS to a registered phone number
+	Email             string `json:"email,omitempty"`               // Software OTP sent using email
+	Question          string `json:"question,omitempty"`            // Additional knowledge-based security question
+	Push              string `json:"push,omitempty"`                // Out-of-band verification using a push notification to a device and transaction verification with digital signature
+	Token             string `json:"token,omitempty"`               // Software or hardware OTP sent to a device
+	TokenHardware     string `json:"token:hardware,omitempty"`      // Hardware OTP sent to a device
+	TokenHOTP         string `json:"token:hotp,omitempty"`          // Custom TOTP factor that uses an extension of the HMAC-based one-time passcode (HOTP) algorithm
+	TokenSoftwareTOTP string `json:"token:software:totp,omitempty"` // Software time-based one-time passcode (TOTP)
+	U2F               string `json:"u2f,omitempty"`                 // Hardware Universal 2nd Factor (U2F) device
+	Web               string `json:"web,omitempty"`                 // HTML inline frame (iframe) for embedding verification from a third party
+	WebAuthn          string `json:"webauthn,omitempty"`            // Hardware WebAuthn device
+	SignedNonce       string `json:"signed_nonce,omitempty"`        // Okta Fastpass (device-bound authentication). This is available for OIE orgs if the org has users that have enrolled with Okta Verify after the org started using OIE.
+}
+
+var FactorType = FactorTypes{
+	Call:              "call",
+	SMS:               "sms",
+	Email:             "email",
+	Question:          "question",
+	Push:              "push",
+	Token:             "token",
+	TokenHardware:     "token:hardware",
+	TokenHOTP:         "token:hotp",
+	TokenSoftwareTOTP: "token:software:totp",
+	U2F:               "u2f",
+	Web:               "web",
+	WebAuthn:          "webauthn",
+	SignedNonce:       "signed_nonce",
+}
+
+// END OF OKTA FACTOR STRUCTS
 //---------------------------------------------------------------------
 
 // ### Okta Group Structs

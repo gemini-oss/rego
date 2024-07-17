@@ -1172,6 +1172,14 @@ type Users struct {
 	NextPageToken string  `json:"nextPageToken,omitempty"` // Token to specify the next page in the list
 }
 
+func (u Users) Map() map[string]*User {
+	userMap := make(map[string]*User, len(u.Users))
+	for _, user := range u.Users {
+		userMap[user.PrimaryEmail] = user
+	}
+	return userMap
+}
+
 // https://developers.google.com/admin-sdk/directory/reference/rest/v1/users#resource:-user
 type User struct {
 	AgreedToTerms              bool           `json:"agreedToTerms,omitempty"`              // User's agreement to terms status
