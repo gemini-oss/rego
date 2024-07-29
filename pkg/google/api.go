@@ -13,6 +13,7 @@ https://developers.google.com/
 package google
 
 import (
+	"context"
 	"embed"
 	"encoding/json"
 	"fmt"
@@ -96,7 +97,8 @@ func FetchDirectoryEndpoints() (*DirectoryList, *Endpoints, error) {
 	}
 
 	httpClient := requests.NewClient(nil, headers, nil)
-	resp, body, err := httpClient.DoRequest("GET", "https://www.googleapis.com/discovery/v1/apis/", nil, nil)
+
+	resp, body, err := httpClient.DoRequest(context.Background(), "GET", "https://www.googleapis.com/discovery/v1/apis/", nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -119,7 +121,7 @@ func FetchDirectoryEndpoints() (*DirectoryList, *Endpoints, error) {
 		case "https://realtimebidding.googleapis.com/$discovery/rest?version=v1alpha":
 		case "https://poly.googleapis.com/$discovery/rest?version=v1":
 		default:
-			resp, body, err := httpClient.DoRequest("GET", item.DiscoveryRestUrl, nil, nil)
+			resp, body, err := httpClient.DoRequest(context.Background(), "GET", item.DiscoveryRestUrl, nil, nil)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -185,7 +187,7 @@ func ReadDiscoveryDirectory() (*DirectoryList, *Endpoints, error) {
 		case "https://realtimebidding.googleapis.com/$discovery/rest?version=v1alpha":
 		case "https://poly.googleapis.com/$discovery/rest?version=v1":
 		default:
-			resp, body, err := httpClient.DoRequest("GET", item.DiscoveryRestUrl, nil, nil)
+			resp, body, err := httpClient.DoRequest(context.Background(), "GET", item.DiscoveryRestUrl, nil, nil)
 			if err != nil {
 				return nil, nil, err
 			}

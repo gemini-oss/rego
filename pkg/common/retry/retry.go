@@ -45,14 +45,19 @@ func BackoffWithJitter(retryCount int) time.Duration {
 }
 
 // Retry retries the given operation up to MaxRetries times, with exponential backoff and jitter
-func Retry(operation func() error, time Time) error {
+func Retry(operation func() error, shouldRetry func(error) bool, time Time) error {
 	var err error
 	for i := 0; i < MaxRetries; i++ {
 		err = operation()
 		if err == nil {
 			return nil
 		}
-		time.Sleep(BackoffWithJitter(i))
+		if !shouldRetry(err) {
+			return err
+		}
+		if i < MaxRetries-1 { // Don't sleep after the last attempt
+			time.Sleep(BackoffWithJitter(i))
+		}
 	}
 	return err
 }

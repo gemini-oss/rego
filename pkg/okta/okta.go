@@ -13,6 +13,7 @@ https://developer.okta.com/docs/api/
 package okta
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -165,8 +166,10 @@ func NewClient(verbosity int) *Client {
  */
 func do[T any](c *Client, method string, url string, query interface{}, data interface{}) (T, error) {
 	var result T
+	ctx, cancel := context.WithTimeout(context.Background(), 75*time.Second)
+	defer cancel()
 
-	res, body, err := c.HTTP.DoRequest(method, url, query, data)
+	res, body, err := c.HTTP.DoRequest(ctx, method, url, query, data)
 	if err != nil {
 		return *new(T), err
 	}
@@ -193,7 +196,7 @@ func doPaginated[T Slice[E], E any](c *Client, method, url string, query interfa
 	}
 
 	for {
-		res, body, err := c.HTTP.DoRequest(method, url, query, data)
+		res, body, err := c.HTTP.DoRequest(context.Background(), method, url, query, data)
 		if err != nil {
 			return nil, err
 		}
@@ -230,7 +233,7 @@ func doPaginatedStruct[T Struct[T]](c *Client, method, url string, query interfa
 	}
 
 	for {
-		res, body, err := c.HTTP.DoRequest(method, url, query, data)
+		res, body, err := c.HTTP.DoRequest(context.Background(), method, url, query, data)
 		if err != nil {
 			return nil, err
 		}

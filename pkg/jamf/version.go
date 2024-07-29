@@ -14,6 +14,7 @@ This package initializes all the methods for functions which interact with the J
 package jamf
 
 import (
+	"context"
 	"fmt"
 )
 
@@ -29,7 +30,7 @@ var (
 func (c *Client) GetJamfVersion() (string, error) {
 	url := c.BuildURL(JamfProVersion)
 
-	res, body, err := c.HTTP.DoRequest("GET", url, nil, nil)
+	res, body, err := c.HTTP.DoRequest(context.Background(), "GET", url, nil, nil)
 	if err != nil {
 		return "", err
 	}

@@ -182,7 +182,7 @@ type Visibility struct {
 }
 
 type ApplicationEmbedded struct {
-	User *User `json:"user,omitempty"`
+	User  *User  `json:"user,omitempty"`
 	Users *Users `json:"users,omitempty"`
 }
 

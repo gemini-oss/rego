@@ -395,7 +395,10 @@ type GoogleAPIResponse interface {
  */
 func do[T any](c *Client, method string, url string, query interface{}, data interface{}) (T, error) {
 	var result T
-	res, body, err := c.HTTP.DoRequest(method, url, query, data)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	res, body, err := c.HTTP.DoRequest(ctx, method, url, query, data)
 	if err != nil {
 		return *new(T), err
 	}
