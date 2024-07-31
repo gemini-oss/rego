@@ -16,6 +16,20 @@ import (
 	"time"
 )
 
+// GroupsClient for chaining methods
+type GroupsClient struct {
+	*Client
+}
+
+// Entry point for group-related operations
+func (c *Client) Groups() *GroupsClient {
+	gc := &GroupsClient{
+		Client: c,
+	}
+
+	return gc
+}
+
 /*
  * Query Parameters for Groups
  */
@@ -35,7 +49,7 @@ type GroupParameters struct {
  * /api/v1/groups
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Group/#tag/Group/operation/listGroups
  */
-func (c *Client) ListAllGroups() (*Groups, error) {
+func (c *GroupsClient) ListAllGroups() (*Groups, error) {
 	c.Log.Println("Getting all groups")
 	url := c.BuildURL(OktaGroups)
 
@@ -43,7 +57,7 @@ func (c *Client) ListAllGroups() (*Groups, error) {
 		Limit: 10000,
 	}
 
-	groups, err := doPaginated[Groups](c, "GET", url, q, nil)
+	groups, err := doPaginated[Groups](c.Client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +71,7 @@ func (c *Client) ListAllGroups() (*Groups, error) {
  * /api/v1/groups/{groupId}
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Group/#tag/Group/operation/getGroup
  */
-func (c *Client) GetGroup(groupID string) (*Group, error) {
+func (c *GroupsClient) GetGroup(groupID string) (*Group, error) {
 	c.Log.Printf("Getting group with ID %s", groupID)
 	url := c.BuildURL(OktaGroups, groupID)
 
@@ -66,7 +80,7 @@ func (c *Client) GetGroup(groupID string) (*Group, error) {
 		return &cache, nil
 	}
 
-	group, err := do[Group](c, "GET", url, nil, nil)
+	group, err := do[Group](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +94,7 @@ func (c *Client) GetGroup(groupID string) (*Group, error) {
  * /api/v1/groups/rules
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Group/#tag/Group/operation/listGroupRules
  */
-func (c *Client) ListAllGroupRules() (*GroupRules, error) {
+func (c *GroupsClient) ListAllGroupRules() (*GroupRules, error) {
 	c.Log.Println("Getting all group rules")
 	url := c.BuildURL(OktaGroupRules)
 
@@ -93,7 +107,7 @@ func (c *Client) ListAllGroupRules() (*GroupRules, error) {
 		Limit: 50,
 	}
 
-	groupRules, err := doPaginated[GroupRules](c, "GET", url, q, nil)
+	groupRules, err := doPaginated[GroupRules](c.Client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -107,10 +121,10 @@ func (c *Client) ListAllGroupRules() (*GroupRules, error) {
  * /api/v1/groups/{groupId}/users/{userId}
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Group/#tag/Group/operation/unassignUserFromGroup
  */
-func (c *Client) RemoveUserFromGroup(groupID string, userID string) error {
+func (c *GroupsClient) RemoveUserFromGroup(groupID string, userID string) error {
 	url := c.BuildURL(OktaGroups, groupID, "users", userID)
 
-	_, err := do[interface{}](c, "DELETE", url, nil, nil)
+	_, err := do[interface{}](c.Client, "DELETE", url, nil, nil)
 	if err != nil {
 		return err
 	}

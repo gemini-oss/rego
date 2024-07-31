@@ -40,7 +40,7 @@ func TestListAllDevices(t *testing.T) {
 
 	client := setupTestClient(server.URL)
 
-	devices, err := client.ListAllDevices()
+	devices, err := client.Devices().ListAllDevices()
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
@@ -77,7 +77,7 @@ func TestListUsersForDevice(t *testing.T) {
 
 	client := setupTestClient(server.URL)
 
-	users, err := client.ListUsersForDevice("device1")
+	users, err := client.Devices().ListUsersForDevice("device1")
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}

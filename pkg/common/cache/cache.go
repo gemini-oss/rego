@@ -151,6 +151,10 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
+	if !c.Enabled {
+		return nil, false
+	}
+
 	d, exists := c.data[key]
 	if !exists || time.Now().After(d.Expires) {
 		return nil, false

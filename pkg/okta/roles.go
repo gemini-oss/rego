@@ -18,13 +18,27 @@ import (
 	"time"
 )
 
+// RolesClient for chaining methods
+type RolesClient struct {
+	*Client
+}
+
+// Entry point for role-related operations
+func (c *Client) Roles() *RolesClient {
+	rc := &RolesClient{
+		Client: c,
+	}
+
+	return rc
+}
+
 /*
  * # Lists all roles with pagination support.
  * - By default, only custom roles can be listed from this endpoint
  * /api/v1/iam/roles
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Role/#tag/Role/operation/listRoles
  */
-func (c *Client) ListAllRoles() (*RolesList, error) {
+func (c *RolesClient) ListAllRoles() (*RolesList, error) {
 	url := c.BuildURL(OktaRoles)
 
 	var cache RolesList
@@ -32,7 +46,7 @@ func (c *Client) ListAllRoles() (*RolesList, error) {
 		return &cache, nil
 	}
 
-	roles, err := doPaginatedStruct[RolesList](c, "GET", url, nil, nil)
+	roles, err := doPaginatedStruct[RolesList](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +58,7 @@ func (c *Client) ListAllRoles() (*RolesList, error) {
 /*
  * # Generate a report of all Okta roles and their users
  */
-func (c *Client) GenerateRoleReport() (*RoleReports, error) {
+func (c *RolesClient) GenerateRoleReport() (*RoleReports, error) {
 	cacheKey := "Okta_Role_Report"
 
 	var cache RoleReports
@@ -55,7 +69,7 @@ func (c *Client) GenerateRoleReport() (*RoleReports, error) {
 	roleReports := &RoleReports{}
 	rolesMap := make(map[*Role]map[*User]struct{})
 
-	users, err := c.ListActiveUsers()
+	users, err := c.Users().ListActiveUsers()
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +148,7 @@ func (c *Client) GenerateRoleReport() (*RoleReports, error) {
  * /api/v1/iam/roles/{roleIdOrLabel}
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Role/#tag/Role/operation/getRole
  */
-func (c *Client) GetRole(roleID string) (*Role, error) {
+func (c *RolesClient) GetRole(roleID string) (*Role, error) {
 	url := c.BuildURL(OktaRoles, roleID)
 
 	var cache Role
@@ -142,7 +156,7 @@ func (c *Client) GetRole(roleID string) (*Role, error) {
 		return &cache, nil
 	}
 
-	role, err := do[Role](c, "GET", url, nil, nil)
+	role, err := do[Role](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +170,7 @@ func (c *Client) GetRole(roleID string) (*Role, error) {
  * /api/v1/users/{userId}/roles
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/RoleAssignment/#tag/RoleAssignment/operation/listAssignedRolesForUser
  */
-func (c *Client) GetUserRoles(userID string) (*Roles, error) {
+func (c *RolesClient) GetUserRoles(userID string) (*Roles, error) {
 	url := c.BuildURL(OktaUsers, userID, "roles")
 
 	var cache Roles
@@ -164,7 +178,7 @@ func (c *Client) GetUserRoles(userID string) (*Roles, error) {
 		return &cache, nil
 	}
 
-	roles, err := doPaginated[Roles](c, "GET", url, nil, nil)
+	roles, err := doPaginated[Roles](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +192,7 @@ func (c *Client) GetUserRoles(userID string) (*Roles, error) {
  * /api/v1/iam/assignees/users
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/RoleAssignment/#tag/RoleAssignment/operation/listUsersWithRoleAssignments
  */
-func (c *Client) ListAllUsersWithRoleAssignments() (*Users, error) {
+func (c *RolesClient) ListAllUsersWithRoleAssignments() (*Users, error) {
 	url := c.BuildURL(OktaIAM, "assignees", "users")
 
 	var cache Users
@@ -186,7 +200,7 @@ func (c *Client) ListAllUsersWithRoleAssignments() (*Users, error) {
 		return &cache, nil
 	}
 
-	users, err := doPaginated[Users](c, "GET", url, nil, nil)
+	users, err := doPaginated[Users](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}

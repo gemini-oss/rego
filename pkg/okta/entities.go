@@ -415,6 +415,29 @@ type UserProfileBase struct {
 	ZipCode           string   `json:"zipCode,omitempty"`           // The zip code of the user's address. Limit: <= 12 characters.
 }
 
+// Custom marshaller for UserProfile
+func (u *UserProfile) MarshalJSON() ([]byte, error) {
+	rawMap := make(map[string]interface{})
+
+	// Marshal known fields
+	baseData, err := json.Marshal(u.UserProfileBase)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal the base fields back into the map
+	if err := json.Unmarshal(baseData, &rawMap); err != nil {
+		return nil, err
+	}
+
+	// Add custom attributes to the map
+	for key, value := range u.CustomAttributes {
+		rawMap[key] = value
+	}
+
+	return json.Marshal(rawMap)
+}
+
 // Custom unmarshaller for UserProfile
 func (u *UserProfile) UnmarshalJSON(data []byte) error {
 	// Unmarshal into a map to capture all fields

@@ -17,6 +17,20 @@ import (
 	"time"
 )
 
+// ApplicationsClient for chaining methods
+type ApplicationsClient struct {
+	*Client
+}
+
+// Entry point for application-related operations
+func (c *Client) Applications() *ApplicationsClient {
+	ac := &ApplicationsClient{
+		Client: c,
+	}
+
+	return ac
+}
+
 /*
  * Query parameters for Applications
  */
@@ -35,7 +49,7 @@ type AppQuery struct {
  * /api/v1/apps
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Application/#tag/Application/operation/listApplications
  */
-func (c *Client) ListAllApplications() (*Applications, error) {
+func (c *ApplicationsClient) ListAllApplications() (*Applications, error) {
 	url := c.BuildURL(OktaApps)
 
 	var cache Applications
@@ -47,7 +61,7 @@ func (c *Client) ListAllApplications() (*Applications, error) {
 		IncludeNonDeleted: false,
 	}
 
-	applications, err := doPaginated[Applications](c, "GET", url, q, nil)
+	applications, err := doPaginated[Applications](c.Client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +76,7 @@ func (c *Client) ListAllApplications() (*Applications, error) {
  * /api/v1/apps/{appid}/users
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/ApplicationUsers/
  */
-func (c *Client) ListAllApplicationUsers(appID string) (*Users, error) {
+func (c *ApplicationsClient) ListAllApplicationUsers(appID string) (*Users, error) {
 	url := c.BuildURL(OktaApps, appID, "users")
 
 	var cache Users
@@ -75,7 +89,7 @@ func (c *Client) ListAllApplicationUsers(appID string) (*Users, error) {
 		Expand: "user",
 	}
 
-	appUsers, err := doPaginated[Users](c, "GET", url, q, nil)
+	appUsers, err := doPaginated[Users](c.Client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +104,7 @@ func (c *Client) ListAllApplicationUsers(appID string) (*Users, error) {
  * /api/v1/apps/{appid}/users/{userid}
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/ApplicationUsers/#tag/ApplicationUsers/operation/getApplicationUser
  */
-func (c *Client) GetApplicationUser(appID string, userID string) (*User, error) {
+func (c *ApplicationsClient) GetApplicationUser(appID string, userID string) (*User, error) {
 	url := c.BuildURL(OktaApps, appID, "users", userID)
 
 	var cache User
@@ -102,7 +116,7 @@ func (c *Client) GetApplicationUser(appID string, userID string) (*User, error) 
 		Expand: "user",
 	}
 
-	user, err := do[User](c, "GET", url, q, nil)
+	user, err := do[User](c.Client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +130,7 @@ func (c *Client) GetApplicationUser(appID string, userID string) (*User, error) 
  * /api/v1/apps
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Application/#tag/Application/operation/listApplications
  */
-func (c *Client) GetUserApplications(userID string) (*Applications, error) {
+func (c *ApplicationsClient) GetUserApplications(userID string) (*Applications, error) {
 	url := c.BuildURL(OktaApps)
 
 	var cache Applications
@@ -129,7 +143,7 @@ func (c *Client) GetUserApplications(userID string) (*Applications, error) {
 		Expand: fmt.Sprintf("user/%s", userID),
 	}
 
-	apps, err := doPaginated[Applications](c, "GET", url, q, nil)
+	apps, err := doPaginated[Applications](c.Client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +158,7 @@ func (c *Client) GetUserApplications(userID string) (*Applications, error) {
  * /api/v1/apps/{appid}/users
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/ApplicationUsers/#tag/ApplicationUsers/operation/assignUserToApplication
  */
-func (c *Client) ConvertApplicationAssignment(appID string, userID string) (*User, error) {
+func (c *ApplicationsClient) ConvertApplicationAssignment(appID string, userID string) (*User, error) {
 	url := c.BuildURL(OktaApps, appID, "users")
 
 	// Get the user assigned to the application to determine the scope
@@ -165,7 +179,7 @@ func (c *Client) ConvertApplicationAssignment(appID string, userID string) (*Use
 		"scope": scopeSwitch[user.Scope],
 	}
 
-	user, err = do[*User](c, "POST", url, nil, payload)
+	user, err = do[*User](c.Client, "POST", url, nil, payload)
 	if err != nil {
 		return nil, err
 	}
@@ -181,10 +195,10 @@ func (c *Client) ConvertApplicationAssignment(appID string, userID string) (*Use
  * /api/v1/apps/{appid}/users/{userid}
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/ApplicationUsers/#tag/ApplicationUsers/operation/unassignUserFromApplication
  */
-func (c *Client) RemoveApplicationAssignment(appID string, userID string) error {
+func (c *ApplicationsClient) RemoveApplicationAssignment(appID string, userID string) error {
 	url := c.BuildURL(OktaApps, appID, "users", userID)
 
-	_, err := do[any](c, "DELETE", url, nil, nil)
+	_, err := do[any](c.Client, "DELETE", url, nil, nil)
 	if err != nil {
 		// If error message is not: "unexpected end of JSON input"
 		// if fmt.Errorf("unexpected end of JSON input").Error() != err.Error() {
