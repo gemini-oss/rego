@@ -2,7 +2,7 @@
 # SnipeIT
 
 This package initializes all the methods for functions which interact with the SnipeIT API:
-https://developer.okta.com/docs/api/
+https://snipe-it.readme.io/reference/api-overview
 
 :Copyright: (c) 2023 by Gemini Space Station, LLC., see AUTHORS for more info
 :License: See the LICENSE file for details

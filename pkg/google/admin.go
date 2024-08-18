@@ -407,7 +407,7 @@ func (c *AdminClient) GetFileOwnership(fileID string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	c.Log.Println(ss.PrettyJSON(fileReport))
+	c.Log.Debug(ss.PrettyJSON(fileReport))
 
 	if len(fileReport.Items) == 0 {
 		return "", fmt.Errorf("no events found for file %s", fileID)

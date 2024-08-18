@@ -59,6 +59,17 @@ func (c *Client) BuildURL(endpoint string, customer *Customer, parameters ...str
 		url = endpoint
 	}
 
+	// If the URL has multiple %s placeholders, ensure to use the appropriate parameters
+	if strings.Contains(url, "%s") {
+		args := make([]any, len(parameters))
+		for i, param := range parameters {
+			args[i] = param
+		}
+		url = fmt.Sprintf(url, args...)
+		parameters = parameters[len(args):] // Remove used parameters from the slice
+	}
+
+	// Handle any remaining parameters
 	for _, param := range parameters {
 		if param != "" {
 			if strings.HasPrefix(param, ":") {

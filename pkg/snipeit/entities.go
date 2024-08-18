@@ -2,7 +2,7 @@
 # SnipeIT - Entities (Structs)
 
 This package initializes all the structs for the SnipeIT API:
-https://developer.okta.com/docs/api/
+https://snipe-it.readme.io/reference/api-overview
 
 :Copyright: (c) 2023 by Gemini Space Station, LLC., see AUTHORS for more info
 :License: See the LICENSE file for details
@@ -71,7 +71,7 @@ func (pl PaginatedList[E]) Map() map[interface{}]*E {
 type SnipeITResponse[E any] struct {
 	Status   string `json:"status,omitempty"`   // Status of the response
 	Messages string `json:"messages,omitempty"` // Messages associated with the response
-	Error    string `json:"error,omitempty"`    // Error associated with the respons
+	Error    string `json:"error,omitempty"`    // Error associated with the response
 	Payload  *E     `json:"payload,omitempty"`  // Payload of the response -- can be an object of any type
 }
 

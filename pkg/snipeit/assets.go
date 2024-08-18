@@ -2,7 +2,7 @@
 # SnipeIT - Assets
 
 This package initializes all the methods for functions which interact with the SnipeIT Assets endpoints:
-https://developer.okta.com/docs/api/
+https://snipe-it.readme.io/reference/hardware-list
 
 :Copyright: (c) 2023 by Gemini Space Station, LLC., see AUTHORS for more info
 :License: See the LICENSE file for details
