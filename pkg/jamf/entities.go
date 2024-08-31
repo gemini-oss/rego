@@ -695,6 +695,118 @@ type Security struct {
 // END OF JAMF {CONFIGURATION PROFILE, POLICY} STRUCTS
 //---------------------------------------------------------------------
 
+// ### Jamf History Structs
+// ---------------------------------------------------------------------
+// History represents the complete history and configuration of a computer
+type History struct {
+	ComputerHistory ComputerHistory `json:"computer_history,omitempty"`
+}
+
+// ComputerHistory contains the main sections of computer history
+type ComputerHistory struct {
+	Audits                  []HistoryRecord         `json:"audits,omitempty"`                     // List of audits performed on the computer
+	CasperImagingLogs       []HistoryRecord         `json:"casper_imaging_logs,omitempty"`        // Logs of Casper imaging operations
+	CasperRemoteLogs        []HistoryRecord         `json:"casper_remote_logs,omitempty"`         // Logs of Casper remote operations
+	Commands                Commands                `json:"commands,omitempty"`                   // Information about completed, pending, and failed commands
+	ComputerUsageLogs       []HistoryRecord         `json:"computer_usage_logs,omitempty"`        // Logs of computer usage events
+	General                 HistoryRecordGeneral    `json:"general,omitempty"`                    // General information about the computer
+	MacAppStoreApplications MacAppStoreApplications `json:"mac_app_store_applications,omitempty"` // Information about installed Mac App Store applications
+	PolicyLogs              []PolicyLog             `json:"policy_logs,omitempty"`                // Logs of policy executions
+	UserLocation            []UserLocation          `json:"user_location,omitempty"`              // User location information
+}
+
+// Record represents common fields of a a historical event
+type HistoryRecord struct {
+	DateTime      string `json:"date_time,omitempty"`       // Date and time of the log entry
+	DateTimeEpoch int64  `json:"date_time_epoch,omitempty"` // Date and time in epoch format
+	DateTimeUTC   string `json:"date_time_utc,omitempty"`   // Date and time in UTC
+	Event         string `json:"event,omitempty"`           // Type of event logged
+	Username      string `json:"username,omitempty"`        // Username associated with the event
+	Status        string `json:"status,omitempty"`          // Status of the event
+}
+
+// HistoryRecordApp represents a single application installation from the Mac App Store
+type HistoryRecordApp struct {
+	Deployed        string `json:"deployed,omitempty"`          // Time when the app deployment was attempted
+	DeployedEpoch   int64  `json:"deployed_epoch,omitempty"`    // Deployment attempt time in epoch format
+	DeployedUTC     string `json:"deployed_utc,omitempty"`      // Deployment attempt time in UTC
+	LastUpdate      string `json:"last_update,omitempty"`       // Time of the last update
+	LastUpdateEpoch int64  `json:"last_update_epoch,omitempty"` // Last update time in epoch format
+	LastUpdateUTC   string `json:"last_update_utc,omitempty"`   // Last update time in UTC
+	Name            string `json:"name,omitempty"`              // Name of the application
+	Status          string `json:"status,omitempty"`            // Status of the failed installation
+	SizeMB          int    `json:"size_mb,omitempty"`           // Size of the application in megabytes
+	Version         string `json:"version,omitempty"`           // Version of the application
+}
+
+// HistoryRecordGeneral contains general information about the computer
+type HistoryRecordGeneral struct {
+	ID           int    `json:"id,omitempty"`            // Identifier of the computer
+	MacAddress   string `json:"mac_address,omitempty"`   // MAC address of the computer
+	Name         string `json:"name,omitempty"`          // Name of the computer
+	SerialNumber string `json:"serial_number,omitempty"` // Serial number of the computer
+	UDID         string `json:"udid,omitempty"`          // Unique Device Identifier
+}
+
+// Commands represents the status of various commands executed on the computer
+type Commands struct {
+	Completed []Command `json:"completed,omitempty"` // List of completed commands
+	Failed    []Command `json:"failed,omitempty"`    // List of failed commands
+	Pending   []Command `json:"pending,omitempty"`   // List of pending commands
+}
+
+// Command represents a single command executed on the computer
+type Command struct {
+	Completed      string `json:"completed,omitempty"`       // Completion time of the command
+	CompletedEpoch int64  `json:"completed_epoch,omitempty"` // Completion time in epoch format
+	CompletedUTC   string `json:"completed_utc,omitempty"`   // Completion time in UTC
+	Failed         string `json:"failed,omitempty"`          // Time when the command failed
+	FailedEpoch    int64  `json:"failed_epoch,omitempty"`    // Failure time in epoch format
+	FailedUTC      string `json:"failed_utc,omitempty"`      // Failure time in UTC
+	Issued         string `json:"issued,omitempty"`          // Time when the command was issued
+	IssuedEpoch    int64  `json:"issued_epoch,omitempty"`    // Issue time in epoch format
+	IssuedUTC      string `json:"issued_utc,omitempty"`      // Issue time in UTC
+	LastPush       string `json:"last_push,omitempty"`       // Time of the last push notification
+	LastPushEpoch  int64  `json:"last_push_epoch,omitempty"` // Last push time in epoch format
+	LastPushUTC    string `json:"last_push_utc,omitempty"`   // Last push time in UTC
+	Name           string `json:"name,omitempty"`            // Name of the command
+	Status         string `json:"status,omitempty"`          // Status of the command
+	Username       string `json:"username,omitempty"`        // Username associated with the command
+}
+
+// MacAppStoreApplications contains information about installed Mac App Store applications
+type MacAppStoreApplications struct {
+	Failed    []HistoryRecordApp `json:"failed,omitempty"`    // List of failed application installations
+	Installed []HistoryRecordApp `json:"installed,omitempty"` // List of installed applications
+	Pending   []HistoryRecordApp `json:"pending,omitempty"`   // List of pending application installations
+}
+
+// PolicyLog represents a single policy execution log
+type PolicyLog struct {
+	DateCompleted      string `json:"date_completed,omitempty"`       // Date and time when the policy was completed
+	DateCompletedEpoch int64  `json:"date_completed_epoch,omitempty"` // Completion date and time in epoch format
+	DateCompletedUTC   string `json:"date_completed_utc,omitempty"`   // Completion date and time in UTC
+	PolicyID           int    `json:"policy_id,omitempty"`            // Identifier of the policy
+	PolicyName         string `json:"policy_name,omitempty"`          // Name of the policy
+	Status             string `json:"status,omitempty"`               // Status of the policy execution
+	Username           string `json:"username,omitempty"`             // Username associated with the policy execution
+}
+
+// UserLocation represents the location information of a user
+type UserLocation struct {
+	*HistoryRecord
+	Building     string `json:"building,omitempty"`      // Building where the user is located
+	Department   string `json:"department,omitempty"`    // Department of the user
+	EmailAddress string `json:"email_address,omitempty"` // Email address of the user
+	FullName     string `json:"full_name,omitempty"`     // Full name of the user
+	PhoneNumber  string `json:"phone_number,omitempty"`  // Phone number of the user
+	Position     string `json:"position,omitempty"`      // Position or job title of the user
+	Room         string `json:"room,omitempty"`          // Room where the user is located
+}
+
+// END OF JAMF COMPUTER HISTORY STRUCTS
+//---------------------------------------------------------------------
+
 // ### Enums
 // --------------------------------------------------------------------
 // Inteded for Device Query parameters, `Sections` serves as a namespace for valid Computer Detail section constants.

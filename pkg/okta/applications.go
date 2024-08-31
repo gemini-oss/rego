@@ -36,9 +36,9 @@ func (c *Client) Applications() *ApplicationsClient {
  */
 type AppQuery struct {
 	Q                 string // Searches the records for matching value
-	After             string // The cursor to use for pagination. It is an opaque string that specifies your current location in the list and is obtained from the `Link` response header.
+	After             string // The cursor to use for pagination. It is an opaque string that specifies your current location in the list and is obtained from the "Link" response header.
 	Limit             string // Default: -1. Specifies the number of results for a page
-	Filter            string // Filters apps by `status`, `user.id`, `group.id` or `credentials.signing.kid`` expression
+	Filter            string // Filters apps by "status", "user.id", "group.id" or "credentials.signing.kid" expression
 	Expand            string // Traverses users link relationship and optionally embeds Application User resource
 	IncludeNonDeleted bool   // Default: false.
 }
