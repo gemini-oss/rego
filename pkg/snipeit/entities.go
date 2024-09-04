@@ -437,14 +437,9 @@ type DateInfo struct {
 
 // StatusLabel represents the status label of a hardware item.
 type StatusLabel struct {
-	ID         uint32 `json:"id,omitempty"`          // ID of the status label.
-	Name       string `json:"name,omitempty"`        // Name of thestatus label.
+	*Record `json:",inline"`
 	StatusMeta string `json:"status_meta,omitempty"` // Meta status of the status label.
 	StatusType string `json:"status_type,omitempty"` // Type of the status label.
-}
-
-// CustomFields represents the custom fields of a hardware item.
-type CustomFields struct {
 }
 
 // AvailableActions represents the available actions for a hardware item.

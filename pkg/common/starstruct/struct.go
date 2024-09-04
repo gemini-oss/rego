@@ -254,13 +254,19 @@ func GenerateFieldNames(prefix string, val reflect.Value) (*[]string, error) {
 		for i := 0; i < val.NumField(); i++ {
 			field := typ.Field(i)
 			jsonTag := getFirstTag(field.Tag.Get("json"))
-			if jsonTag == "-" || jsonTag == "" {
-				continue // Ignore fields without a JSON tag or marked to be ignored
+			if jsonTag == "-" {
+				continue // Ignore fields marked to be ignored
 			}
 			fieldKey := prefix + jsonTag
 
-			// Recursively handle nested structs
-			if field.Type.Kind() == reflect.Struct {
+			// Recursively handle nested structs and inline structs if specified
+			if shouldInlineStruct(field) {
+				subFields, err := GenerateFieldNames(prefix, val.Field(i))
+				if err != nil {
+					return nil, err
+				}
+				fields = append(fields, *subFields...)
+			} else if field.Type.Kind() == reflect.Struct {
 				subFields, err := GenerateFieldNames(fieldKey+".", val.Field(i))
 				if err != nil {
 					return nil, err
@@ -271,6 +277,11 @@ func GenerateFieldNames(prefix string, val reflect.Value) (*[]string, error) {
 			}
 		}
 		return &fields, nil
+	case reflect.Interface:
+		if val.IsNil() {
+			return &fields, nil
+		}
+		return GenerateFieldNames(prefix, val.Elem())
 	default:
 		return nil, fmt.Errorf("GenerateFieldNames: unsupported type %s", val.Kind())
 	}
@@ -327,6 +338,11 @@ func flattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 		field := typ.Field(i)
 		fieldVal := val.Field(i)
 
+		// Skip unexported fields
+		if !field.IsExported() {
+			continue
+		}
+
 		keyPrefix := prefix + getMapKey(field)
 
 		switch fieldVal.Kind() {
@@ -337,10 +353,26 @@ func flattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 				flattenSlice(fieldVal, keyPrefix, indexFormat, fieldMap)
 			}
 		case reflect.Struct:
-			// Recursively handle nested structs
-			err := flattenNestedStructs(fieldVal.Interface(), keyPrefix+".", fieldMap)
-			if err != nil {
-				return err
+			// Check if the struct should be inlined
+			if shouldInlineStruct(field) {
+				err := flattenNestedStructs(fieldVal.Interface(), prefix, fieldMap)
+				if err != nil {
+					return err
+				}
+			} else {
+				// Recursively handle nested structs
+				err := flattenNestedStructs(fieldVal.Interface(), keyPrefix+".", fieldMap)
+				if err != nil {
+					return err
+				}
+			}
+		case reflect.Interface:
+			// Handle interface types (like the generic parameter)
+			if !fieldVal.IsNil() {
+				err := flattenNestedStructs(fieldVal.Elem().Interface(), prefix, fieldMap)
+				if err != nil {
+					return err
+				}
 			}
 		default:
 			// Handle basic types
@@ -349,6 +381,11 @@ func flattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 	}
 
 	return nil
+}
+
+func shouldInlineStruct(field reflect.StructField) bool {
+	tag := field.Tag.Get("json")
+	return strings.Contains(tag, ",inline")
 }
 
 func flattenSlice(slice reflect.Value, keyPrefix, indexFormat string, fieldMap *map[string]string) error {
