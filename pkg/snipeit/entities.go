@@ -320,7 +320,7 @@ type Location struct {
 // END OF LOCATION STRUCTS
 //-------------------------------------------------------------------------
 
-// ### Asset Maintenances
+// ### Maintenances
 // -------------------------------------------------------------------------
 type MaintenanceList = PaginatedList[Maintenance]
 
@@ -347,7 +347,7 @@ type Maintenance struct {
 	AvailableActions *AvailableActions `json:"available_actions,oimitempty"`     // AvailableActions on the maintenance entry
 }
 
-// END OF Asset Maintenances STRUCTS
+// END OF MAINTENANCES STRUCTS
 //-------------------------------------------------------------------------
 
 // ### Users
