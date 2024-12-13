@@ -121,8 +121,8 @@ type Hardware struct {
 	WarrantyExpires  string            `json:"warranty_expires,omitempty"`  // Warranty expiry date of the hardware item.
 	CreatedAt        *DateInfo         `json:"created_at,omitempty"`        // Time when the hardware item was created.
 	UpdatedAt        *DateInfo         `json:"updated_at,omitempty"`        // Time when the hardware item was last updated.
-	LastAuditDate    string            `json:"last_audit_date,omitempty"`   // Last audit date of the hardware item.
-	NextAuditDate    string            `json:"next_audit_date,omitempty"`   // Next audit date of the hardware item.
+	LastAuditDate    *DateInfo         `json:"last_audit_date,omitempty"`   // Last audit date of the hardware item.
+	NextAuditDate    *DateInfo         `json:"next_audit_date,omitempty"`   // Next audit date of the hardware item.
 	DeletedAt        string            `json:"deleted_at,omitempty"`        // Time when the hardware item was deleted.
 	PurchaseDate     *DateInfo         `json:"purchase_date,omitempty"`     // Purchase date of the hardware item.
 	Age              string            `json:"age,omitempty"`               // Age of the hardware item.
