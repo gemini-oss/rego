@@ -320,6 +320,36 @@ type Location struct {
 // END OF LOCATION STRUCTS
 //-------------------------------------------------------------------------
 
+// ### Asset Maintenances
+// -------------------------------------------------------------------------
+type MaintenanceList = PaginatedList[Maintenance]
+
+type Maintenance struct {
+	ID               int64             `json:"id,omitempty"`                     // ID of the maintenance entry
+	Asset            *Hardware         `json:"asset,omitempty"`                  // Asset object on maintenance
+	Model            *Record           `json:"model,omitempty"`                  // Model of the hardware item on maintenance
+	StatusLabel      *StatusLabel      `json:"status_label,omitempty"`           // StatusLabel of the hardware item on maintenance
+	Company          *Record           `json:"company,omitempty"`                // Company of the hardware item on maintenance
+	Title            string            `json:"title,omitempty"`                  // Title of the maintenance entry
+	Location         *Record           `json:"location,omitempty"`               // Location of the hardware item.
+	RTDLocation      *Record           `json:"rtd_location,omitempty"`           // RTD location of the hardware item.
+	Notes            string            `json:"notes,omitempty"`                  // Notes on the maintenance entry
+	Supplier         *Record           `json:"supplier,omitempty"`               // Supplier responsible for Maintenance
+	Cost             string            `json:"cost,omitempty"`                   // Cost of performing the Maintenance
+	Type             string            `json:"asset_maintenance_type,omitempty"` // Type of maintenance being performed on hardware
+	StartDate        *DateInfo         `json:"start_date,omitempty"`             // Date that the maintenance started
+	Time             int64             `json:"asset_maintenance_time,omitempty"` // Time the asset spent in maintenance, in days
+	CompletionDate   *DateInfo         `json:"completion_date,omitempty"`        // Date that the maintenance was completed
+	UserID           *Record           `json:"user_id,omitempty"`                // Record of the user that created the maintenance entry
+	CreatedAt        *DateInfo         `json:"created_at,omitempty"`             // Date that the maintenance entry was created
+	UpdatedAt        *DateInfo         `json:"updated_at,omitempty"`             // Last date that the maintenance entry was updated
+	Warranty         int64             `json:"is_warranty,omitempty"`            // Is the maintenance entry part of the Warranty
+	AvailableActions *AvailableActions `json:"available_actions,oimitempty"`     // AvailableActions on the maintenance entry
+}
+
+// END OF Asset Maintenances STRUCTS
+//-------------------------------------------------------------------------
+
 // ### Users
 // -------------------------------------------------------------------------
 type UserList = PaginatedList[User]
