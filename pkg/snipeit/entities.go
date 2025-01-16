@@ -102,7 +102,7 @@ type Hardware struct {
 	Model            *Record           `json:"model,omitempty"`             // Model of the hardware item.
 	BYOD             bool              `json:"byod,omitempty"`              // Whether the hardware item is BYOD.
 	ModelNumber      string            `json:"model_number,omitempty"`      // Model number of the hardware item.
-	EOL              int               `json:"eol,omitempty"`               // End of life of the hardware item.
+	EOL              string            `json:"eol,omitempty"`               // End of life of the hardware item.
 	AssetEOLDate     *DateInfo         `json:"asset_eol_date,omitempty"`    // Asset end of life date of the hardware item.
 	StatusLabel      *StatusLabel      `json:"status_label,omitempty"`      // Status label of the hardware item.
 	Category         *Record           `json:"category,omitempty"`          // Category of the hardware item.
@@ -118,11 +118,11 @@ type Hardware struct {
 	AltBarcode       string            `json:"alt_barcode,omitempty"`       // Alternate barcode of the hardware item.
 	AssignedTo       *User             `json:"assigned_to,omitempty"`       // User to whom the hardware item is assigned.
 	WarrantyMonths   string            `json:"warranty_months,omitempty"`   // Warranty months of the hardware item.
-	WarrantyExpires  string            `json:"warranty_expires,omitempty"`  // Warranty expiry date of the hardware item.
+	WarrantyExpires  *DateInfo         `json:"warranty_expires,omitempty"`  // Warranty expiry date of the hardware item.
 	CreatedAt        *DateInfo         `json:"created_at,omitempty"`        // Time when the hardware item was created.
 	UpdatedAt        *DateInfo         `json:"updated_at,omitempty"`        // Time when the hardware item was last updated.
-	LastAuditDate    string            `json:"last_audit_date,omitempty"`   // Last audit date of the hardware item.
-	NextAuditDate    string            `json:"next_audit_date,omitempty"`   // Next audit date of the hardware item.
+	LastAuditDate    *DateInfo         `json:"last_audit_date,omitempty"`   // Last audit date of the hardware item.
+	NextAuditDate    *DateInfo         `json:"next_audit_date,omitempty"`   // Next audit date of the hardware item.
 	DeletedAt        string            `json:"deleted_at,omitempty"`        // Time when the hardware item was deleted.
 	PurchaseDate     *DateInfo         `json:"purchase_date,omitempty"`     // Purchase date of the hardware item.
 	Age              string            `json:"age,omitempty"`               // Age of the hardware item.
@@ -235,6 +235,36 @@ type Location struct {
 }
 
 // END OF LOCATION STRUCTS
+//-------------------------------------------------------------------------
+
+// ### Maintenances
+// -------------------------------------------------------------------------
+type MaintenanceList = PaginatedList[Maintenance]
+
+type Maintenance struct {
+	ID               int64             `json:"id,omitempty"`                     // ID of the maintenance entry
+	Asset            *Hardware         `json:"asset,omitempty"`                  // Asset object on maintenance
+	Model            *Record           `json:"model,omitempty"`                  // Model of the hardware item on maintenance
+	StatusLabel      *StatusLabel      `json:"status_label,omitempty"`           // StatusLabel of the hardware item on maintenance
+	Company          *Record           `json:"company,omitempty"`                // Company of the hardware item on maintenance
+	Title            string            `json:"title,omitempty"`                  // Title of the maintenance entry
+	Location         *Record           `json:"location,omitempty"`               // Location of the hardware item.
+	RTDLocation      *Record           `json:"rtd_location,omitempty"`           // RTD location of the hardware item.
+	Notes            string            `json:"notes,omitempty"`                  // Notes on the maintenance entry
+	Supplier         *Record           `json:"supplier,omitempty"`               // Supplier responsible for Maintenance
+	Cost             string            `json:"cost,omitempty"`                   // Cost of performing the Maintenance
+	Type             string            `json:"asset_maintenance_type,omitempty"` // Type of maintenance being performed on hardware
+	StartDate        *DateInfo         `json:"start_date,omitempty"`             // Date that the maintenance started
+	Time             int64             `json:"asset_maintenance_time,omitempty"` // Time the asset spent in maintenance, in days
+	CompletionDate   *DateInfo         `json:"completion_date,omitempty"`        // Date that the maintenance was completed
+	UserID           *Record           `json:"user_id,omitempty"`                // Record of the user that created the maintenance entry
+	CreatedAt        *DateInfo         `json:"created_at,omitempty"`             // Date that the maintenance entry was created
+	UpdatedAt        *DateInfo         `json:"updated_at,omitempty"`             // Last date that the maintenance entry was updated
+	Warranty         int64             `json:"is_warranty,omitempty"`            // Is the maintenance entry part of the Warranty
+	AvailableActions *AvailableActions `json:"available_actions,oimitempty"`     // AvailableActions on the maintenance entry
+}
+
+// END OF MAINTENANCES STRUCTS
 //-------------------------------------------------------------------------
 
 // ### Users
