@@ -89,17 +89,12 @@ func (q *AssetQuery) SetOffset(offset int) {
 //---------------------------------------------------------------------
 
 /*
- * List all Hardware Assets in Snipe-IT
- * /api/v1/hardware
- * - https://snipe-it.readme.io/reference/hardware-list
- */
-func (c *AssetClient) GetAllAssets() (*HardwareList, error) {
+* List all Hardware Assets that conform to a query in Snipe-IT
+* /api/v1/hardware
+* - https://snipe-it.readme.io/reference/hardware-list
+*/
+func (c *AssetClient) GetAssetsByQuery(q AssetQuery) (*HardwareList, error) {
 	url := c.BuildURL(Assets)
-
-	q := AssetQuery{
-		Limit:  500,
-		Offset: 0,
-	}
 
 	var cache HardwareList
 	if c.GetCache(url, &cache) {
@@ -113,6 +108,20 @@ func (c *AssetClient) GetAllAssets() (*HardwareList, error) {
 
 	c.SetCache(url, assets, 5*time.Minute)
 	return assets, nil
+}
+
+/*
+ * List all Hardware Assets in Snipe-IT
+ * /api/v1/hardware
+ * - https://snipe-it.readme.io/reference/hardware-list
+ */
+func (c *AssetClient) GetAllAssets() (*HardwareList, error) {
+	q := AssetQuery{
+		Limit:  500,
+		Offset: 0,
+	}
+
+	return c.GetAssetsByQuery(q)
 }
 
 /*
