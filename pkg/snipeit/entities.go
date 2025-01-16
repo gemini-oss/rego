@@ -102,7 +102,7 @@ type Hardware struct {
 	Model            *Record           `json:"model,omitempty"`             // Model of the hardware item.
 	BYOD             bool              `json:"byod,omitempty"`              // Whether the hardware item is BYOD.
 	ModelNumber      string            `json:"model_number,omitempty"`      // Model number of the hardware item.
-	EOL              int               `json:"eol,omitempty"`               // End of life of the hardware item.
+	EOL              string            `json:"eol,omitempty"`               // End of life of the hardware item.
 	AssetEOLDate     *DateInfo         `json:"asset_eol_date,omitempty"`    // Asset end of life date of the hardware item.
 	StatusLabel      *StatusLabel      `json:"status_label,omitempty"`      // Status label of the hardware item.
 	Category         *Record           `json:"category,omitempty"`          // Category of the hardware item.
@@ -118,7 +118,7 @@ type Hardware struct {
 	AltBarcode       string            `json:"alt_barcode,omitempty"`       // Alternate barcode of the hardware item.
 	AssignedTo       *User             `json:"assigned_to,omitempty"`       // User to whom the hardware item is assigned.
 	WarrantyMonths   string            `json:"warranty_months,omitempty"`   // Warranty months of the hardware item.
-	WarrantyExpires  string            `json:"warranty_expires,omitempty"`  // Warranty expiry date of the hardware item.
+	WarrantyExpires  *DateInfo         `json:"warranty_expires,omitempty"`  // Warranty expiry date of the hardware item.
 	CreatedAt        *DateInfo         `json:"created_at,omitempty"`        // Time when the hardware item was created.
 	UpdatedAt        *DateInfo         `json:"updated_at,omitempty"`        // Time when the hardware item was last updated.
 	LastAuditDate    *DateInfo         `json:"last_audit_date,omitempty"`   // Last audit date of the hardware item.
