@@ -47,6 +47,8 @@ type AssetQuery struct {
 	LocationID     int    `url:"location_id,omitempty"`     // Return only assets associated with the specified location ID.
 	Status         string `url:"status,omitempty"`          // Optionally restrict asset results to one of these status types: RTD, Deployed, Undeployable, Deleted, Archived, Requestable
 	StatusID       int    `url:"status_id,omitempty"`       // Return only assets associated with the specified status ID.
+	AssignedTo     int    `url:"assigned_to,omitempty"`     // Return only assets that are assigned to this ID (requires AssignedType) *Not in api reference doc but used on the web hosted service*
+	AssignedType   string `url:"assigned_type,omitempty"`   // Return only assets of this type that are assigned to a specific ID (requires AssignedTo and uses the original snipeit models) https://github.com/snipe/snipe-it/tree/master/app/Models *Not in api reference but used on the web hosted service*
 }
 
 // ### AssetQuery implements QueryInterface
@@ -66,6 +68,8 @@ func (q *AssetQuery) Copy() QueryInterface {
 		LocationID:     q.LocationID,
 		Status:         q.Status,
 		StatusID:       q.StatusID,
+		AssignedTo:     q.AssignedTo,
+		AssignedType:   q.AssignedType,
 	}
 }
 
@@ -92,7 +96,7 @@ func (q *AssetQuery) SetOffset(offset int) {
 * List all Hardware Assets that conform to a query in Snipe-IT
 * /api/v1/hardware
 * - https://snipe-it.readme.io/reference/hardware-list
-*/
+ */
 func (c *AssetClient) GetAssetsByQuery(q AssetQuery) (*HardwareList, error) {
 	url := c.BuildURL(Assets)
 
