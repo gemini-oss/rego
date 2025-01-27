@@ -173,9 +173,9 @@ func (c *AssetClient) GetAssetByTag(tag string) (*Hardware[HardwareGET], error) 
 }
 
 /*
- * Get Hardware Assets by Serial
- * /api/v1/hardware/byserial/{serial}
- * - https://snipe-it.readme.io/reference/hardware-by-serial
+ * Get Hardware Assets by Tag 
+ * /api/v1/hardware/bytag/{tag}
+ * - https://snipe-it.readme.io/reference/hardware-by-asset-tag
  */
 func (c *AssetClient) GetAssetByTag(tag string) (*Hardware, error) {
 	url := c.BuildURL(Assets, "bytag", tag)
