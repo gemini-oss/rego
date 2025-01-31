@@ -294,39 +294,42 @@ func GenerateFieldNames(prefix string, val reflect.Value) (*[]string, error) {
 		firstKey := val.MapKeys()[0]
 		val = val.MapIndex(firstKey)
 		return GenerateFieldNames(prefix, val)
+
 	case reflect.Slice, reflect.Array:
 		// First element only (assuming homogeneous types)
 		if val.Len() == 0 {
 			return nil, fmt.Errorf("GenerateFieldNames: empty slice or array")
 		}
 		return GenerateFieldNames(prefix, val.Index(0))
+
 	case reflect.Struct:
-		// Handle struct fields
 		typ := val.Type()
+		// Handle struct fields
 		for i := 0; i < val.NumField(); i++ {
 			field := typ.Field(i)
 			jsonTag := getFirstTag(field.Tag.Get("json"))
 			if jsonTag == "-" {
 				continue // Ignore fields marked to be ignored
 			}
-			fieldKey := prefix + jsonTag
+			fieldKey := joinPrefixKey(prefix, jsonTag)
 
 			// Recursively handle nested structs and inline structs if specified
 			if shouldInlineStruct(field) {
-				subFields, err := GenerateFieldNames("", val.Field(i))
+				subFields, err := GenerateFieldNames(prefix, val.Field(i))
 				if err != nil {
 					return nil, err
 				}
 				fields = append(fields, *subFields...)
 			} else if field.Type.Kind() == reflect.Struct ||
 				(field.Type.Kind() == reflect.Ptr && field.Type.Elem().Kind() == reflect.Struct) {
-				subFields, err := GenerateFieldNames(fieldKey+".", val.Field(i))
+				subPrefix := fieldKey
+				subFields, err := GenerateFieldNames(subPrefix, val.Field(i))
 				if err != nil {
 					return nil, err
 				}
 				fields = append(fields, *subFields...)
 			} else if field.Type.Kind() == reflect.Map {
-				subFields, err := generateMapFieldNames(fieldKey+".", val.Field(i))
+				subFields, err := generateMapFieldNames(fieldKey, val.Field(i))
 				if err != nil {
 					return nil, err
 				}
@@ -335,9 +338,12 @@ func GenerateFieldNames(prefix string, val reflect.Value) (*[]string, error) {
 				fields = append(fields, fieldKey)
 			}
 		}
+
 		// Handle embedded fields
 		for i := 0; i < val.NumField(); i++ {
-			if val.Type().Field(i).Anonymous {
+			field := typ.Field(i)
+			if field.Anonymous {
+				// Flatten embedded fields under the same prefix
 				subFields, err := GenerateFieldNames(prefix, val.Field(i))
 				if err != nil {
 					return nil, err
@@ -347,11 +353,13 @@ func GenerateFieldNames(prefix string, val reflect.Value) (*[]string, error) {
 		}
 
 		return &fields, nil
+
 	case reflect.Interface:
 		if val.IsNil() {
 			return &fields, nil
 		}
 		return GenerateFieldNames(prefix, val.Elem())
+
 	default:
 		return &[]string{prefix}, nil
 	}
@@ -366,12 +374,12 @@ func generateMapFieldNames(prefix string, val reflect.Value) (*[]string, error) 
 
 	for _, key := range val.MapKeys() {
 		keyStr := fmt.Sprint(key.Interface())
-		fieldKey := prefix + keyStr
+		fieldKey := joinPrefixKey(prefix, keyStr)
 
 		value := val.MapIndex(key)
 		switch value.Kind() {
 		case reflect.Map, reflect.Struct:
-			subFields, err := GenerateFieldNames(fieldKey+".", value)
+			subFields, err := GenerateFieldNames(fieldKey, value)
 			if err != nil {
 				return nil, err
 			}
@@ -381,6 +389,19 @@ func generateMapFieldNames(prefix string, val reflect.Value) (*[]string, error) 
 		}
 	}
 	return &fields, nil
+}
+
+// shortTypeName strips away any type parameters in a generic type.
+// E.g., "Model[github.com/gemini-oss/rego/pkg/snipeit.GET]" -> "Model"
+func shortTypeName(t reflect.Type) string {
+	// Reflect’s .Name() for a generic type can look like:
+	//    "Model[github.com/gemini-oss/rego/pkg/snipeit.GET]"
+	// so we truncate everything after (and including) the first '['.
+	name := t.Name()
+	if idx := strings.IndexRune(name, '['); idx != -1 {
+		name = name[:idx]
+	}
+	return name
 }
 
 // DerefPointers takes a reflect.Value and recursively dereferences it if it's a pointer.
@@ -402,7 +423,6 @@ func DerefPointers(val reflect.Value) (reflect.Value, error) {
 			default:
 				//return reflect.Value{}, fmt.Errorf("DerefPointers: nil pointer/interface element")
 			}
-			//return reflect.Value{}, fmt.Errorf("GenerateFieldNames: nil pointer/interface element")
 		}
 		if val.Kind() == reflect.Pointer {
 			val = val.Elem()
@@ -520,6 +540,20 @@ func FlattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 	}
 
 	return nil
+}
+
+// joinPrefixKey helps avoid trailing dots or double dots.
+func joinPrefixKey(prefix, key string) string {
+	switch {
+	case prefix == "" && key == "":
+		return ""
+	case prefix == "":
+		return key
+	case key == "":
+		return prefix
+	default:
+		return prefix + "." + key
+	}
 }
 
 func shouldInlineStruct(field reflect.StructField) bool {
