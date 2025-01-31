@@ -177,7 +177,7 @@ func (c *UsersClient) GetUserAppLinks(userID string) (*AppLinks, error) {
 /*
  * # List all Groups for a User
  * /api/v1/users/{userId}/groups
- * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/updateUser
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/UserResources/#tag/UserResources/operation/listUserGroups
  */
 func (c *UsersClient) GetUserGroups(userID string) (*Groups, error) {
 	url := c.BuildURL(OktaUsers, userID, "groups")
@@ -197,10 +197,32 @@ func (c *UsersClient) GetUserGroups(userID string) (*Groups, error) {
 }
 
 /*
- * # Revoke User Sessions
- * /api/v1/users/{userId}/sessions
- * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/revokeUserSessions
+ * # List all Devices for a User
+ * /api/v1/users/{userId}/devices
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/UserResources/#tag/UserResources/operation/listUserDevices
  */
+func (c *UsersClient) GetUserDevices(userID string) (*UserDevices, error) {
+	url := c.BuildURL(OktaUsers, userID, "devices")
+
+	var cache UserDevices
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	devices, err := do[UserDevices](c.Client, "GET", url, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	c.SetCache(url, devices, 5*time.Minute)
+	return &devices, nil
+}
+
+/*
+- # Revoke User Sessions
+- /api/v1/users/{userId}/sessions
+- - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/revokeUserSessions
+*/
 func (c *UsersClient) RevokeUserSessions(userID string) error {
 	url := c.BuildURL(OktaUsers, userID, "sessions")
 

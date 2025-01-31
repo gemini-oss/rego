@@ -97,21 +97,42 @@ func (c *SheetsClient) GenerateValueRange(data []interface{}, sheetName string, 
 	}
 
 	// Ensure headers as the first row
-	vr.Values = append(vr.Values, *headers)
+	vr.Values = append(vr.Values, []string{})
 
 	// Initialize map to track the maximum length encountered for each header
-	finalHeaders := *headers
+	var finalHeaders []string
+	switch {
+	case headers == nil:
+		headers = &[]string{}
+		generatedHeaders, err := ss.GenerateFieldNames("", reflect.ValueOf(data))
+		if err != nil {
+			c.Log.Tracef("Failed to generate headers: %v", err)
+			return vr
+		}
+		headers = generatedHeaders
+	case len(*headers) == 0:
+		generatedHeaders, err := ss.GenerateFieldNames("", reflect.ValueOf(data))
+		if err != nil {
+			c.Log.Tracef("Failed to generate headers: %v", err)
+			return vr
+		}
+		headers = generatedHeaders
+
+	}
+	finalHeaders = append(finalHeaders, *headers...)
 
 	// Collect all rows data first to determine the maxFieldLen
 	allRows := make([][][]string, 0, len(data))
 	for _, d := range data {
 		orderedData, err := ss.FlattenStructFields(d, headers)
 		if err != nil {
+			c.Log.Tracef("Failed to flatten struct fields: %v", err)
 			continue // Skip this row if there was an error
 		}
 		allRows = append(allRows, orderedData)
 		if len(orderedData) > len(finalHeaders) {
 			finalHeaders = *headers
+			c.Log.Tracef("Final headers: %v", finalHeaders)
 		}
 	}
 
@@ -328,14 +349,6 @@ func (c *SheetsClient) SaveToSheet(data interface{}, sheetID, sheetName string, 
 	case [][]string:
 		vr.Values = v
 	default:
-		// Generate headers if not provided
-		if headers == nil {
-			headers, err = ss.GenerateFieldNames("", val)
-			if err != nil {
-				return err
-			}
-		}
-
 		vr, err = c.prepareAndGenerateValueRange(val, sheetName, headers)
 		if err != nil {
 			return err

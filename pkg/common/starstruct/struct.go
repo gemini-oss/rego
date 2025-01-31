@@ -15,6 +15,38 @@ import (
 	"golang.org/x/text/language"
 )
 
+// ### StarStruct Options
+// ---------------------------------------------------------------------
+
+type pkgConfig struct {
+	Sort     bool
+	Generate bool
+	Headers  *[]string
+}
+
+type Option func(*pkgConfig)
+
+// WithSortFields tells the package to sort the fields of the struct
+func WithSort() Option {
+	return func(cfg *pkgConfig) {
+		cfg.Sort = true
+	}
+}
+
+// WithGenerateFields tells the package to generate fields dynamically
+func WithGenerate() Option {
+	return func(cfg *pkgConfig) {
+		cfg.Generate = true
+	}
+}
+
+// WithHeaders tells the package to use the provided headers
+func WithHeaders(headers *[]string) Option {
+	return func(cfg *pkgConfig) {
+		cfg.Headers = headers
+	}
+}
+
 /*
  * Print a struct as a JSON string
  */
@@ -184,7 +216,19 @@ func mapFromMap(v reflect.Value) map[string]interface{} {
 
 // FlattenStructFields parses a struct and its nested fields, if any, to a flat slice.
 // It also updates the input fields with any new subfields found.
-func FlattenStructFields(item interface{}, fields *[]string) ([][]string, error) {
+func FlattenStructFields(item interface{}, fields *[]string, opts ...Option) ([][]string, error) {
+
+	// Default config
+	cfg := &pkgConfig{
+		Sort:     false,
+		Generate: false,
+		Headers:  nil,
+	}
+
+	for _, opt := range opts {
+		opt(cfg)
+	}
+
 	val, err := DerefPointers(reflect.ValueOf(item))
 	if err != nil {
 		return nil, err
@@ -195,27 +239,35 @@ func FlattenStructFields(item interface{}, fields *[]string) ([][]string, error)
 	}
 
 	// If no fields are provided, generate them dynamically
-	var sortFields bool
-	if fields == nil || len(*fields) == 0 {
-		fields, err = GenerateFieldNames("", val)
+	if cfg.Generate {
+		generatedFields, err := GenerateFieldNames("", val)
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		sortFields = false
+		*fields = append(*fields, *generatedFields...)
 	}
 
 	// Create a map to hold the fields and their values
 	fieldMap := make(map[string]string)
 
 	// Recursively parse the struct
-	err = flattenNestedStructs(item, "", &fieldMap)
+	err = FlattenNestedStructs(item, "", &fieldMap)
 	if err != nil {
 		return nil, err
 	}
 
+	switch cfg.Generate {
+	case false:
+		// If fields were not generated, limit the map to only include the provided fields while keeping data intact
+		newMap := make(map[string]string, len(*fields))
+		for _, field := range *fields {
+			newMap[field] = fieldMap[field]
+		}
+		fieldMap = newMap
+	}
+
 	// Convert the fieldMap to a slice and update fields with new subfields
-	fieldSlice, err := mapToSliceAndUpdateFields(&fieldMap, fields, sortFields)
+	fieldSlice, err := mapToSliceAndUpdateFields(&fieldMap, fields, false)
 	if err != nil {
 		return nil, err
 	}
@@ -261,13 +313,20 @@ func GenerateFieldNames(prefix string, val reflect.Value) (*[]string, error) {
 
 			// Recursively handle nested structs and inline structs if specified
 			if shouldInlineStruct(field) {
-				subFields, err := GenerateFieldNames(prefix, val.Field(i))
+				subFields, err := GenerateFieldNames("", val.Field(i))
 				if err != nil {
 					return nil, err
 				}
 				fields = append(fields, *subFields...)
-			} else if field.Type.Kind() == reflect.Struct {
+			} else if field.Type.Kind() == reflect.Struct ||
+				(field.Type.Kind() == reflect.Ptr && field.Type.Elem().Kind() == reflect.Struct) {
 				subFields, err := GenerateFieldNames(fieldKey+".", val.Field(i))
+				if err != nil {
+					return nil, err
+				}
+				fields = append(fields, *subFields...)
+			} else if field.Type.Kind() == reflect.Map {
+				subFields, err := generateMapFieldNames(fieldKey+".", val.Field(i))
 				if err != nil {
 					return nil, err
 				}
@@ -276,6 +335,17 @@ func GenerateFieldNames(prefix string, val reflect.Value) (*[]string, error) {
 				fields = append(fields, fieldKey)
 			}
 		}
+		// Handle embedded fields
+		for i := 0; i < val.NumField(); i++ {
+			if val.Type().Field(i).Anonymous {
+				subFields, err := GenerateFieldNames(prefix, val.Field(i))
+				if err != nil {
+					return nil, err
+				}
+				fields = append(fields, *subFields...)
+			}
+		}
+
 		return &fields, nil
 	case reflect.Interface:
 		if val.IsNil() {
@@ -283,15 +353,56 @@ func GenerateFieldNames(prefix string, val reflect.Value) (*[]string, error) {
 		}
 		return GenerateFieldNames(prefix, val.Elem())
 	default:
-		return nil, fmt.Errorf("GenerateFieldNames: unsupported type %s", val.Kind())
+		return &[]string{prefix}, nil
 	}
+}
+
+func generateMapFieldNames(prefix string, val reflect.Value) (*[]string, error) {
+	if val.Kind() != reflect.Map {
+		return nil, fmt.Errorf("generateMapFieldNames: expected a map, got %v", val.Kind())
+	}
+
+	fields := make([]string, 0)
+
+	for _, key := range val.MapKeys() {
+		keyStr := fmt.Sprint(key.Interface())
+		fieldKey := prefix + keyStr
+
+		value := val.MapIndex(key)
+		switch value.Kind() {
+		case reflect.Map, reflect.Struct:
+			subFields, err := GenerateFieldNames(fieldKey+".", value)
+			if err != nil {
+				return nil, err
+			}
+			fields = append(fields, *subFields...)
+		default:
+			fields = append(fields, fieldKey)
+		}
+	}
+	return &fields, nil
 }
 
 // DerefPointers takes a reflect.Value and recursively dereferences it if it's a pointer.
 func DerefPointers(val reflect.Value) (reflect.Value, error) {
 	for val.Kind() == reflect.Pointer || val.Kind() == reflect.Interface {
 		if val.IsNil() {
-			return reflect.Value{}, fmt.Errorf("GenerateFieldNames: nil pointer/interface element")
+			// Return the relevant nil value for the current type, "" for string, 0 for int, etc.
+			switch val.Kind() {
+			case reflect.String:
+				return reflect.ValueOf(""), nil
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				return reflect.ValueOf(0), nil
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				return reflect.ValueOf(uint(0)), nil
+			case reflect.Float32, reflect.Float64:
+				return reflect.ValueOf(float64(0)), nil
+			case reflect.Bool:
+				return reflect.ValueOf(false), nil
+			default:
+				//return reflect.Value{}, fmt.Errorf("DerefPointers: nil pointer/interface element")
+			}
+			//return reflect.Value{}, fmt.Errorf("GenerateFieldNames: nil pointer/interface element")
 		}
 		if val.Kind() == reflect.Pointer {
 			val = val.Elem()
@@ -305,7 +416,7 @@ func DerefPointers(val reflect.Value) (reflect.Value, error) {
 
 // flattenNestedStructs recursively navigates through a struct, parsing its fields and nested fields.
 // It populates a map with field names as keys and their values as values.
-func flattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]string) error {
+func FlattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]string) error {
 	val, err := DerefPointers(reflect.ValueOf(item))
 	if err != nil {
 		return err
@@ -350,18 +461,21 @@ func flattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 			if fieldVal.Len() == 0 {
 				(*fieldMap)[keyPrefix] = "" // Handle empty slice
 			} else {
-				flattenSlice(fieldVal, keyPrefix, indexFormat, fieldMap)
+				err := flattenSlice(fieldVal, keyPrefix, indexFormat, fieldMap)
+				if err != nil {
+					return err
+				}
 			}
 		case reflect.Struct:
 			// Check if the struct should be inlined
 			if shouldInlineStruct(field) {
-				err := flattenNestedStructs(fieldVal.Interface(), prefix, fieldMap)
+				err := FlattenNestedStructs(fieldVal.Interface(), prefix, fieldMap)
 				if err != nil {
 					return err
 				}
 			} else {
 				// Recursively handle nested structs
-				err := flattenNestedStructs(fieldVal.Interface(), keyPrefix+".", fieldMap)
+				err := FlattenNestedStructs(fieldVal.Interface(), keyPrefix+".", fieldMap)
 				if err != nil {
 					return err
 				}
@@ -369,14 +483,39 @@ func flattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 		case reflect.Interface:
 			// Handle interface types (like the generic parameter)
 			if !fieldVal.IsNil() {
-				err := flattenNestedStructs(fieldVal.Elem().Interface(), prefix, fieldMap)
+				elem := fieldVal.Elem()
+				if elem.Kind() == reflect.Struct { // Only call FlattenNestedStructs if the type is a struct
+					err := FlattenNestedStructs(elem.Interface(), prefix, fieldMap)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		case reflect.Map:
+			if fieldVal.Len() == 0 {
+				(*fieldMap)[keyPrefix] = "" // Handle empty map
+			} else {
+				err := flattenMap(fieldVal, keyPrefix, fieldMap)
+				if err != nil {
+					return err
+				}
+			}
+		case reflect.Ptr:
+			if fieldVal.IsNil() {
+				(*fieldMap)[keyPrefix] = "<nil>"
+			} else {
+				err := FlattenNestedStructs(fieldVal.Elem().Interface(), keyPrefix+".", fieldMap)
 				if err != nil {
 					return err
 				}
 			}
 		default:
 			// Handle basic types
-			(*fieldMap)[keyPrefix] = fmt.Sprint(fieldVal.Interface())
+			if fieldVal.IsValid() {
+				(*fieldMap)[keyPrefix] = fmt.Sprint(fieldVal.Interface())
+			} else {
+				(*fieldMap)[keyPrefix] = "<nil>"
+			}
 		}
 	}
 
@@ -394,7 +533,7 @@ func flattenSlice(slice reflect.Value, keyPrefix, indexFormat string, fieldMap *
 		elemKey := fmt.Sprintf("%s.%s", keyPrefix, fmt.Sprintf(indexFormat, j))
 		if elem.Kind() == reflect.Struct {
 			// Recursively handle struct elements in a slice
-			err := flattenNestedStructs(elem.Interface(), elemKey+".", fieldMap)
+			err := FlattenNestedStructs(elem.Interface(), elemKey+".", fieldMap)
 			if err != nil {
 				return err
 			}
@@ -403,6 +542,27 @@ func flattenSlice(slice reflect.Value, keyPrefix, indexFormat string, fieldMap *
 			(*fieldMap)[elemKey] = fmt.Sprint(elem.Interface())
 		}
 	}
+	return nil
+}
+
+func flattenMap(m reflect.Value, keyPrefix string, fieldMap *map[string]string) error {
+	for _, key := range m.MapKeys() {
+		keyStr := fmt.Sprint(key.Interface())
+		value := m.MapIndex(key)
+
+		newKey := fmt.Sprintf("%s.%s", keyPrefix, keyStr)
+
+		switch value.Kind() {
+		case reflect.Map, reflect.Struct, reflect.Slice, reflect.Array:
+			err := FlattenNestedStructs(value.Interface(), newKey, fieldMap)
+			if err != nil {
+				return err
+			}
+		default:
+			(*fieldMap)[newKey] = fmt.Sprint(value.Interface())
+		}
+	}
+
 	return nil
 }
 

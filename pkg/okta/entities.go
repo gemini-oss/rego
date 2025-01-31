@@ -13,8 +13,11 @@ package okta
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/gemini-oss/rego/pkg/common/cache"
 	"github.com/gemini-oss/rego/pkg/common/log"
@@ -136,7 +139,50 @@ type Struct[T any] interface {
 }
 
 // END OF OKTA CLIENT ENTITIES
-//---------------------------------------------------------------------
+// ---------------------------------------------------------------------
+
+// ### Okta Client Configuration Options
+// ---------------------------------------------------------------------
+
+type clientConfig struct {
+	useSandbox bool
+	orgName    string
+	baseURL    string
+	token      string
+}
+
+type Option func(*clientConfig)
+
+// WithSandbox sets the client to use sandbox credentials
+func WithSandbox() Option {
+	return func(cfg *clientConfig) {
+		cfg.useSandbox = true
+	}
+}
+
+// WithCustomOrgName overrides the default environment variable key for Org Name
+func WithCustomOrgName(key string) Option {
+	return func(cfg *clientConfig) {
+		cfg.orgName = key
+	}
+}
+
+// WithCustomBase overrides the default environment variable key for Base URL
+func WithCustomBaseURL(key string) Option {
+	return func(cfg *clientConfig) {
+		cfg.baseURL = key
+	}
+}
+
+// WithCustomToken overrides the default environment variable key for API Token
+func WithCustomToken(key string) Option {
+	return func(cfg *clientConfig) {
+		cfg.token = key
+	}
+}
+
+// END OF OKTA CLIENT CONFIGURATION OPTIONS
+// ---------------------------------------------------------------------
 
 // ### Okta Application Structs
 // ---------------------------------------------------------------------
@@ -203,7 +249,204 @@ type AppLink struct {
 }
 
 // END OF OKTA APPLICATION STRUCTS
-//---------------------------------------------------------------------
+// ---------------------------------------------------------------------
+
+// ### Okta Attribute Structs
+// ---------------------------------------------------------------------
+type AttributesList struct {
+	Attributes *Attributes `json:"list,omitempty"`
+}
+
+func (a AttributesList) Init() *AttributesList {
+	return &AttributesList{
+		Attributes: &Attributes{},
+	}
+}
+
+func (a AttributesList) Append(result interface{}) {
+	more, ok := result.(*AttributesList)
+	if !ok {
+		return
+	}
+
+	*a.Attributes = append(*a.Attributes, *more.Attributes...)
+}
+
+// Attributes represents a slice of Attribute structs with generic type support.
+type Attributes []*Attribute
+
+// Map creates a map of attributes keyed by their names.
+func (a *Attributes) Map() map[string]*Attribute {
+	attrMap := make(map[string]*Attribute, len(*a))
+	for _, attr := range *a {
+		attrMap[attr.Name] = attr
+	}
+	return attrMap
+}
+
+type Attribute struct {
+	Name    string             `json:"attribute_name,omitempty"`  // The name of the attribute (e.g., unix_user_name, unix_uid).
+	Value   AttributeInterface `json:"attribute_value,omitempty"` // The value of the attribute.
+	ID      string             `json:"id,omitempty"`              // The unique identifier for the attribute.
+	Managed bool               `json:"managed,omitempty"`         // Indicates if the attribute is managed.
+}
+
+// AttributeInterface represents the valid types for attribute values.
+type AttributeInterface interface {
+	~string | ~[]string | ~bool | ~int | ~[]int | ~float64 | ~[]float64 | any
+}
+
+// MarshalJSON custom marshaller for Attribute.
+func (a *Attribute) MarshalJSON() ([]byte, error) {
+	// Create a raw structure to serialize
+	raw := struct {
+		Name    string             `json:"attribute_name,omitempty"`
+		Value   AttributeInterface `json:"attribute_value,omitempty"`
+		ID      string             `json:"id,omitempty"`
+		Managed bool               `json:"managed,omitempty"`
+	}{
+		Name:    a.Name,
+		Value:   a.Value,
+		ID:      a.ID,
+		Managed: a.Managed,
+	}
+
+	// Serialize to JSON
+	return json.Marshal(raw)
+}
+
+// UnmarshalJSON custom unmarshaller for Attribute to handle dynamic type validation.
+func (a *Attribute) UnmarshalJSON(data []byte) error {
+	// Define a raw structure to unmarshal into first
+	var raw struct {
+		Name    string      `json:"attribute_name,omitempty"`
+		Value   interface{} `json:"attribute_value,omitempty"`
+		ID      string      `json:"id,omitempty"`
+		Managed bool        `json:"managed,omitempty"`
+	}
+
+	// Unmarshal into the raw struct
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	// Assign basic fields
+	a.Name = raw.Name
+	a.ID = raw.ID
+	a.Managed = raw.Managed
+
+	// Validate and assign the Value field based on T (generic type constraint)
+	var validatedValue AttributeInterface
+	switch v := raw.Value.(type) {
+	case string:
+		validatedValue = any(v).(AttributeInterface)
+	case []interface{}:
+		var slice []string
+		for _, item := range v {
+			if s, ok := item.(string); ok {
+				slice = append(slice, s)
+			} else {
+				return errors.New("invalid slice value")
+			}
+		}
+		validatedValue = any(slice).(AttributeInterface)
+	case bool, int, float64:
+		validatedValue = any(v).(AttributeInterface)
+	default:
+		return fmt.Errorf("unsupported attribute value type: %T", raw.Value)
+	}
+
+	// Assign validated value
+	a.Value = validatedValue
+	return nil
+}
+
+// Validate checks if the Attribute's value is valid based on its type.
+func (a *Attribute) Validate() error {
+	switch v := any(a.Value).(type) {
+	case string:
+		if len(v) == 0 {
+			return errors.New("invalid string value: cannot be empty")
+		}
+		// **Only** check for a valid 2-letter country code if the string is exactly 2 chars.
+		if len(v) == 2 {
+			if !isValidCountryCode(v) {
+				return fmt.Errorf("string %q is not a valid 2-letter, uppercase country code", v)
+			}
+		}
+
+	case []string:
+		if len(v) == 0 {
+			return errors.New("string slice is empty")
+		}
+		for _, item := range v {
+			if len(item) == 0 {
+				return errors.New("string slice contains an empty value")
+			}
+		}
+	case bool:
+		if !v {
+			return errors.New("boolean must be true")
+		}
+	case []bool:
+		if len(v) == 0 {
+			return errors.New("bool slice is empty")
+		}
+		for _, item := range v {
+			if !item {
+				return errors.New("bool slice contains a false value")
+			}
+		}
+	case int:
+		if v <= 0 {
+			return fmt.Errorf("int value %d must be positive", v)
+		}
+	case []int:
+		if len(v) == 0 {
+			return errors.New("int slice is empty")
+		}
+		for _, item := range v {
+			if item <= 0 {
+				return fmt.Errorf("int slice contains a non-positive number: %d", item)
+			}
+		}
+
+	case float64:
+		if v < 0 {
+			return fmt.Errorf("float64 value %v must be non-negative", v)
+		}
+
+	case []float64:
+		if len(v) == 0 {
+			return errors.New("float64 slice is empty")
+		}
+		for _, item := range v {
+			if item < 0 {
+				return fmt.Errorf("float64 slice contains a negative number: %v", item)
+			}
+		}
+
+	default:
+		return fmt.Errorf("unsupported attribute value type: %T", v)
+	}
+	return nil
+}
+
+// Helper function to validate a country code (two characters, all uppercase).
+func isValidCountryCode(code string) bool {
+	if len(code) != 2 {
+		return false
+	}
+	for _, r := range code {
+		if !unicode.IsUpper(r) {
+			return false
+		}
+	}
+	return true
+}
+
+// END OF OKTA ATTRIBUTE STRUCTS
+// ---------------------------------------------------------------------
 
 // ### Okta Device Structs
 // ---------------------------------------------------------------------
@@ -254,7 +497,7 @@ type DeviceEmbedded struct {
 }
 
 // END OF OKTA DEVICE STRUCTS
-//---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 
 // ### Okta Roles Structs
 // ---------------------------------------------------------------------
@@ -306,7 +549,7 @@ type RoleReport struct {
 }
 
 // END OF OKTA ROLES STRUCTS
-//---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 
 // ### Okta Users Structs
 // ---------------------------------------------------------------------
@@ -488,8 +731,17 @@ type UserType struct {
 
 type UserEmbedded interface{}
 
+type UserDevices []*UserDevice
+
+// UserDevice is a device associated with a user
+type UserDevice struct {
+	Created      string  `json:"created,omitempty"`      // The timestamp when the user device was created.
+	DeviceUserID string  `json:"deviceUserId,omitempty"` // The ID of the device user.
+	Device       *Device `json:"device,omitempty"`       // The device associated with the user.
+}
+
 // END OF OKTA USERS STRUCTS
-//---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 
 // ### Okta Factor Structs
 // ---------------------------------------------------------------------
@@ -546,7 +798,7 @@ var FactorType = FactorTypes{
 }
 
 // END OF OKTA FACTOR STRUCTS
-//---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 
 // ### Okta Group Structs
 // ---------------------------------------------------------------------
@@ -614,4 +866,4 @@ type GroupCondition struct {
 }
 
 // END OF OKTA Group STRUCTS
-//---------------------------------------------------------------------
+// ---------------------------------------------------------------------

@@ -437,7 +437,7 @@ type DateInfo struct {
 
 // StatusLabel represents the status label of a hardware item.
 type StatusLabel struct {
-	*Record `json:",inline"`
+	*Record    `json:",inline"`
 	StatusMeta string `json:"status_meta,omitempty"` // Meta status of the status label.
 	StatusType string `json:"status_type,omitempty"` // Type of the status label.
 }
