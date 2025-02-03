@@ -3,7 +3,7 @@
 
 This package contains many structs for handling responses from the Okta API:
 
-:Copyright: (c) 2023 by Gemini Space Station, LLC, see AUTHORS for more info
+:Copyright: (c) 2025 by Gemini Space Station, LLC, see AUTHORS for more info
 :License: See the LICENSE file for details
 :Author: Anthony Dardano <anthony.dardano@gemini.com>
 */
@@ -619,8 +619,8 @@ type RecoveryQuestion struct {
 }
 
 type UserProfile struct {
-	UserProfileBase
-	CustomAttributes map[string]interface{} `json:"-"` // Custom attributes
+	UserProfileBase `json:",inline"`
+	CustomAttributes map[string]interface{} `json:",inline"` // Custom attributes
 }
 
 type UserProfileBase struct {

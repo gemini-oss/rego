@@ -4,7 +4,7 @@
 This package initializes all the structs for the SnipeIT API:
 https://snipe-it.readme.io/reference/api-overview
 
-:Copyright: (c) 2023 by Gemini Space Station, LLC., see AUTHORS for more info
+:Copyright: (c) 2025 by Gemini Space Station, LLC., see AUTHORS for more info
 :License: See the LICENSE file for details
 :Author: Anthony Dardano <anthony.dardano@gemini.com>
 */
@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/gemini-oss/rego/pkg/common/cache"
+	"github.com/gemini-oss/rego/pkg/common/generics"
 	"github.com/gemini-oss/rego/pkg/common/log"
 	"github.com/gemini-oss/rego/pkg/common/requests"
 )
@@ -230,6 +231,16 @@ type Hardware[M any] struct {
 	RequestsCounter int                           `json:"requests_counter,omitempty"`  // Request counter of the hardware item.
 	UserCanCheckout bool                          `json:"user_can_checkout,omitempty"` // Whether the user can check-out the hardware item.
 	CustomFields    *map[string]map[string]string `json:"custom_fields,omitempty"`     // Custom fields of a Snipe-IT asset (This will typically be the `DB Field` property in the WebUI)
+}
+
+func (h *Hardware[M]) UnmarshalJSON(data []byte) error {
+	hw, err := generics.UnmarshalGeneric[Hardware[M], M](data)
+	if err != nil {
+		return err
+	}
+
+	*h = *hw
+	return nil
 }
 
 // END OF ASSETS STRUCTS

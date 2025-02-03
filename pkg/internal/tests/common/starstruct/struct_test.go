@@ -109,13 +109,13 @@ func TestFlattenStructFields(t *testing.T) {
 	expectedSlice := [][]string{
 		{"name", "Anthony Dardano"},
 		{"age", "0"},
-		{"tags.0", "Staff Enterprise Infrastructure Engineer"},
-		{"tags.1", "DJ"},
+		{"tags.00", "Staff Enterprise Infrastructure Engineer"},
+		{"tags.01", "DJ"},
 		{"address.city", "N/A"},
 		{"address.state", "FL"},
 	}
 
-	got, err := starstruct.FlattenStructFields(testStruct, &fields)
+	got, err := starstruct.FlattenStructFields(testStruct, starstruct.WithHeaders(&fields))
 	if err != nil {
 		t.Errorf("FlattenStructFields() error = %v, wantErr false", err)
 		return
@@ -132,12 +132,12 @@ func TestFlattenStructFieldsSelective(t *testing.T) {
 	fields := []string{"name", "tags", "address.state"}
 	expectedSlice := [][]string{
 		{"name", "Anthony Dardano"},
-		{"tags.0", "Staff Enterprise Infrastructure Engineer"},
-		{"tags.1", "DJ"},
+		{"tags.00", "Staff Enterprise Infrastructure Engineer"},
+		{"tags.01", "DJ"},
 		{"address.state", "FL"},
 	}
 
-	got, err := starstruct.FlattenStructFields(testStruct, &fields)
+	got, err := starstruct.FlattenStructFields(testStruct, starstruct.WithHeaders(&fields))
 	if err != nil {
 		t.Errorf("FlattenStructFields() error = %v, wantErr false", err)
 		return
@@ -213,14 +213,14 @@ func TestKeyOrderingInMap(t *testing.T) {
 	}
 
 	expectedSlice := [][]string{
-		{"items.0", "first"},
-		{"items.1", "second"},
-		{"items.2", "third"},
-		{"items.3", "fourth"},
+		{"items.00", "first"},
+		{"items.01", "second"},
+		{"items.02", "third"},
+		{"items.03", "fourth"},
 	}
 
 	fields := []string{"items"}
-	gotSlice, err := starstruct.FlattenStructFields(testStruct, &fields)
+	gotSlice, err := starstruct.FlattenStructFields(testStruct, starstruct.WithHeaders(&fields), starstruct.WithSort())
 	if err != nil {
 		t.Errorf("FlattenStructFields() error = %v", err)
 		return
@@ -258,14 +258,14 @@ func TestComplexNestedStructureOrdering(t *testing.T) {
 	}
 
 	expectedSlice := [][]string{
-		{"config.settings.0.key", "timeout"},
-		{"config.settings.0.value", "30s"},
-		{"config.settings.1.key", "retry"},
-		{"config.settings.1.value", "5"},
+		{"config.settings.00.key", "timeout"},
+		{"config.settings.00.value", "30s"},
+		{"config.settings.01.key", "retry"},
+		{"config.settings.01.value", "5"},
 	}
 
 	fields := []string{"config.settings"}
-	gotSlice, err := starstruct.FlattenStructFields(testStruct, &fields)
+	gotSlice, err := starstruct.FlattenStructFields(testStruct, starstruct.WithHeaders(&fields))
 	if err != nil {
 		t.Errorf("FlattenStructFields() error = %v", err)
 		return

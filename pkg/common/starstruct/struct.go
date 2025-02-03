@@ -22,6 +22,7 @@ type pkgConfig struct {
 	Sort     bool
 	Generate bool
 	Headers  *[]string
+	ExcludeNil bool // If true, skip generating fields for nil pointer-structs
 }
 
 type Option func(*pkgConfig)
@@ -44,6 +45,13 @@ func WithGenerate() Option {
 func WithHeaders(headers *[]string) Option {
 	return func(cfg *pkgConfig) {
 		cfg.Headers = headers
+	}
+}
+
+// WithExcludeNilStructs instructs the package to skip expanding fields in nil pointer-structs.
+func WithExcludeNil() Option {
+	return func(cfg *pkgConfig) {
+		cfg.ExcludeNil = true
 	}
 }
 
@@ -216,7 +224,7 @@ func mapFromMap(v reflect.Value) map[string]interface{} {
 
 // FlattenStructFields parses a struct and its nested fields, if any, to a flat slice.
 // It also updates the input fields with any new subfields found.
-func FlattenStructFields(item interface{}, fields *[]string, opts ...Option) ([][]string, error) {
+func FlattenStructFields(item interface{}, opts ...Option) ([][]string, error) {
 
 	// Default config
 	cfg := &pkgConfig{
@@ -239,12 +247,13 @@ func FlattenStructFields(item interface{}, fields *[]string, opts ...Option) ([]
 	}
 
 	// If no fields are provided, generate them dynamically
-	if cfg.Generate {
+	if cfg.Generate && (cfg.Headers == nil || len(*cfg.Headers) == 0) {
+		cfg.Headers = &[]string{}
 		generatedFields, err := GenerateFieldNames("", val)
 		if err != nil {
 			return nil, err
 		}
-		*fields = append(*fields, *generatedFields...)
+		*cfg.Headers = append(*cfg.Headers, *generatedFields...)
 	}
 
 	// Create a map to hold the fields and their values
@@ -259,15 +268,19 @@ func FlattenStructFields(item interface{}, fields *[]string, opts ...Option) ([]
 	switch cfg.Generate {
 	case false:
 		// If fields were not generated, limit the map to only include the provided fields while keeping data intact
-		newMap := make(map[string]string, len(*fields))
-		for _, field := range *fields {
-			newMap[field] = fieldMap[field]
+		newMap := make(map[string]string, len(*cfg.Headers))
+		for _, field := range *cfg.Headers {
+			for key, value := range fieldMap {
+				if key == field || strings.HasPrefix(key, field+".") {
+					newMap[key] = value
+				}
+			}
 		}
 		fieldMap = newMap
 	}
 
 	// Convert the fieldMap to a slice and update fields with new subfields
-	fieldSlice, err := mapToSliceAndUpdateFields(&fieldMap, fields, false)
+	fieldSlice, err := mapToSliceAndUpdateFields(&fieldMap, cfg.Headers, cfg.Sort)
 	if err != nil {
 		return nil, err
 	}
@@ -276,7 +289,19 @@ func FlattenStructFields(item interface{}, fields *[]string, opts ...Option) ([]
 }
 
 // GenerateFieldNames recursively generates field names from a struct, dereferencing pointers as needed, and returns a pointer to a slice of strings.
-func GenerateFieldNames(prefix string, val reflect.Value) (*[]string, error) {
+func GenerateFieldNames(prefix string, val reflect.Value, opts ...Option) (*[]string, error) {
+	// Default config
+	cfg := &pkgConfig{
+		Sort:     false,
+		Generate: false,
+		Headers:  nil,
+		ExcludeNil: false,
+	}
+
+	for _, opt := range opts {
+		opt(cfg)
+	}
+
 	var err error
 	if val, err = DerefPointers(val); err != nil {
 		return nil, err
@@ -287,35 +312,94 @@ func GenerateFieldNames(prefix string, val reflect.Value) (*[]string, error) {
 
 	switch val.Kind() {
 	case reflect.Map:
-		// First element only (assuming homogeneous types)
-		if len(val.MapKeys()) == 0 {
-			return nil, fmt.Errorf("GenerateFieldNames: empty map")
+		mapFields, err := generateMapFieldNames(prefix, val)
+		if err != nil {
+			return nil, err
 		}
-		firstKey := val.MapKeys()[0]
-		val = val.MapIndex(firstKey)
-		return GenerateFieldNames(prefix, val)
+		fields = append(fields, *mapFields...)
+		return &fields, nil
 
 	case reflect.Slice, reflect.Array:
-		// First element only (assuming homogeneous types)
 		if val.Len() == 0 {
 			return nil, fmt.Errorf("GenerateFieldNames: empty slice or array")
 		}
-		return GenerateFieldNames(prefix, val.Index(0))
 
+		var mergedFields []string
+		// Use the first non-nil merge candidate as the baseline ordering.
+		for i := 0; i < val.Len(); i++ {
+			mergeCandidate := val.Index(i)
+			if (mergeCandidate.Kind() == reflect.Ptr || mergeCandidate.Kind() == reflect.Interface) && mergeCandidate.IsNil() {
+				continue
+			}
+			mergeCandidate, err = DerefPointers(mergeCandidate)
+			if err != nil {
+				return nil, err
+			}
+			subFieldsPtr, err := GenerateFieldNames(prefix, mergeCandidate, opts...)
+			if err != nil {
+				return nil, err
+			}
+			mergedFields = *subFieldsPtr
+			break
+		}
+		// Now, for every candidate, merge in its field names into the baseline.
+		for i := 0; i < val.Len(); i++ {
+			mergeCandidate := val.Index(i)
+			if (mergeCandidate.Kind() == reflect.Ptr || mergeCandidate.Kind() == reflect.Interface) && mergeCandidate.IsNil() {
+				continue
+			}
+			mergeCandidate, err = DerefPointers(mergeCandidate)
+			if err != nil {
+				return nil, err
+			}
+			subFieldsPtr, err := GenerateFieldNames(prefix, mergeCandidate, opts...)
+			if err != nil {
+				return nil, err
+			}
+			mergedFields = mergeFields(mergedFields, *subFieldsPtr)
+		}
+		// If still empty, fall back to a zero value.
+		if len(mergedFields) == 0 {
+			mergeCandidate := reflect.Zero(val.Type().Elem())
+			subFieldsPtr, err := GenerateFieldNames(prefix, mergeCandidate, opts...)
+			if err != nil {
+				return nil, err
+			}
+			mergedFields = *subFieldsPtr
+		}
+		return &mergedFields, nil
 	case reflect.Struct:
 		typ := val.Type()
 		// Handle struct fields
 		for i := 0; i < val.NumField(); i++ {
 			field := typ.Field(i)
+			fieldVal := val.Field(i)
 			jsonTag := getFirstTag(field.Tag.Get("json"))
-			if jsonTag == "-" {
-				continue // Ignore fields marked to be ignored
+
+			// If the type of the struct itself is time.Time and it's not an embedded field, add it to the fields
+			switch {
+			case field.Type.String() == "time.Time" && !field.Anonymous:
+				fields = append(fields, jsonTag)
+				continue
 			}
+
+			// Skip ignored field
+			if jsonTag == "-" {
+				continue
+			}
+
+			// Exclude nil pointer expansions, if set
+			if cfg.ExcludeNil {
+				if (fieldVal.Kind() == reflect.Ptr || fieldVal.Kind() == reflect.Interface) && fieldVal.IsNil() {
+					continue
+				}
+			}
+
 			fieldKey := joinPrefixKey(prefix, jsonTag)
 
 			// Recursively handle nested structs and inline structs if specified
-			if shouldInlineStruct(field) {
-				subFields, err := GenerateFieldNames(prefix, val.Field(i))
+			if shouldInline(field) {
+				subFields, err := GenerateFieldNames(prefix, val.Field(i), opts...)
 				if err != nil {
 					return nil, err
 				}
@@ -323,12 +407,13 @@ func GenerateFieldNames(prefix string, val reflect.Value) (*[]string, error) {
 			} else if field.Type.Kind() == reflect.Struct ||
 				(field.Type.Kind() == reflect.Ptr && field.Type.Elem().Kind() == reflect.Struct) {
 				subPrefix := fieldKey
-				subFields, err := GenerateFieldNames(subPrefix, val.Field(i))
+				subFields, err := GenerateFieldNames(subPrefix, val.Field(i), opts...)
 				if err != nil {
 					return nil, err
 				}
 				fields = append(fields, *subFields...)
-			} else if field.Type.Kind() == reflect.Map {
+			} else if field.Type.Kind() == reflect.Map ||
+				(field.Type.Kind() == reflect.Ptr && field.Type.Elem().Kind() == reflect.Map) {
 				subFields, err := generateMapFieldNames(fieldKey, val.Field(i))
 				if err != nil {
 					return nil, err
@@ -339,33 +424,34 @@ func GenerateFieldNames(prefix string, val reflect.Value) (*[]string, error) {
 			}
 		}
 
-		// Handle embedded fields
-		for i := 0; i < val.NumField(); i++ {
-			field := typ.Field(i)
-			if field.Anonymous {
-				// Flatten embedded fields under the same prefix
-				subFields, err := GenerateFieldNames(prefix, val.Field(i))
-				if err != nil {
-					return nil, err
-				}
-				fields = append(fields, *subFields...)
-			}
-		}
-
 		return &fields, nil
-
 	case reflect.Interface:
 		if val.IsNil() {
 			return &fields, nil
 		}
-		return GenerateFieldNames(prefix, val.Elem())
-
-	default:
+		return GenerateFieldNames(prefix, val.Elem(), opts...)
+	case reflect.Ptr:
+		if val.IsNil() {
+			return &fields, nil
+		}
+		return GenerateFieldNames(prefix, val.Elem(), opts...)
+	case reflect.Invalid:
+		// Even if the reflect is invalid, other items in a list may be valid
+		// so we need to make sure we still return all fields of the struct
 		return &[]string{prefix}, nil
+	default:
+		// Return an error if the input is not a struct or pointer to a struct.
+		err = fmt.Errorf("GenerateFieldNames: unsupported input type: %v", val.Kind())
+		return nil, err
 	}
 }
 
 func generateMapFieldNames(prefix string, val reflect.Value) (*[]string, error) {
+	var err error
+	if val, err = DerefPointers(val); err != nil {
+		return nil, err
+	}
+
 	if val.Kind() != reflect.Map {
 		return nil, fmt.Errorf("generateMapFieldNames: expected a map, got %v", val.Kind())
 	}
@@ -391,17 +477,70 @@ func generateMapFieldNames(prefix string, val reflect.Value) (*[]string, error) 
 	return &fields, nil
 }
 
-// shortTypeName strips away any type parameters in a generic type.
-// E.g., "Model[github.com/gemini-oss/rego/pkg/snipeit.GET]" -> "Model"
-func shortTypeName(t reflect.Type) string {
-	// Reflect’s .Name() for a generic type can look like:
-	//    "Model[github.com/gemini-oss/rego/pkg/snipeit.GET]"
-	// so we truncate everything after (and including) the first '['.
-	name := t.Name()
-	if idx := strings.IndexRune(name, '['); idx != -1 {
-		name = name[:idx]
+func mergeFields(baseline, candidate []string) []string {
+	// Make a copy of the baseline.
+	merged := make([]string, len(baseline))
+	copy(merged, baseline)
+
+	// Build a map for fast lookup of candidate fields.
+	candMap := make(map[string]struct{}, len(candidate))
+	for _, f := range candidate {
+		candMap[f] = struct{}{}
 	}
-	return name
+
+	// eplace any bare field if candidate has subfields.
+	for i, baseField := range baseline {
+		if strings.Contains(baseField, ".") {
+			continue // skip non-bare fields
+		}
+		parent := baseField
+		var subs []string
+		for _, f := range candidate {
+			if strings.HasPrefix(f, parent+".") {
+				subs = append(subs, f)
+			}
+		}
+		if len(subs) > 0 {
+			// Replace the bare field at index i with candidate subfields.
+			before := merged[:i]
+			after := merged[i+1:]
+			merged = append(append(before, subs...), after...)
+		}
+	}
+
+	// Insert any candidate fields not already present.
+	mergedMap := make(map[string]struct{}, len(merged))
+	for _, field := range merged {
+		mergedMap[field] = struct{}{}
+	}
+	for _, field := range candidate {
+		if _, exists := mergedMap[field]; exists {
+			continue
+		}
+		// If field is a subfield, try to insert it right after the last field with the same parent.
+		if dot := strings.Index(field, "."); dot != -1 {
+			parent := field[:dot]
+			lastIndex := -1
+			for j, m := range merged {
+				if strings.HasPrefix(m, parent+".") {
+					lastIndex = j
+				}
+			}
+			if lastIndex != -1 {
+				// Insert field after lastIndex.
+				merged = append(merged[:lastIndex+1], append([]string{field}, merged[lastIndex+1:]...)...)
+			} else {
+				merged = append(merged, field)
+			}
+		} else {
+			// For a bare field, simply append it.
+			merged = append(merged, field)
+		}
+		// Update our lookup map.
+		mergedMap[field] = struct{}{}
+	}
+
+	return merged
 }
 
 // DerefPointers takes a reflect.Value and recursively dereferences it if it's a pointer.
@@ -445,6 +584,13 @@ func FlattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 	typ := val.Type()
 
 	if val.Kind() != reflect.Struct {
+		// Handle map and slice types separately and temporarily here (will require refactor of package for more elefant solution)
+		if val.Kind() == reflect.Map {
+			return flattenMap(val, prefix, fieldMap)
+		}
+		if val.Kind() == reflect.Slice {
+			return flattenSlice(val, prefix, fmt.Sprintf("%%0%dd", len(strconv.Itoa(10))), fieldMap)
+		}
 		return fmt.Errorf("expected a struct or pointer to a struct, got %v", val.Kind())
 	}
 
@@ -474,7 +620,7 @@ func FlattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 			continue
 		}
 
-		keyPrefix := prefix + getMapKey(field)
+		keyPrefix := joinPrefixKey(prefix, getMapKey(field))
 
 		switch fieldVal.Kind() {
 		case reflect.Slice:
@@ -487,15 +633,22 @@ func FlattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 				}
 			}
 		case reflect.Struct:
+			// If the type of the struct itself is time.Time and it's not an embedded field, add it to the map
+			switch {
+			case field.Type.String() == "time.Time" && !field.Anonymous:
+				(*fieldMap)[keyPrefix] = fmt.Sprint(fieldVal.Interface())
+				continue
+			}
+
 			// Check if the struct should be inlined
-			if shouldInlineStruct(field) {
+			if shouldInline(field) {
 				err := FlattenNestedStructs(fieldVal.Interface(), prefix, fieldMap)
 				if err != nil {
 					return err
 				}
 			} else {
 				// Recursively handle nested structs
-				err := FlattenNestedStructs(fieldVal.Interface(), keyPrefix+".", fieldMap)
+				err := FlattenNestedStructs(fieldVal.Interface(), keyPrefix, fieldMap)
 				if err != nil {
 					return err
 				}
@@ -515,19 +668,40 @@ func FlattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 			if fieldVal.Len() == 0 {
 				(*fieldMap)[keyPrefix] = "" // Handle empty map
 			} else {
-				err := flattenMap(fieldVal, keyPrefix, fieldMap)
-				if err != nil {
-					return err
+				// Check if the map should be inlined
+				if shouldInline(field) {
+					err := flattenMap(fieldVal, prefix, fieldMap)
+					if err != nil {
+						return err
+					}
+				} else {
+					err := flattenMap(fieldVal, keyPrefix, fieldMap)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		case reflect.Ptr:
 			if fieldVal.IsNil() {
 				(*fieldMap)[keyPrefix] = "<nil>"
 			} else {
-				err := FlattenNestedStructs(fieldVal.Elem().Interface(), keyPrefix+".", fieldMap)
-				if err != nil {
-					return err
-				}
+                // Check the underlying type.
+                underlying := fieldVal.Elem()
+                switch underlying.Kind() {
+                case reflect.Struct:
+                    if shouldInline(field) {
+                        err = FlattenNestedStructs(underlying.Interface(), prefix, fieldMap)
+                    } else {
+                        err = FlattenNestedStructs(underlying.Interface(), keyPrefix, fieldMap)
+                    }
+                case reflect.Map, reflect.Slice, reflect.Array:
+                    err = FlattenNestedStructs(underlying.Interface(), keyPrefix, fieldMap)
+                default:
+                    (*fieldMap)[keyPrefix] = fmt.Sprint(underlying.Interface())
+                }
+                if err != nil {
+                    return err
+                }
 			}
 		default:
 			// Handle basic types
@@ -542,7 +716,7 @@ func FlattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 	return nil
 }
 
-// joinPrefixKey helps avoid trailing dots or double dots.
+// joinPrefixKey helps avoid trailing dots or double dots when generating field names.
 func joinPrefixKey(prefix, key string) string {
 	switch {
 	case prefix == "" && key == "":
@@ -556,7 +730,21 @@ func joinPrefixKey(prefix, key string) string {
 	}
 }
 
-func shouldInlineStruct(field reflect.StructField) bool {
+
+/*
+ * shouldInline reports whether the field should be embedded, making it appear as if it belongs to the parent struct.
+ * It returns true if the field has the "inline" tag.
+
+ * Example:
+ * Field: profile.customAttributes `json:",inline"`
+ * profile.customAttributes.key1 ==> profile.key1
+ *
+ * as opposed to:
+ *
+ * Field: profile.customAttributes `json:"customAttributes,omitempty"`
+ * profile.customAttributes.key1 ==> profile.customAttributes.key1
+ */
+func shouldInline(field reflect.StructField) bool {
 	tag := field.Tag.Get("json")
 	return strings.Contains(tag, ",inline")
 }
@@ -564,10 +752,10 @@ func shouldInlineStruct(field reflect.StructField) bool {
 func flattenSlice(slice reflect.Value, keyPrefix, indexFormat string, fieldMap *map[string]string) error {
 	for j := 0; j < slice.Len(); j++ {
 		elem := slice.Index(j)
-		elemKey := fmt.Sprintf("%s.%s", keyPrefix, fmt.Sprintf(indexFormat, j))
+		elemKey := joinPrefixKey(keyPrefix, fmt.Sprintf(indexFormat, j))
 		if elem.Kind() == reflect.Struct {
 			// Recursively handle struct elements in a slice
-			err := FlattenNestedStructs(elem.Interface(), elemKey+".", fieldMap)
+			err := FlattenNestedStructs(elem.Interface(), elemKey, fieldMap)
 			if err != nil {
 				return err
 			}
@@ -579,12 +767,16 @@ func flattenSlice(slice reflect.Value, keyPrefix, indexFormat string, fieldMap *
 	return nil
 }
 
-func flattenMap(m reflect.Value, keyPrefix string, fieldMap *map[string]string) error {
+func flattenMap(m reflect.Value, prefix string, fieldMap *map[string]string) error {
 	for _, key := range m.MapKeys() {
 		keyStr := fmt.Sprint(key.Interface())
 		value := m.MapIndex(key)
+		newKey := joinPrefixKey(prefix, keyStr)
 
-		newKey := fmt.Sprintf("%s.%s", keyPrefix, keyStr)
+		value, err := DerefPointers(value)
+        if err != nil {
+            return err
+        }
 
 		switch value.Kind() {
 		case reflect.Map, reflect.Struct, reflect.Slice, reflect.Array:

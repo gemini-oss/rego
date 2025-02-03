@@ -4,7 +4,7 @@
 This package initializes all the methods for functions which interact with the Google Sheets API:
 https://developers.google.com/sheets/api/reference/rest
 
-:Copyright: (c) 2023 by Gemini Space Station, LLC, see AUTHORS for more info
+:Copyright: (c) 2025 by Gemini Space Station, LLC, see AUTHORS for more info
 :License: See the LICENSE file for details
 :Author: Anthony Dardano <anthony.dardano@gemini.com>
 */
@@ -101,6 +101,7 @@ func (c *SheetsClient) GenerateValueRange(data []interface{}, sheetName string, 
 
 	// Initialize map to track the maximum length encountered for each header
 	var finalHeaders []string
+	var generate bool
 	switch {
 	case headers == nil:
 		headers = &[]string{}
@@ -110,6 +111,7 @@ func (c *SheetsClient) GenerateValueRange(data []interface{}, sheetName string, 
 			return vr
 		}
 		headers = generatedHeaders
+		generate = true
 	case len(*headers) == 0:
 		generatedHeaders, err := ss.GenerateFieldNames("", reflect.ValueOf(data))
 		if err != nil {
@@ -117,17 +119,27 @@ func (c *SheetsClient) GenerateValueRange(data []interface{}, sheetName string, 
 			return vr
 		}
 		headers = generatedHeaders
-
+		generate = true
 	}
 	finalHeaders = append(finalHeaders, *headers...)
 
 	// Collect all rows data first to determine the maxFieldLen
 	allRows := make([][][]string, 0, len(data))
 	for _, d := range data {
-		orderedData, err := ss.FlattenStructFields(d, headers)
-		if err != nil {
-			c.Log.Tracef("Failed to flatten struct fields: %v", err)
-			continue // Skip this row if there was an error
+		var orderedData [][]string
+		var err error
+		if generate {
+			orderedData, err = ss.FlattenStructFields(d, ss.WithGenerate())
+			if err != nil {
+				c.Log.Tracef("Failed to flatten struct fields: %v", err)
+				continue // Skip this row if there was an error
+			}
+		} else {
+			orderedData, err = ss.FlattenStructFields(d, ss.WithHeaders(headers))
+			if err != nil {
+				c.Log.Tracef("Failed to flatten struct fields: %v", err)
+				continue // Skip this row if there was an error
+			}
 		}
 		allRows = append(allRows, orderedData)
 		if len(orderedData) > len(finalHeaders) {
