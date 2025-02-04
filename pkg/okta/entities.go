@@ -564,17 +564,17 @@ func (u *Users) Map() map[string]*User {
 }
 
 type User struct {
-	Activated             time.Time        `json:"activated,omitempty"`             // The timestamp when the user was activated.
-	Created               time.Time        `json:"created,omitempty"`               // The timestamp when the user was created.
-	Credentials           *UserCredentials `json:"credentials,omitempty"`           // The user's credentials.
 	ID                    string           `json:"id,omitempty"`                    // The ID of the user.
+	Status                string           `json:"status,omitempty"`                // The status of the user.
+	Created               time.Time        `json:"created,omitempty"`               // The timestamp when the user was created.
+	Activated             time.Time        `json:"activated,omitempty"`             // The timestamp when the user was activated.
+	StatusChanged         time.Time        `json:"statusChanged,omitempty"`         // The timestamp when the user's status was last changed.
 	LastLogin             time.Time        `json:"lastLogin,omitempty"`             // The timestamp when the user last logged in.
 	LastUpdated           time.Time        `json:"lastUpdated,omitempty"`           // The timestamp when the user was last updated.
 	PasswordChanged       time.Time        `json:"passwordChanged,omitempty"`       // The timestamp when the user's password was last changed.
 	Profile               *UserProfile     `json:"profile,omitempty"`               // The user's profile.
 	Scope                 string           `json:"scope,omitempty"`                 // The user's assignment to an application [Individually,group assigned] {"USER","GROUP"}
-	Status                string           `json:"status,omitempty"`                // The status of the user.
-	StatusChanged         time.Time        `json:"statusChanged,omitempty"`         // The timestamp when the user's status was last changed.
+	Credentials           *UserCredentials `json:"credentials,omitempty"`           // The user's credentials.
 	TransitioningToStatus string           `json:"transitioningToStatus,omitempty"` // The status that the user is transitioning to.
 	Type                  *UserType        `json:"type,omitempty"`                  // The type of the user.
 	Embedded              *UserEmbedded    `json:"_embedded,omitempty"`             // Embedded properties, to be revisited.
@@ -619,43 +619,42 @@ type RecoveryQuestion struct {
 }
 
 type UserProfile struct {
-	UserProfileBase `json:",inline"`
+	UserProfileBase  `json:",inline"`
 	CustomAttributes map[string]interface{} `json:",inline"` // Custom attributes
 }
 
 type UserProfileBase struct {
-	Aliases           []string `json:"emailAliases,omitempty"`      // Custom Property: The email aliases of the user.
-	City              string   `json:"city,omitempty"`              // The city of the user's address. Maximum length is 128 characters.
-	CostCenter        string   `json:"costCenter,omitempty"`        // The cost center of the user.
-	CountryCode       string   `json:"countryCode,omitempty"`       // The country code of the user's address. [ISO 3166-1 alpha-2 country code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) specification. Limit: <= 2 characters.
-	Department        string   `json:"department,omitempty"`        // The department of the user.
-	DisplayName       string   `json:"displayName,omitempty"`       // The display name of the user.
-	Division          string   `json:"division,omitempty"`          // The division of the user.
-	Email             string   `json:"email,omitempty"`             // The primary email address of the user, used as the login name and is always required for `create` requests. Must be unique. Limit: [5 - 100] characters.
-	EmployeeNumber    string   `json:"employeeNumber,omitempty"`    // The employee number of the user.
-	FirstName         string   `json:"firstName,omitempty"`         // The first name of the user. Limit: [1 .. 50] characters.
-	HonorificPrefix   string   `json:"honorificPrefix,omitempty"`   // The honorific prefix of the user's name.
-	HonorificSuffix   string   `json:"honorificSuffix,omitempty"`   // The honorific suffix of the user's name.
-	LastName          string   `json:"lastName,omitempty"`          // The last name of the user. Limit: [1 .. 50] characters.
-	Locale            string   `json:"locale,omitempty"`            // The locale of the user. Specified according to [IETF BCP 47 language tag](https://datatracker.ietf.org/doc/html/rfc5646). Example: `en-US`.
-	Login             string   `json:"login,omitempty"`             // The login name of the user.
-	Manager           string   `json:"manager,omitempty"`           // The manager of the user.
-	ManagerID         string   `json:"managerId,omitempty"`         // The ID of the user's manager.
-	MiddleName        string   `json:"middleName,omitempty"`        // The middle name of the user.
-	MobilePhone       string   `json:"mobilePhone,omitempty"`       // The mobile phone number of the user. Maximum length is 100 characters.
-	NickName          string   `json:"nickName,omitempty"`          // The nickname of the user.
-	Organization      string   `json:"organization,omitempty"`      // The organization of the user.
-	PostalAddress     string   `json:"postalAddress,omitempty"`     // The postal address of the user. Limit: <= 4096 characters.
-	PreferredLanguage string   `json:"preferredLanguage,omitempty"` // The preferred language of the user.
-	PrimaryPhone      string   `json:"primaryPhone,omitempty"`      // The primary phone number of the user.
-	ProfileUrl        string   `json:"profileUrl,omitempty"`        // The profile URL of the user.
-	SecondEmail       string   `json:"secondEmail,omitempty"`       // The secondary email address of the user. Limit: [5 - 100] characters.
-	State             string   `json:"state,omitempty"`             // The state of the user's address. Limit: <= 128 characters.
-	StreetAddress     string   `json:"streetAddress,omitempty"`     // The street address of the user. Limit: <= 1024 characters.
-	Timezone          string   `json:"timezone,omitempty"`          // The time zone of the user.
-	Title             string   `json:"title,omitempty"`             // The title of the user.
-	UserType          string   `json:"userType,omitempty"`          // The type of the user.
-	ZipCode           string   `json:"zipCode,omitempty"`           // The zip code of the user's address. Limit: <= 12 characters.
+	Login             string `json:"login,omitempty"`             // The login name of the user.
+	FirstName         string `json:"firstName,omitempty"`         // The first name of the user. Limit: [1 .. 50] characters.
+	MiddleName        string `json:"middleName,omitempty"`        // The middle name of the user.
+	LastName          string `json:"lastName,omitempty"`          // The last name of the user. Limit: [1 .. 50] characters.
+	HonorificPrefix   string `json:"honorificPrefix,omitempty"`   // The honorific prefix of the user's name.
+	HonorificSuffix   string `json:"honorificSuffix,omitempty"`   // The honorific suffix of the user's name.
+	NickName          string `json:"nickName,omitempty"`          // The nickname of the user.
+	DisplayName       string `json:"displayName,omitempty"`       // The display name of the user.
+	Email             string `json:"email,omitempty"`             // The primary email address of the user, used as the login name and is always required for `create` requests. Must be unique. Limit: [5 - 100] characters.
+	SecondEmail       string `json:"secondEmail,omitempty"`       // The secondary email address of the user. Limit: [5 - 100] characters.
+	ProfileUrl        string `json:"profileUrl,omitempty"`        // The profile URL of the user.
+	PreferredLanguage string `json:"preferredLanguage,omitempty"` // The preferred language of the user.
+	UserType          string `json:"userType,omitempty"`          // The type of the user.
+	Organization      string `json:"organization,omitempty"`      // The organization of the user.
+	Title             string `json:"title,omitempty"`             // The title of the user.
+	Division          string `json:"division,omitempty"`          // The division of the user.
+	Department        string `json:"department,omitempty"`        // The department of the user.
+	CostCenter        string `json:"costCenter,omitempty"`        // The cost center of the user.
+	EmployeeNumber    string `json:"employeeNumber,omitempty"`    // The employee number of the user.
+	Manager           string `json:"manager,omitempty"`           // The manager of the user.
+	ManagerID         string `json:"managerId,omitempty"`         // The ID of the user's manager.
+	MobilePhone       string `json:"mobilePhone,omitempty"`       // The mobile phone number of the user. Maximum length is 100 characters.
+	PrimaryPhone      string `json:"primaryPhone,omitempty"`      // The primary phone number of the user.
+	StreetAddress     string `json:"streetAddress,omitempty"`     // The street address of the user. Limit: <= 1024 characters.
+	City              string `json:"city,omitempty"`              // The city of the user's address. Maximum length is 128 characters.
+	State             string `json:"state,omitempty"`             // The state of the user's address. Limit: <= 128 characters.
+	ZipCode           string `json:"zipCode,omitempty"`           // The zip code of the user's address. Limit: <= 12 characters.
+	CountryCode       string `json:"countryCode,omitempty"`       // The country code of the user's address. [ISO 3166-1 alpha-2 country code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) specification. Limit: <= 2 characters.
+	Locale            string `json:"locale,omitempty"`            // The locale of the user. Specified according to [IETF BCP 47 language tag](https://datatracker.ietf.org/doc/html/rfc5646). Example: `en-US`.
+	PostalAddress     string `json:"postalAddress,omitempty"`     // The postal address of the user. Limit: <= 4096 characters.
+	Timezone          string `json:"timezone,omitempty"`          // The time zone of the user.
 }
 
 // Custom marshaller for UserProfile
@@ -698,7 +697,7 @@ func (u *UserProfile) UnmarshalJSON(data []byte) error {
 	u.CustomAttributes = make(map[string]interface{})
 	for key, value := range rawMap {
 		switch key {
-		case "emailAliases", "city", "costCenter", "countryCode", "department", "displayName", "division",
+		case "city", "costCenter", "countryCode", "department", "displayName", "division",
 			"email", "employeeNumber", "firstName", "honorificPrefix", "honorificSuffix", "lastName",
 			"locale", "login", "manager", "managerId", "middleName", "mobilePhone", "nickName", "organization",
 			"postalAddress", "preferredLanguage", "primaryPhone", "profileUrl", "secondEmail", "state",

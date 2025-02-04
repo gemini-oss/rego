@@ -100,68 +100,70 @@ func (c *SheetsClient) GenerateValueRange(data []interface{}, sheetName string, 
 	vr.Values = append(vr.Values, []string{})
 
 	// Initialize map to track the maximum length encountered for each header
-	var finalHeaders []string
+	// If no headers are provided, generate them from the entire data slice.
 	var generate bool
-	switch {
-	case headers == nil:
-		headers = &[]string{}
-		generatedHeaders, err := ss.GenerateFieldNames("", reflect.ValueOf(data))
+	if headers == nil || len(*headers) == 0 {
+		genHeaders, err := ss.GenerateFieldNames("", reflect.ValueOf(data))
 		if err != nil {
 			c.Log.Tracef("Failed to generate headers: %v", err)
 			return vr
 		}
-		headers = generatedHeaders
-		generate = true
-	case len(*headers) == 0:
-		generatedHeaders, err := ss.GenerateFieldNames("", reflect.ValueOf(data))
-		if err != nil {
-			c.Log.Tracef("Failed to generate headers: %v", err)
-			return vr
-		}
-		headers = generatedHeaders
+		headers = genHeaders
 		generate = true
 	}
-	finalHeaders = append(finalHeaders, *headers...)
+	// Start with the baseline headers.
+	finalHeaders := make([]string, len(*headers))
+	copy(finalHeaders, *headers)
 
-	// Collect all rows data first to determine the maxFieldLen
-	allRows := make([][][]string, 0, len(data))
+	// allRows will hold the flattened data for each row as a map of header->value.
+	allRows := make([]map[string]string, 0, len(data))
+
+	// Process each row in the data slice.
 	for _, d := range data {
 		var orderedData [][]string
 		var err error
 		if generate {
 			orderedData, err = ss.FlattenStructFields(d, ss.WithGenerate())
-			if err != nil {
-				c.Log.Tracef("Failed to flatten struct fields: %v", err)
-				continue // Skip this row if there was an error
-			}
 		} else {
 			orderedData, err = ss.FlattenStructFields(d, ss.WithHeaders(headers))
-			if err != nil {
-				c.Log.Tracef("Failed to flatten struct fields: %v", err)
-				continue // Skip this row if there was an error
+		}
+		if err != nil {
+			c.Log.Tracef("Failed to flatten struct fields: %v", err)
+			continue // Skip rows with errors
+		}
+
+		// Build a map for this row: header -> value.
+		rowMap := make(map[string]string)
+		for _, pair := range orderedData {
+			if len(pair) >= 2 {
+				rowMap[pair[0]] = pair[1]
 			}
 		}
-		allRows = append(allRows, orderedData)
-		if len(orderedData) > len(finalHeaders) {
-			finalHeaders = *headers
-			c.Log.Tracef("Final headers: %v", finalHeaders)
+		allRows = append(allRows, rowMap)
+
+		// Create a candidate header list from the keys of this row.
+		candidate := make([]string, 0, len(rowMap))
+		for k := range rowMap {
+			candidate = append(candidate, k)
 		}
+		// Merge candidate headers into our finalHeaders while preserving order.
+		finalHeaders = ss.MergeFields(finalHeaders, candidate)
 	}
 
-	// Now build the values for the ValueRange ensuring all rows are aligned
-	for _, rows := range allRows {
-		row := make([]string, len(finalHeaders)) // Create a slice for the row with the exact number of headers
-		for _, data := range rows {
-			for i, header := range finalHeaders {
-				if data[0] == header {
-					row[i] = data[1] // Place data in the correct column according to header
-					break
-				}
-			}
+	// Build the final 2D slice of strings (row order determined by finalHeaders).
+	// First row: the headers.
+	headerRow := make([]string, len(finalHeaders))
+	copy(headerRow, finalHeaders)
+	vr.Values[0] = headerRow
+
+	// Each subsequent row: look up each header value (empty string if missing).
+	for _, rowMap := range allRows {
+		row := make([]string, len(finalHeaders))
+		for i, header := range finalHeaders {
+			row[i] = rowMap[header]
 		}
 		vr.Values = append(vr.Values, row)
 	}
-	vr.Values[0] = finalHeaders // Ensure the headers are correct
 
 	return vr
 }

@@ -8,7 +8,9 @@ import (
 	"strings"
 )
 
-// UnmarshalGeneric unmarshals JSON into a generic struct T (with generic inline field Method)
+// UnmarshalGeneric unmarshals JSON into a generic struct T that contains an inline generic field of type M.
+// The generic field is automatically detected by scanning T for a field whose type is M (or a pointer to M).
+// All keys that are not consumed by other fields are assumed to belong to this generic field.
 func UnmarshalGeneric[T any, M any](data []byte) (*T, error) {
 	// Unmarshal the JSON into a raw map.
 	var raw map[string]json.RawMessage
@@ -21,15 +23,35 @@ func UnmarshalGeneric[T any, M any](data []byte) (*T, error) {
 	val := reflect.ValueOf(result).Elem()
 	typ := val.Type()
 
-	// Process each field of T (except the generic "Method" field) -- future work: dynamically detect the generic field
-	for i := 0; i < typ.NumField(); i++ {
-		fieldStruct := typ.Field(i)
-		fieldVal := val.Field(i)
+	// Determine the concrete type for M.
+	genericType := reflect.TypeOf((*M)(nil)).Elem()
 
-		// Manually skip the generic field (currently hard-coded to "Method" from SnipeIT package)
-		if fieldStruct.Name == "Method" {
+	// Automatically detect the generic field in T.
+	genericFieldIndex := -1
+	for i := 0; i < typ.NumField(); i++ {
+		field := typ.Field(i)
+		fieldType := field.Type
+
+		// If the field's type is exactly genericType or is a pointer whose element is genericType, we found the generic field.
+		if fieldType == genericType || (fieldType.Kind() == reflect.Ptr && fieldType.Elem() == genericType) {
+			if genericFieldIndex != -1 {
+				return nil, errors.New("multiple generic fields found in target type")
+			}
+			genericFieldIndex = i
+
+			// Skip this field
 			continue
 		}
+	}
+
+	// Process each field of T (except the detected generic field).
+	for i := 0; i < typ.NumField(); i++ {
+		if i == genericFieldIndex {
+			continue
+		}
+
+		fieldStruct := typ.Field(i)
+		fieldVal := val.Field(i)
 
 		// Check the JSON tag.
 		tag := fieldStruct.Tag.Get("json")
@@ -37,16 +59,15 @@ func UnmarshalGeneric[T any, M any](data []byte) (*T, error) {
 			continue
 		}
 
-		// If the tag contains "inline", we treat this as an embedded (flattened) field.
+		// If the tag contains "inline", unmarshal as an inline (embedded) field.
 		if strings.Contains(tag, "inline") {
 			if err := unmarshalInlineField(fieldVal, raw); err != nil {
 				return nil, err
 			}
-			// Note: keys consumed for the inline field are deleted from raw.
 			continue
 		}
 
-		// For non-inline fields, determine the key.
+		// Determine the key to look up.
 		parts := strings.Split(tag, ",")
 		key := parts[0]
 		if key == "" {
@@ -55,33 +76,47 @@ func UnmarshalGeneric[T any, M any](data []byte) (*T, error) {
 
 		// If a matching key exists in the raw JSON, unmarshal it directly.
 		if rawVal, ok := raw[key]; ok {
-			// Use the address of the field to unmarshal.
 			if err := json.Unmarshal(rawVal, fieldVal.Addr().Interface()); err != nil {
 				return nil, err
 			}
-			// Remove the key from the raw map.
+			// Remove the key from the raw map
 			delete(raw, key)
 		}
 	}
 
-	// Whatever keys remain in raw are assumed to belong to the generic inline field.
-	if len(raw) > 0 {
-		// Marshal the leftover keys back to JSON.
-		methodJSON, err := json.Marshal(raw)
-		if err != nil {
-			return nil, err
-		}
-		var method M
-		if err := json.Unmarshal(methodJSON, &method); err != nil {
-			return nil, err
-		}
+	// Any leftover keys in raw are assumed to belong to the generic field.
+	if genericFieldIndex != -1 {
+		if len(raw) > 0 {
+			// Marshal the remaining keys back to JSON.
+			genericJSON, err := json.Marshal(raw)
+			if err != nil {
+				return nil, err
+			}
 
-		// Use reflection to set the Method field.
-		methodField := val.FieldByName("Method")
-		if !methodField.IsValid() || !methodField.CanSet() {
-			return nil, errors.New("cannot set Method field")
+			// Unmarshal into a variable of type M.
+			var genericValue M
+			if err := json.Unmarshal(genericJSON, &genericValue); err != nil {
+				return nil, err
+			}
+
+			// Set the generic field.
+			genericField := val.Field(genericFieldIndex)
+			v := reflect.ValueOf(genericValue)
+
+			// Try a direct assignment, or if the target is a pointer, assign its address.
+			if v.Type().AssignableTo(genericField.Type()) {
+				genericField.Set(v)
+			} else if v.Addr().Type().AssignableTo(genericField.Type()) {
+				genericField.Set(v.Addr())
+			} else {
+				return nil, errors.New("cannot assign generic value to generic field")
+			}
 		}
-		methodField.Set(reflect.ValueOf(method))
+	} else {
+		// If no generic field was found but there are leftover keys, we consider this an error.
+		if len(raw) > 0 {
+			return nil, errors.New("unprocessed keys remain but no generic field found in target type")
+		}
 	}
 
 	return result, nil
@@ -109,7 +144,6 @@ func unmarshalInlineField(field reflect.Value, raw map[string]json.RawMessage) e
 	// Collect keys that belong to the inline struct.
 	inlineMap := make(map[string]json.RawMessage)
 	collectInlineKeys(field.Type(), raw, inlineMap)
-
 
 	// If we found any keys for the inline field, unmarshal them into the field.
 	if len(inlineMap) > 0 {
@@ -158,7 +192,7 @@ func collectInlineKeys(t reflect.Type, raw map[string]json.RawMessage, inlineMap
 			key = field.Name
 		}
 
-		// If the key is present in the raw JSON, add it to inlineMap and remove from raw.
+		// If the key is present in the raw JSON, add it to inlineMap and remove it from raw.
 		if rawVal, ok := raw[key]; ok {
 			inlineMap[key] = rawVal
 			delete(raw, key)
