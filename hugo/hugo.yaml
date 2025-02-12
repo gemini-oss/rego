@@ -59,3 +59,7 @@ menu:
       url: https://github.com/gemini-oss/rego
       params:
         icon: github
+
+privacy:
+  googleAnalytics: # https://gohugo.io/templates/embedded/#privacy-google-analytics
+    disable: true
