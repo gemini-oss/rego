@@ -29,6 +29,10 @@ server:
 pretty:
 	gofmt -s -w .
 
+# Saves changes to a file
+diff:
+	git diff > rego.diff
+
 # Runs the application
 run: build
 	./${BINARY}

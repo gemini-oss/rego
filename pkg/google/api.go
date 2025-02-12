@@ -214,7 +214,7 @@ func ReadDiscoveryDirectory() (*DirectoryList, *Endpoints, error) {
 
 	Saves Google API endpoints to a JSON file
 */
-func SaveEndpoints(data interface{}) error {
+func SaveEndpoints(data any) error {
 	_, err := endpointsJSON.ReadFile("json/google_endpoints.json")
 	if err != nil {
 		fmt.Printf("Error opening file: %s\n", err)

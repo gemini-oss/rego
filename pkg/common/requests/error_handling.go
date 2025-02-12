@@ -34,9 +34,9 @@ func (c *Client) handleErrorResponse(resp *http.Response, body []byte) *RequestE
 
 	contentType := resp.Header.Get("Content-Type")
 	switch {
-	case strings.Contains(contentType, "application/json"):
+	case strings.Contains(contentType, JSON):
 		c.parseJSONError(body, reqError)
-	case strings.Contains(contentType, "text/plain"):
+	case strings.Contains(contentType, Plain):
 		reqError.Message = string(body)
 	default:
 		reqError.Message = fmt.Sprintf("Unexpected error (Status: %d)", resp.StatusCode)
@@ -60,6 +60,10 @@ func (c *Client) parseJSONError(body []byte, reqError *RequestError) {
 		} else if jsonError.Error != "" {
 			reqError.Message = jsonError.Error
 		}
+	}
+
+	if reqError.RawResponse != "" {
+		reqError.Message = fmt.Sprintf("%s: %s", reqError.Message, reqError.RawResponse)
 	}
 
 	if reqError.Message == "" {

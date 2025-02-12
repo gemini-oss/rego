@@ -138,6 +138,28 @@ func (c *AssetClient) GetAssetBySerial(serial string) (*Hardware[HardwareGET], e
 }
 
 /*
+ * Get Hardware Assets by Tag
+ * /api/v1/hardware/bytag/{tag}
+ * - https://snipe-it.readme.io/reference/hardware-by-asset-tag
+ */
+func (c *AssetClient) GetAssetByTag(tag string) (*Hardware[HardwareGET], error) {
+	url := c.BuildURL(Assets, "bytag", tag)
+
+	var cache Hardware[HardwareGET]
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	asset, err := do[HardwareList](c.Client, "GET", url, nil, nil)
+	if err != nil {
+		c.Log.Fatalf("Error fetching hardware asset: %v", err)
+	}
+
+	c.SetCache(url, asset, 5*time.Minute)
+	return (*asset.Rows)[0], nil
+}
+
+/*
  * # Create an asset in Snipe-IT
  * /api/v1/hardware
  * - https://snipe-it.readme.io/reference/hardware-create

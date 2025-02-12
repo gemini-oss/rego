@@ -85,7 +85,7 @@ func (c *SheetsClient) VerifySheetValueRange(vr *ValueRange) error {
 /*
  * Generate Google Sheets ValueRange from a slice of any structs
  */
-func (c *SheetsClient) GenerateValueRange(data []interface{}, sheetName string, headers *[]string) *ValueRange {
+func (c *SheetsClient) GenerateValueRange(data []any, sheetName string, headers *[]string) *ValueRange {
 	vr := &ValueRange{
 		MajorDimension: "ROWS",
 	}
@@ -317,7 +317,7 @@ func (c *SheetsClient) FormatHeaderAndAutoSize(spreadsheetID string, sheet *Shee
  * # Save to Sheet
  * - Saves a variety of data types to a Google Sheet (array, map, slice, struct)
  */
-func (c *SheetsClient) SaveToSheet(data interface{}, sheetID, sheetName string, headers *[]string) error {
+func (c *SheetsClient) SaveToSheet(data any, sheetID, sheetName string, headers *[]string) error {
 	// Dereference all pointers first to simplify further processing
 	val, err := ss.DerefPointers(reflect.ValueOf(data))
 	if err != nil {
@@ -388,21 +388,21 @@ func (c *SheetsClient) SaveToSheet(data interface{}, sheetID, sheetName string, 
 }
 
 func (c *SheetsClient) prepareAndGenerateValueRange(val reflect.Value, sheetName string, headers *[]string) (*ValueRange, error) {
-	var sheetData []interface{}
+	var sheetData []any
 
 	switch val.Kind() {
 	case reflect.Map:
-		sheetData = make([]interface{}, 0, val.Len())
+		sheetData = make([]any, 0, val.Len())
 		for _, key := range val.MapKeys() {
 			sheetData = append(sheetData, val.MapIndex(key).Interface())
 		}
 	case reflect.Slice, reflect.Array:
-		sheetData = make([]interface{}, val.Len())
+		sheetData = make([]any, val.Len())
 		for i := 0; i < val.Len(); i++ {
 			sheetData[i] = val.Index(i).Interface()
 		}
 	case reflect.Struct:
-		sheetData = []interface{}{val.Interface()}
+		sheetData = []any{val.Interface()}
 	default:
 		return nil, fmt.Errorf("unsupported data type: %s", val.Kind())
 	}

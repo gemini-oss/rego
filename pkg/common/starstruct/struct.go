@@ -19,10 +19,11 @@ import (
 // ---------------------------------------------------------------------
 
 type pkgConfig struct {
-	Sort       bool
-	Generate   bool
-	Headers    *[]string
-	ExcludeNil bool // If true, skip generating fields for nil pointer-structs
+	Sort        bool
+	Generate    bool
+	Headers     *[]string
+	ExcludeNil  bool // If true, skip generating fields for nil pointer-structs
+	IncludeZero bool
 }
 
 type Option func(*pkgConfig)
@@ -55,6 +56,10 @@ func WithExcludeNil() Option {
 	}
 }
 
+// ---------------------------------------------------------------------
+// Utility Functions
+// ---------------------------------------------------------------------
+
 /*
  * Print a struct as a JSON string
  */
@@ -67,9 +72,11 @@ func PrettyJSON(data interface{}) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return buffer.String(), err
+	return buffer.String(), nil
 }
 
+// ToMap converts a struct (or map) to a map[string]interface{}.
+// If includeZeroValues is false then any field with a zero value is skipped.
 func ToMap(item interface{}, includeZeroValues bool) (map[string]interface{}, error) {
 	out := make(map[string]interface{})
 
@@ -129,6 +136,7 @@ func ToMap(item interface{}, includeZeroValues bool) (map[string]interface{}, er
 	return out, nil
 }
 
+// sliceToInterface converts a slice/array to a []interface{}.
 func sliceToInterface(v reflect.Value, includeZeroValues bool) ([]interface{}, error) {
 	var result []interface{}
 	for i := 0; i < v.Len(); i++ {
@@ -160,7 +168,7 @@ func TableToStructs(data [][]string) ([]interface{}, error) {
 	c := cases.Title(language.English)
 	for _, header := range headers {
 		safeHeader := c.String(strings.ReplaceAll(header, " ", ""))
-		safeHeader = ensureValidIdentifier(safeHeader) // Make sure it's a valid Go identifier
+		safeHeader = ensureValidIdentifier(safeHeader) // Ensure a valid Go identifier.
 		fields = append(fields, reflect.StructField{
 			Name: safeHeader,
 			Type: reflect.TypeOf(""),
@@ -169,7 +177,7 @@ func TableToStructs(data [][]string) ([]interface{}, error) {
 	}
 	structType := reflect.StructOf(fields)
 
-	// Populate the struct instances
+	// Populate struct instances
 	for _, row := range data[1:] {
 		if len(row) != len(headers) {
 			return nil, fmt.Errorf("data row does not match headers length")
@@ -197,6 +205,7 @@ func isLetter(ch rune) bool {
 	return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z') || ch == '_'
 }
 
+// camelKey converts the first character to lower-case.
 func camelKey(s string) string {
 	if len(s) == 0 {
 		return s
@@ -214,18 +223,21 @@ func camelKey(s string) string {
 	return string(r)
 }
 
+// mapFromMap converts a reflect.Value of a map into a regular map[string]interface{}.
 func mapFromMap(v reflect.Value) map[string]interface{} {
 	out := make(map[string]interface{})
 	for _, key := range v.MapKeys() {
-		out[fmt.Sprintf("%v", key.Interface())] = v.MapIndex(key).Interface()
+		out[fmt.Sprint(key.Interface())] = v.MapIndex(key).Interface()
 	}
 	return out
 }
 
-// FlattenStructFields parses a struct and its nested fields, if any, to a flat slice.
-// It also updates the input fields with any new subfields found.
-func FlattenStructFields(item interface{}, opts ...Option) ([][]string, error) {
+// ---------------------------------------------------------------------
+// Flattening and Field-Generation Functions
+// ---------------------------------------------------------------------
 
+// FlattenStructFields recursively flattens a struct and its nested fields into a two-dimensional slice.
+func FlattenStructFields(item interface{}, opts ...Option) ([][]string, error) {
 	// Default config
 	cfg := &pkgConfig{
 		Sort:     false,
@@ -233,6 +245,7 @@ func FlattenStructFields(item interface{}, opts ...Option) ([][]string, error) {
 		Headers:  nil,
 	}
 
+	// Process options
 	for _, opt := range opts {
 		opt(cfg)
 	}
@@ -246,7 +259,7 @@ func FlattenStructFields(item interface{}, opts ...Option) ([][]string, error) {
 		return nil, fmt.Errorf("expected a struct or pointer to a struct, got %v", val.Kind())
 	}
 
-	// If no fields are provided, generate them dynamically
+	// Dynamically generate headers (if requested)
 	if cfg.Generate && (cfg.Headers == nil || len(*cfg.Headers) == 0) {
 		cfg.Headers = &[]string{}
 		generatedFields, err := GenerateFieldNames("", val)
@@ -256,21 +269,17 @@ func FlattenStructFields(item interface{}, opts ...Option) ([][]string, error) {
 		*cfg.Headers = append(*cfg.Headers, *generatedFields...)
 	}
 
-	// Create a map to hold the fields and their values
+	// Build a map to hold flattened field names and their values
 	fieldMap := make(map[string]string)
-
-	// Recursively parse the struct
 	err = FlattenNestedStructs(item, "", &fieldMap)
 	if err != nil {
 		return nil, err
 	}
 
-	switch cfg.Generate {
-	case false:
-		// If fields were not generated, limit the map to only include the provided fields (and their expansions, if any) while keeping data intact
+	// If not generating, limit the output to only the provided headers.
+	if !cfg.Generate {
 		newMap := make(map[string]string, len(fieldMap))
 		headerSet := make(map[string]struct{}, len(*cfg.Headers))
-
 		for _, field := range *cfg.Headers {
 			headerSet[field] = struct{}{}
 		}
@@ -284,11 +293,8 @@ func FlattenStructFields(item interface{}, opts ...Option) ([][]string, error) {
 			}
 		}
 
+		// If any header is missing, add it with an empty string.
 		if len(newMap) < len(*cfg.Headers) {
-			/*
-			 * Since we're not generating -- if the length of the newMap is less than the number of provided headers
-			 * We need to add them to the newMap with an empty string as the value.
-			 */
 			for _, header := range *cfg.Headers {
 				if _, ok := newMap[header]; !ok {
 					newMap[header] = ""
@@ -298,8 +304,8 @@ func FlattenStructFields(item interface{}, opts ...Option) ([][]string, error) {
 		fieldMap = newMap
 	}
 
-	// Convert the fieldMap to a slice and update fields with new subfields
-	fieldSlice, err := mapToSliceAndUpdateFields(&fieldMap, cfg.Headers, cfg.Sort)
+	// Convert the fieldMap into a 2D slice (field and value) while updating headers.
+	fieldSlice, err := mapToSliceAndUpdateFields(&fieldMap, cfg.Headers)
 	if err != nil {
 		return nil, err
 	}
@@ -307,22 +313,21 @@ func FlattenStructFields(item interface{}, opts ...Option) ([][]string, error) {
 	return fieldSlice, nil
 }
 
-// GenerateFieldNames recursively generates field names from a struct, dereferencing pointers as needed, and returns a pointer to a slice of strings.
+// GenerateFieldNames recursively generates field names from a struct (or slice/map thereof), dereferencing pointers as needed.
 func GenerateFieldNames(prefix string, val reflect.Value, opts ...Option) (*[]string, error) {
-	// Default config
 	cfg := &pkgConfig{
 		Sort:       false,
 		Generate:   false,
 		Headers:    nil,
 		ExcludeNil: false,
 	}
-
 	for _, opt := range opts {
 		opt(cfg)
 	}
 
 	var err error
-	if val, err = DerefPointers(val); err != nil {
+	val, err = DerefPointers(val)
+	if err != nil {
 		return nil, err
 	}
 
@@ -344,7 +349,7 @@ func GenerateFieldNames(prefix string, val reflect.Value, opts ...Option) (*[]st
 		}
 
 		var mergedFields []string
-		// Use the first non-nil merge candidate as the baseline ordering.
+		// Use the first non-nil candidate as the baseline.
 		for i := 0; i < val.Len(); i++ {
 			mergeCandidate := val.Index(i)
 			if (mergeCandidate.Kind() == reflect.Ptr || mergeCandidate.Kind() == reflect.Interface) && mergeCandidate.IsNil() {
@@ -387,8 +392,10 @@ func GenerateFieldNames(prefix string, val reflect.Value, opts ...Option) (*[]st
 			mergedFields = *subFieldsPtr
 		}
 		return &mergedFields, nil
+
 	case reflect.Struct:
 		typ := val.Type()
+
 		// Handle struct fields
 		for i := 0; i < val.NumField(); i++ {
 			field := typ.Field(i)
@@ -442,8 +449,8 @@ func GenerateFieldNames(prefix string, val reflect.Value, opts ...Option) (*[]st
 				fields = append(fields, fieldKey)
 			}
 		}
-
 		return &fields, nil
+
 	case reflect.Interface:
 		if val.IsNil() {
 			return &fields, nil
@@ -455,19 +462,18 @@ func GenerateFieldNames(prefix string, val reflect.Value, opts ...Option) (*[]st
 		}
 		return GenerateFieldNames(prefix, val.Elem(), opts...)
 	case reflect.Invalid:
-		// Even if the reflect is invalid, other items in a list may be valid
-		// so we need to make sure we still return all fields of the struct
 		return &[]string{prefix}, nil
 	default:
-		// Return an error if the input is not a struct or pointer to a struct.
-		err = fmt.Errorf("GenerateFieldNames: unsupported input type: %v", val.Kind())
-		return nil, err
+		return nil, fmt.Errorf("GenerateFieldNames: unsupported input type: %v", val.Kind())
 	}
 }
 
+// generateMapFieldNames generates field names from a map value.
+// The keys are sorted to ensure deterministic ordering.
 func generateMapFieldNames(prefix string, val reflect.Value) (*[]string, error) {
 	var err error
-	if val, err = DerefPointers(val); err != nil {
+	val, err = DerefPointers(val)
+	if err != nil {
 		return nil, err
 	}
 
@@ -475,12 +481,17 @@ func generateMapFieldNames(prefix string, val reflect.Value) (*[]string, error) 
 		return nil, fmt.Errorf("generateMapFieldNames: expected a map, got %v", val.Kind())
 	}
 
-	fields := make([]string, 0)
+	var fields []string
 
-	for _, key := range val.MapKeys() {
+	// Sort map keys for consistent ordering.
+	keys := val.MapKeys()
+	sort.Slice(keys, func(i, j int) bool {
+		return fmt.Sprint(keys[i].Interface()) < fmt.Sprint(keys[j].Interface())
+	})
+
+	for _, key := range keys {
 		keyStr := fmt.Sprint(key.Interface())
 		fieldKey := joinPrefixKey(prefix, keyStr)
-
 		value := val.MapIndex(key)
 		switch value.Kind() {
 		case reflect.Map, reflect.Struct:
@@ -526,8 +537,8 @@ func DerefPointers(val reflect.Value) (reflect.Value, error) {
 	return val, nil
 }
 
-// flattenNestedStructs recursively navigates through a struct, parsing its fields and nested fields.
-// It populates a map with field names as keys and their values as values.
+// FlattenNestedStructs recursively flattens a struct (and its nested fields) into a map.
+// The keys are generated using the provided prefix.
 func FlattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]string) error {
 	val, err := DerefPointers(reflect.ValueOf(item))
 	if err != nil {
@@ -536,34 +547,18 @@ func FlattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 
 	typ := val.Type()
 
+	// For non-struct types, handle maps or slices separately.
 	if val.Kind() != reflect.Struct {
-		// Handle map and slice types separately and temporarily here (will require refactor of package for more elefant solution)
 		if val.Kind() == reflect.Map {
 			return flattenMap(val, prefix, fieldMap)
 		}
 		if val.Kind() == reflect.Slice {
-			return flattenSlice(val, prefix, fmt.Sprintf("%%0%dd", len(strconv.Itoa(10))), fieldMap)
+			return flattenSlice(val, prefix, fieldMap)
 		}
 		return fmt.Errorf("expected a struct or pointer to a struct, got %v", val.Kind())
 	}
 
-	// Determine the max index length for zero-padding for proper sorting
-	maxIndexLength := 0
-	for i := 0; i < val.NumField(); i++ {
-		if val.Field(i).Kind() == reflect.Slice {
-			length := val.Field(i).Len()
-			if length > maxIndexLength {
-				maxIndexLength = length
-			}
-		}
-	}
-	// Ensure minimum width of 2 digits
-	if maxIndexLength < 10 {
-		maxIndexLength = 10
-	}
-	indexFormat := fmt.Sprintf("%%0%dd", len(strconv.Itoa(maxIndexLength)))
-
-	// Iterate over the struct fields
+	// Iterate over struct fields
 	for i := 0; i < val.NumField(); i++ {
 		field := typ.Field(i)
 		fieldVal := val.Field(i)
@@ -580,7 +575,7 @@ func FlattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 			if fieldVal.Len() == 0 {
 				(*fieldMap)[keyPrefix] = "" // Handle empty slice
 			} else {
-				err := flattenSlice(fieldVal, keyPrefix, indexFormat, fieldMap)
+				err := flattenSlice(fieldVal, keyPrefix, fieldMap)
 				if err != nil {
 					return err
 				}
@@ -607,10 +602,9 @@ func FlattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 				}
 			}
 		case reflect.Interface:
-			// Handle interface types (like the generic parameter)
 			if !fieldVal.IsNil() {
 				elem := fieldVal.Elem()
-				if elem.Kind() == reflect.Struct { // Only call FlattenNestedStructs if the type is a struct
+				if elem.Kind() == reflect.Struct {
 					err := FlattenNestedStructs(elem.Interface(), prefix, fieldMap)
 					if err != nil {
 						return err
@@ -619,9 +613,8 @@ func FlattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 			}
 		case reflect.Map:
 			if fieldVal.Len() == 0 {
-				(*fieldMap)[keyPrefix] = "" // Handle empty map
+				(*fieldMap)[keyPrefix] = ""
 			} else {
-				// Check if the map should be inlined
 				if shouldInline(field) {
 					err := flattenMap(fieldVal, prefix, fieldMap)
 					if err != nil {
@@ -638,7 +631,6 @@ func FlattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 			if fieldVal.IsNil() {
 				(*fieldMap)[keyPrefix] = "<nil>"
 			} else {
-				// Check the underlying type.
 				underlying := fieldVal.Elem()
 				switch underlying.Kind() {
 				case reflect.Struct:
@@ -657,7 +649,6 @@ func FlattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 				}
 			}
 		default:
-			// Handle basic types
 			if fieldVal.IsValid() {
 				(*fieldMap)[keyPrefix] = fmt.Sprint(fieldVal.Interface())
 			} else {
@@ -669,7 +660,7 @@ func FlattenNestedStructs(item interface{}, prefix string, fieldMap *map[string]
 	return nil
 }
 
-// joinPrefixKey helps avoid trailing dots or double dots when generating field names.
+// joinPrefixKey joins a prefix and key, helping to avoid extra trailing dots.
 func joinPrefixKey(prefix, key string) string {
 	switch {
 	case prefix == "" && key == "":
@@ -701,7 +692,15 @@ func shouldInline(field reflect.StructField) bool {
 	return strings.Contains(tag, ",inline")
 }
 
-func flattenSlice(slice reflect.Value, keyPrefix, indexFormat string, fieldMap *map[string]string) error {
+// flattenSlice flattens a slice field.
+// It computes the index format (with a minimum width of 2 digits) for consistent ordering.
+func flattenSlice(slice reflect.Value, keyPrefix string, fieldMap *map[string]string) error {
+	width := len(strconv.Itoa(slice.Len() - 1))
+	if width < 2 {
+		width = 2
+	}
+	indexFormat := fmt.Sprintf("%%0%dd", width)
+
 	for j := 0; j < slice.Len(); j++ {
 		elem := slice.Index(j)
 		elemKey := joinPrefixKey(keyPrefix, fmt.Sprintf(indexFormat, j))
@@ -712,19 +711,23 @@ func flattenSlice(slice reflect.Value, keyPrefix, indexFormat string, fieldMap *
 				return err
 			}
 		} else {
-			// Store basic slice elements
 			(*fieldMap)[elemKey] = fmt.Sprint(elem.Interface())
 		}
 	}
 	return nil
 }
 
+// flattenMap flattens a map field. The keys are sorted to guarantee a deterministic order.
 func flattenMap(m reflect.Value, prefix string, fieldMap *map[string]string) error {
-	for _, key := range m.MapKeys() {
+	keys := m.MapKeys()
+	sort.Slice(keys, func(i, j int) bool {
+		return fmt.Sprint(keys[i].Interface()) < fmt.Sprint(keys[j].Interface())
+	})
+	for _, key := range keys {
 		keyStr := fmt.Sprint(key.Interface())
-		value := m.MapIndex(key)
 		newKey := joinPrefixKey(prefix, keyStr)
 
+		value := m.MapIndex(key)
 		value, err := DerefPointers(value)
 		if err != nil {
 			return err
@@ -744,12 +747,12 @@ func flattenMap(m reflect.Value, prefix string, fieldMap *map[string]string) err
 	return nil
 }
 
-// getFirstTag extracts the first tag from a tag string.
+// getFirstTag extracts the first comma-separated part of a tag.
 func getFirstTag(tag string) string {
 	return strings.Split(tag, ",")[0]
 }
 
-// getMapKey determines the key to be used in the fieldMap.
+// getMapKey determines the key to use based on the field’s tags.
 func getMapKey(field reflect.StructField) string {
 	jsonTag := getFirstTag(field.Tag.Get("json"))
 	urlTag := getFirstTag(field.Tag.Get("url"))
@@ -763,59 +766,92 @@ func getMapKey(field reflect.StructField) string {
 	} else if xmlTag != "" && xmlTag != "-" {
 		mapKey = xmlTag
 	} else {
-		mapKey = camelKey(mapKey) // Convert to camel case if no tag is found
+		mapKey = camelKey(mapKey)
 	}
 
 	return mapKey
 }
 
-// mapToSliceAndUpdateFields converts a map to a two-dimensional slice and updates the fields with new subfields.
-func mapToSliceAndUpdateFields(fieldMap *map[string]string, fields *[]string, sortFields bool) ([][]string, error) {
-	// newFields will hold the updated header order,
-	// and fieldSlice will be our final two-dimensional slice.
+// mapToSliceAndUpdateFields converts the internal field map into a 2D slice
+// and updates the headers. It groups keys under each header and sorts them
+// using a custom comparator that is numeric-aware.
+func mapToSliceAndUpdateFields(fieldMap *map[string]string, headers *[]string) ([][]string, error) {
 	var newFields []string
 	var fieldSlice [][]string
 
-	// Keep track of keys that have been matched by a header.
-	used := make(map[string]bool)
+	// custom sort function for keys within a header group.
+	sortGroupKeys := func(header string, keys []string) {
+		sort.Slice(keys, func(i, j int) bool {
+			a := keys[i]
+			b := keys[j]
+			// If one key exactly equals the header, it should come first.
+			if a == header && b != header {
+				return true
+			}
+			if b == header && a != header {
+				return false
+			}
+			// Both keys should start with header+"."
+			aSuffix := strings.TrimPrefix(a, header+".")
+			bSuffix := strings.TrimPrefix(b, header+".")
+			partsA := strings.SplitN(aSuffix, ".", 2)
+			partsB := strings.SplitN(bSuffix, ".", 2)
+			// If the first parts are numeric, compare as numbers.
+			nA, errA := strconv.Atoi(partsA[0])
+			nB, errB := strconv.Atoi(partsB[0])
+			if errA == nil && errB == nil {
+				if nA != nB {
+					return nA < nB
+				}
+				// If numeric parts are equal, compare any additional suffix.
+				if len(partsA) > 1 && len(partsB) > 1 {
+					return partsA[1] < partsB[1]
+				}
+				return len(partsA) < len(partsB)
+			}
+			// Fallback to lexicographic.
+			return a < b
+		})
+	}
 
-	// Process keys for each header in the order provided.
-	for _, header := range *fields {
+	// Process each header in the order provided.
+	for _, header := range *headers {
 		var group []string
 		for key := range *fieldMap {
-			// If the key exactly matches the header OR starts with header followed by a dot,
-			// then we consider it part of the header group.
 			if key == header || strings.HasPrefix(key, header+".") {
 				group = append(group, key)
-				used[key] = true
 			}
 		}
-		if sortFields {
-			sort.Strings(group)
-		}
-		// Append the sorted group to our newFields and fieldSlice.
-		for _, key := range group {
-			newFields = append(newFields, key)
-			fieldSlice = append(fieldSlice, []string{key, (*fieldMap)[key]})
+		if len(group) > 0 {
+			sortGroupKeys(header, group)
+			for _, key := range group {
+				newFields = append(newFields, key)
+				fieldSlice = append(fieldSlice, []string{key, (*fieldMap)[key]})
+			}
 		}
 	}
 
-	// Process any keys that were not matched by the provided headers.
+	// Process any keys not matched by the provided headers.
 	var leftovers []string
 	for key := range *fieldMap {
-		if !used[key] {
+		found := false
+		for _, header := range *headers {
+			if key == header || strings.HasPrefix(key, header+".") {
+				found = true
+				break
+			}
+		}
+		if !found {
 			leftovers = append(leftovers, key)
 		}
+		// Use lexicographical order for leftovers.
 	}
-	if sortFields {
-		sort.Strings(leftovers)
-	}
+	sort.Slice(leftovers, func(i, j int) bool { return leftovers[i] < leftovers[j] })
 	for _, key := range leftovers {
 		newFields = append(newFields, key)
 		fieldSlice = append(fieldSlice, []string{key, (*fieldMap)[key]})
 	}
 
-	// Update the headers with the new sorted order.
-	*fields = newFields
+	*headers = newFields
 	return fieldSlice, nil
 }
