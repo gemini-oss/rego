@@ -117,6 +117,22 @@ func (c *GroupsClient) ListAllGroupRules() (*GroupRules, error) {
 }
 
 /*
+ * # Assign a User to a Group
+ * /api/v1/groups/{groupId}/users/{userId}
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Group/#tag/Group/operation/assignUserToGroup
+ */
+func (c *Client) AddUserToGroup(groupID string, userID string) error {
+	url := c.BuildURL(OktaGroups, groupID, "users", userID)
+
+	_, err := do[interface{}](c, "PUT", url, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/*
  * # Unassign a User from a Group
  * /api/v1/groups/{groupId}/users/{userId}
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Group/#tag/Group/operation/unassignUserFromGroup
