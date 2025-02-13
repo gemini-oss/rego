@@ -16,6 +16,20 @@ import (
 	"time"
 )
 
+// DevicesClient for chaining methods
+type DevicesClient struct {
+	*Client
+}
+
+// Entry point for group-related operations
+func (c *Client) Devices() *DevicesClient {
+	dc := &DevicesClient{
+		Client: c,
+	}
+
+	return dc
+}
+
 /*
 - Query parameters for Devices
 
@@ -51,7 +65,7 @@ type DeviceQuery struct {
  * /api/v1/devices
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Device/#tag/Device/operation/listDevices
  */
-func (c *Client) ListAllDevices() (*Devices, error) {
+func (c *DevicesClient) ListAllDevices() (*Devices, error) {
 	url := c.BuildURL(OktaDevices)
 
 	var cache Devices
@@ -59,7 +73,7 @@ func (c *Client) ListAllDevices() (*Devices, error) {
 		return &cache, nil
 	}
 
-	devices, err := doPaginated[Devices](c, "GET", url, nil, nil)
+	devices, err := doPaginated[Devices](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +88,7 @@ func (c *Client) ListAllDevices() (*Devices, error) {
  * /api/v1/devices
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Device/#tag/Device/operation/listDevices
  */
-func (c *Client) ListDevices(q DeviceQuery) (*Devices, error) {
+func (c *DevicesClient) ListDevices(q DeviceQuery) (*Devices, error) {
 	url := c.BuildURL(OktaDevices)
 
 	var cache Devices
@@ -82,7 +96,7 @@ func (c *Client) ListDevices(q DeviceQuery) (*Devices, error) {
 		return &cache, nil
 	}
 
-	devices, err := doPaginated[Devices](c, "GET", url, q, nil)
+	devices, err := doPaginated[Devices](c.Client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +110,7 @@ func (c *Client) ListDevices(q DeviceQuery) (*Devices, error) {
  * /api/v1/devices/{deviceId}/users
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Device/#tag/Device/operation/listDevices
  */
-func (c *Client) ListUsersForDevice(deviceID string) (*DeviceUsers, error) {
+func (c *DevicesClient) ListUsersForDevice(deviceID string) (*DeviceUsers, error) {
 	url := c.BuildURL(OktaDevices, deviceID, "users")
 
 	var cache DeviceUsers
@@ -104,7 +118,7 @@ func (c *Client) ListUsersForDevice(deviceID string) (*DeviceUsers, error) {
 		return &cache, nil
 	}
 
-	deviceUsers, err := do[DeviceUsers](c, "GET", url, nil, nil)
+	deviceUsers, err := do[DeviceUsers](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +132,7 @@ func (c *Client) ListUsersForDevice(deviceID string) (*DeviceUsers, error) {
  * /api/v1/devices
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Device/#tag/Device/operation/listDevices
  */
-func (c *Client) ListManagedDevices() (*Devices, error) {
+func (c *DevicesClient) ListManagedDevices() (*Devices, error) {
 	managedDevices := Devices{}
 
 	devices, err := c.ListDevices(

@@ -48,6 +48,10 @@ type UserQuery struct {
 	ViewType        UserViewType   `url:"viewType,omitempty"`        // Whether to fetch the administrator-only or domain-wide public view of the user. For more information, see Retrieve a user as a non-administrator.
 }
 
+func (q *UserQuery) SetPageToken(token string) {
+	q.PageToken = token
+}
+
 /*
  * Check if the UserQuery is empty
  */

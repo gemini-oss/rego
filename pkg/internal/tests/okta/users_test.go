@@ -56,7 +56,7 @@ func TestListAllUsers(t *testing.T) {
 	defer cleanup()
 
 	client := setupTestClient(server.URL)
-	users, err := client.ListAllUsers()
+	users, err := client.Users().ListAllUsers()
 
 	if err != nil {
 		t.Errorf("Expected no error, got `%v`", err)
@@ -83,7 +83,7 @@ func TestListActiveUsers(t *testing.T) {
 	defer cleanup()
 
 	client := setupTestClient(server.URL)
-	users, err := client.ListActiveUsers()
+	users, err := client.Users().ListActiveUsers()
 
 	if err != nil {
 		t.Errorf("Expected no error, got `%v`", err)
@@ -106,7 +106,7 @@ func TestGetUser(t *testing.T) {
 	defer cleanup()
 
 	client := setupTestClient(server.URL)
-	user, err := client.GetUser("1")
+	user, err := client.Users().GetUser("1")
 
 	if err != nil {
 		t.Errorf("Expected no error, got `%v`", err)

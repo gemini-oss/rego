@@ -23,11 +23,16 @@ docs:
 
 # Starts the hugo test server
 server:
-	hugo server -s hugo --disableFastRender
+	git submodule foreach git pull origin main && \
+	$(shell go env GOPATH)/bin/hugo server -s hugo --disableFastRender
 
 # Formats the code
 pretty:
 	gofmt -s -w .
+
+# Saves changes to a file
+diff:
+	git diff > rego.diff
 
 # Runs the application
 run: build

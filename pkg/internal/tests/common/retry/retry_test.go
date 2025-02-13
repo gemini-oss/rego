@@ -35,7 +35,11 @@ func TestSuccessfulBeforeMaxRetries(t *testing.T) {
 		return fmt.Errorf("temporary error")
 	}
 
-	err := retry.Retry(operation, &mockTime)
+	shouldRetry := func(err error) bool {
+		return err != nil
+	}
+
+	err := retry.Retry(operation, shouldRetry, &mockTime)
 	if err != nil {
 		t.Fatalf("Retry should have succeeded but got error: %v", err)
 	}
@@ -51,11 +55,15 @@ func TestRetryTimingAndJitter(t *testing.T) {
 		return fmt.Errorf("rate limited")
 	}
 
-	_ = retry.Retry(operation, &mockTime)
+	shouldRetry := func(err error) bool {
+		return err != nil
+	}
+
+	_ = retry.Retry(operation, shouldRetry, &mockTime)
 	sleepDurations := mockTime.GetSleepDurations()
 
-	if len(sleepDurations) != retry.MaxRetries {
-		t.Fatalf("Expected %d retry attempts, got %d", retry.MaxRetries, len(sleepDurations))
+	if len(sleepDurations) != retry.MaxRetries-1 {
+		t.Fatalf("Expected %d retry attempts, got %d", retry.MaxRetries-1, len(sleepDurations))
 	}
 
 	minBackoff := time.Duration(retry.MinBackoff) * time.Millisecond
@@ -80,13 +88,39 @@ func TestExceedingMaxRetries(t *testing.T) {
 		return fmt.Errorf("permanent error")
 	}
 
-	err := retry.Retry(operation, &mockTime)
+	shouldRetry := func(err error) bool {
+		return err != nil
+	}
+
+	err := retry.Retry(operation, shouldRetry, &mockTime)
 	if err == nil {
 		t.Fatalf("Expected error after maximum retries, but got nil")
 	}
 
 	sleepDurations := mockTime.GetSleepDurations()
-	if len(sleepDurations) != retry.MaxRetries {
-		t.Errorf("Expected %d retries, but got %d", retry.MaxRetries, len(sleepDurations))
+	if len(sleepDurations) != retry.MaxRetries-1 {
+		t.Errorf("Expected %d retries, but got %d", retry.MaxRetries-1, len(sleepDurations))
+	}
+}
+
+func TestNonRetryableError(t *testing.T) {
+	mockTime := MockTime{}
+
+	operation := func() error {
+		return fmt.Errorf("non-retryable error")
+	}
+
+	shouldRetry := func(err error) bool {
+		return false // Never retry
+	}
+
+	err := retry.Retry(operation, shouldRetry, &mockTime)
+	if err == nil {
+		t.Fatalf("Expected error, but got nil")
+	}
+
+	sleepDurations := mockTime.GetSleepDurations()
+	if len(sleepDurations) != 0 {
+		t.Errorf("Expected 0 retries, but got %d", len(sleepDurations))
 	}
 }

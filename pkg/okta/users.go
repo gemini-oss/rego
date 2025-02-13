@@ -16,6 +16,20 @@ import (
 	"time"
 )
 
+// UsersClient for chaining methods
+type UsersClient struct {
+	*Client
+}
+
+// Entry point for user-related operations
+func (c *Client) Users() *UsersClient {
+	uc := &UsersClient{
+		Client: c,
+	}
+
+	return uc
+}
+
 /*
  * Query Parameters for Users
  */
@@ -34,7 +48,7 @@ type UserQuery struct {
  * /api/v1/users
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/listUsers
  */
-func (c *Client) ListAllUsers() (*Users, error) {
+func (c *UsersClient) ListAllUsers() (*Users, error) {
 	url := c.BuildURL(OktaUsers)
 
 	var cache Users
@@ -47,7 +61,7 @@ func (c *Client) ListAllUsers() (*Users, error) {
 		Search: `status eq "STAGED" or status eq "PROVISIONED" or status eq "ACTIVE" or status eq "RECOVERY" or status eq "LOCKED_OUT" or status eq "PASSWORD_EXPIRED" or status eq "SUSPENDED" or status eq "DEPROVISIONED"`,
 	}
 
-	users, err := doPaginated[Users](c, "GET", url, q, nil)
+	users, err := doPaginated[Users](c.Client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +75,7 @@ func (c *Client) ListAllUsers() (*Users, error) {
  * /api/v1/users
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/listUsers
  */
-func (c *Client) ListActiveUsers() (*Users, error) {
+func (c *UsersClient) ListActiveUsers() (*Users, error) {
 	url := c.BuildURL(OktaUsers)
 
 	var cache Users
@@ -74,7 +88,7 @@ func (c *Client) ListActiveUsers() (*Users, error) {
 		Search: `status eq "ACTIVE"`,
 	}
 
-	users, err := doPaginated[Users](c, "GET", url, q, nil)
+	users, err := doPaginated[Users](c.Client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +102,7 @@ func (c *Client) ListActiveUsers() (*Users, error) {
  * /api/v1/users/{userId}
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/getUser
  */
-func (c *Client) GetUser(userID string) (*User, error) {
+func (c *UsersClient) GetUser(userID string) (*User, error) {
 	url := c.BuildURL(OktaUsers, userID)
 
 	var cache User
@@ -96,7 +110,7 @@ func (c *Client) GetUser(userID string) (*User, error) {
 		return &cache, nil
 	}
 
-	user, err := do[User](c, "GET", url, nil, nil)
+	user, err := do[User](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -110,11 +124,11 @@ func (c *Client) GetUser(userID string) (*User, error) {
  * /api/v1/users/{userId}
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/updateUser
  */
-func (c *Client) UpdateUser(userID string, u *User) (*User, error) {
+func (c *UsersClient) UpdateUser(userID string, u *User) (*User, error) {
 
 	url := c.BuildURL(OktaUsers, userID)
 
-	user, err := do[User](c, "POST", url, nil, &u)
+	user, err := do[User](c.Client, "POST", url, nil, &u)
 	if err != nil {
 		return nil, err
 	}
@@ -127,10 +141,10 @@ func (c *Client) UpdateUser(userID string, u *User) (*User, error) {
  * /api/v1/users/{userId}/lifecycle/deactivate
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/deactivateUser
  */
-func (c *Client) DeactivateUser(userID string) error {
+func (c *UsersClient) DeactivateUser(userID string) error {
 	url := c.BuildURL(OktaUsers, userID, "lifecycle", "deactivate")
 
-	_, err := do[interface{}](c, "POST", url, nil, nil)
+	_, err := do[any](c.Client, "POST", url, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -143,7 +157,7 @@ func (c *Client) DeactivateUser(userID string) error {
  * /api/v1/users/{userId}/appLinks
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/listAppLinks
  */
-func (c *Client) GetUserAppLinks(userID string) (*AppLinks, error) {
+func (c *UsersClient) GetUserAppLinks(userID string) (*AppLinks, error) {
 	url := c.BuildURL(OktaUsers, userID, "appLinks")
 
 	var cache AppLinks
@@ -151,7 +165,7 @@ func (c *Client) GetUserAppLinks(userID string) (*AppLinks, error) {
 		return &cache, nil
 	}
 
-	appLinks, err := do[AppLinks](c, "GET", url, nil, nil)
+	appLinks, err := do[AppLinks](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -163,9 +177,9 @@ func (c *Client) GetUserAppLinks(userID string) (*AppLinks, error) {
 /*
  * # List all Groups for a User
  * /api/v1/users/{userId}/groups
- * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/updateUser
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/UserResources/#tag/UserResources/operation/listUserGroups
  */
-func (c *Client) GetUserGroups(userID string) (*Groups, error) {
+func (c *UsersClient) GetUserGroups(userID string) (*Groups, error) {
 	url := c.BuildURL(OktaUsers, userID, "groups")
 
 	var cache Groups
@@ -173,7 +187,7 @@ func (c *Client) GetUserGroups(userID string) (*Groups, error) {
 		return &cache, nil
 	}
 
-	groups, err := do[Groups](c, "GET", url, nil, nil)
+	groups, err := do[Groups](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -183,14 +197,36 @@ func (c *Client) GetUserGroups(userID string) (*Groups, error) {
 }
 
 /*
- * # Revoke User Sessions
- * /api/v1/users/{userId}/sessions
- * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/revokeUserSessions
+ * # List all Devices for a User
+ * /api/v1/users/{userId}/devices
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/UserResources/#tag/UserResources/operation/listUserDevices
  */
-func (c *Client) RevokeUserSessions(userID string) error {
+func (c *UsersClient) GetUserDevices(userID string) (*UserDevices, error) {
+	url := c.BuildURL(OktaUsers, userID, "devices")
+
+	var cache UserDevices
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	devices, err := do[UserDevices](c.Client, "GET", url, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	c.SetCache(url, devices, 5*time.Minute)
+	return &devices, nil
+}
+
+/*
+- # Revoke User Sessions
+- /api/v1/users/{userId}/sessions
+- - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/revokeUserSessions
+*/
+func (c *UsersClient) RevokeUserSessions(userID string) error {
 	url := c.BuildURL(OktaUsers, userID, "sessions")
 
-	_, err := do[interface{}](c, "DELETE", url, nil, nil)
+	_, err := do[any](c.Client, "DELETE", url, nil, nil)
 	if err != nil {
 		return err
 	}

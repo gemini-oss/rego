@@ -38,7 +38,7 @@ func TestListAllRoles(t *testing.T) {
 
 	client := setupTestClient(server.URL)
 
-	roles, err := client.ListAllRoles()
+	roles, err := client.Roles().ListAllRoles()
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
@@ -65,7 +65,7 @@ func TestGetRole(t *testing.T) {
 
 	client := setupTestClient(server.URL)
 
-	role, err := client.GetRole("role1")
+	role, err := client.Roles().GetRole("role1")
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
@@ -95,7 +95,7 @@ func TestGetUserRoles(t *testing.T) {
 
 	client := setupTestClient(server.URL)
 
-	userRoles, err := client.GetUserRoles("user1")
+	userRoles, err := client.Roles().GetUserRoles("user1")
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}

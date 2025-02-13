@@ -96,6 +96,7 @@ type ErrorDetail struct {
 	Code    int          `json:"code,omitempty"`    // The HTTP status code for the error.
 	Message string       `json:"message,omitempty"` // The error message.
 	Errors  []*ErrorItem `json:"errors,omitempty"`  // An array of more detailed error items.
+	Status  string       `json:"status,omitempty"`  // The status of the error
 }
 
 // Implement the error interface for ErrorDetail.
@@ -1355,12 +1356,12 @@ type ChromeOSDevices struct {
 	NextPageToken   string             `json:"nextPageToken,omitempty"`   // Token for the next page of results
 }
 
-func (c ChromeOSDevices) Append(result interface{}) {
-	more, ok := result.(*ChromeOSDevices)
-	if !ok {
-		return
+func (c ChromeOSDevices) Append(result ChromeOSDevices) ChromeOSDevices {
+	if c.ChromeOSDevices == nil {
+		c.ChromeOSDevices = new([]*ChromeOSDevice)
 	}
-	*c.ChromeOSDevices = append(*c.ChromeOSDevices, *more.ChromeOSDevices...)
+	*c.ChromeOSDevices = append(*c.ChromeOSDevices, *result.ChromeOSDevices...)
+	return c
 }
 
 func (c ChromeOSDevices) PageToken() string {
@@ -1550,12 +1551,12 @@ func (r *ResolvedPolicies) Init() {
 	r.ResolvedPolicies = new([]*ResolvedPolicy)
 }
 
-func (r ResolvedPolicies) Append(result interface{}) {
-	more, ok := result.(*ResolvedPolicies)
-	if !ok {
-		return
+func (r ResolvedPolicies) Append(result ResolvedPolicies) ResolvedPolicies {
+	if r.ResolvedPolicies == nil {
+		r.ResolvedPolicies = new([]*ResolvedPolicy)
 	}
-	*r.ResolvedPolicies = append(*r.ResolvedPolicies, *more.ResolvedPolicies...)
+	*r.ResolvedPolicies = append(*r.ResolvedPolicies, *result.ResolvedPolicies...)
+	return r
 }
 
 func (r ResolvedPolicies) PageToken() string {
@@ -1606,12 +1607,12 @@ type PolicySchemas struct {
 	NextPageToken string           `json:"nextPageToken,omitempty"` // Token for the next page of results.
 }
 
-func (p PolicySchemas) Append(result interface{}) {
-	more, ok := result.(*PolicySchemas)
-	if !ok {
-		return
+func (p PolicySchemas) Append(result PolicySchemas) PolicySchemas {
+	if p.PolicySchemas == nil {
+		p.PolicySchemas = new([]*PolicySchema)
 	}
-	*p.PolicySchemas = append(*p.PolicySchemas, *more.PolicySchemas...)
+	*p.PolicySchemas = append(*p.PolicySchemas, *result.PolicySchemas...)
+	return p
 }
 
 func (p PolicySchemas) PageToken() string {

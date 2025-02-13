@@ -14,6 +14,7 @@ This package initializes all the methods for functions which interact with the J
 package jamf
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -112,7 +113,7 @@ func GetToken(baseURL string) (*JamfToken, error) {
 	}
 
 	hc := requests.NewClient(nil, headers, nil)
-	_, body, err := hc.DoRequest("POST", url, nil, nil)
+	_, body, err := hc.DoRequest(context.Background(), "POST", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +188,10 @@ type JamfAPIResponse interface {
  */
 func do[T any](c *Client, method string, url string, query interface{}, data interface{}) (T, error) {
 	var result T
-	res, body, err := c.HTTP.DoRequest(method, url, query, data)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	res, body, err := c.HTTP.DoRequest(ctx, method, url, query, data)
 	if err != nil {
 		return *new(T), err
 	}

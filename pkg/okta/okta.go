@@ -13,6 +13,7 @@ https://developer.okta.com/docs/api/
 package okta
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -31,6 +32,7 @@ var (
 
 const (
 	OktaApps       = "%s/apps"         // https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Application/
+	OktaAttributes = "%s/attributes"   // https://developer.okta.com/docs/api/openapi/asa/asa/tag/attributes/
 	OktaGroups     = "%s/groups"       // https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Group/
 	OktaGroupRules = "%s/groups/rules" // https://developer.okta.com/docs/api/openapi/okta-management/management/tag/GroupRule/
 	OktaDevices    = "%s/devices"      // https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Device/
@@ -71,9 +73,6 @@ func (c *Client) SetCache(key string, value interface{}, duration time.Duration)
  * GetCache retrieves an Okta API response from the cache
  */
 func (c *Client) GetCache(key string, target interface{}) bool {
-	if !c.Cache.Enabled {
-		return false
-	}
 	data, found := c.Cache.Get(key)
 	if !found {
 		return false
@@ -99,34 +98,52 @@ func (c *Client) GetCache(key string, target interface{}) bool {
 
 ```
 */
-func NewClient(verbosity int) *Client {
+func NewClient(verbosity int, opts ...Option) *Client {
 	log := log.NewLogger("{okta}", verbosity)
 
-	org_name := config.GetEnv("OKTA_ORG_NAME") // {ORG_NAME}.okta.com
-	//org_name := config.GetEnv("OKTA_SANDBOX_ORG_NAME")
-	if len(org_name) == 0 {
-		log.Fatal("OKTA_ORG_NAME is not set")
+	// Default config reads from environment for toggling -- `Twelve-Factor manifesto` principle
+	cfg := &clientConfig{
+		useSandbox: config.GetEnv("OKTA_USE_SANDBOX") == "true", // Expecting false if not set
+		orgName:    "OKTA_ORG_NAME",
+		baseURL:    "OKTA_BASE_URL",
+		token:      "OKTA_API_TOKEN",
 	}
 
-	org_name = strings.TrimPrefix(org_name, "https://")
-	org_name = strings.TrimPrefix(org_name, "http://")
-	org_name = strings.TrimSuffix(org_name, ".okta.com")
+	for _, opt := range opts {
+		opt(cfg)
+	}
 
-	base := config.GetEnv("OKTA_BASE_URL") // {ORG_NAME}.{BASE_URL}
-	//base := config.GetEnv("OKTA_SANDBOX_BASE_URL") // oktapreview.com
+	// If sandbox is toggled (either from environment or an override),
+	// switch to sandbox environment variable names
+	switch cfg.useSandbox {
+	case true:
+		cfg.orgName = "OKTA_SANDBOX_ORG_NAME"
+		cfg.baseURL = "OKTA_SANDBOX_BASE_URL"
+		cfg.token = "OKTA_SANDBOX_API_TOKEN"
+	}
+
+	orgName := config.GetEnv(cfg.orgName) // {ORG_NAME}.{BASE_URL}
+	if len(orgName) == 0 {
+		log.Fatalf("%s is not set", cfg.orgName)
+	}
+
+	orgName = strings.TrimPrefix(orgName, "https://")
+	orgName = strings.TrimPrefix(orgName, "http://")
+	orgName = strings.TrimSuffix(orgName, ".okta.com")
+
+	base := config.GetEnv(cfg.baseURL) // {ORG_NAME}.{BASE_URL}
 	if len(base) == 0 {
-		log.Fatal("OKTA_BASE_URL is not set")
+		log.Fatalf("%s is not set", cfg.baseURL)
 	}
 
 	base = strings.Trim(base, "./")
 	base = strings.TrimSuffix(base, ".com")
 
-	token := config.GetEnv("OKTA_API_TOKEN")
-	//token := config.GetEnv("OKTA_SANDBOX_API_TOKEN")
+	token := config.GetEnv(cfg.token)
 	if len(token) == 0 {
-		log.Fatal("OKTA_API_TOKEN is not set")
+		log.Fatalf("%s is not set", cfg.token)
 	}
-	BaseURL := fmt.Sprintf(BaseURL, org_name, base)
+	BaseURL := fmt.Sprintf(BaseURL, orgName, base)
 
 	headers := requests.Headers{
 		"Authorization": "SSWS " + token,
@@ -165,8 +182,10 @@ func NewClient(verbosity int) *Client {
  */
 func do[T any](c *Client, method string, url string, query interface{}, data interface{}) (T, error) {
 	var result T
+	ctx, cancel := context.WithTimeout(context.Background(), 75*time.Second)
+	defer cancel()
 
-	res, body, err := c.HTTP.DoRequest(method, url, query, data)
+	res, body, err := c.HTTP.DoRequest(ctx, method, url, query, data)
 	if err != nil {
 		return *new(T), err
 	}
@@ -193,7 +212,7 @@ func doPaginated[T Slice[E], E any](c *Client, method, url string, query interfa
 	}
 
 	for {
-		res, body, err := c.HTTP.DoRequest(method, url, query, data)
+		res, body, err := c.HTTP.DoRequest(context.Background(), method, url, query, data)
 		if err != nil {
 			return nil, err
 		}
@@ -230,7 +249,7 @@ func doPaginatedStruct[T Struct[T]](c *Client, method, url string, query interfa
 	}
 
 	for {
-		res, body, err := c.HTTP.DoRequest(method, url, query, data)
+		res, body, err := c.HTTP.DoRequest(context.Background(), method, url, query, data)
 		if err != nil {
 			return nil, err
 		}

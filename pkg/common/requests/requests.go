@@ -2,6 +2,7 @@
 package requests
 
 import (
+	"context"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -69,7 +70,7 @@ type Client struct {
  * @param headers Headers
  * @return *Client
  */
-func NewClient(c *http.Client, headers Headers, rateLimiter *rl.RateLimiter) *Client {
+func NewClient(options ...interface{}) *Client {
 	encryptionKey := []byte(config.GetEnv("REGO_ENCRYPTION_KEY"))
 	if len(encryptionKey) == 0 {
 		l.Fatal("REGO_ENCRYPTION_KEY is not set")
@@ -80,22 +81,30 @@ func NewClient(c *http.Client, headers Headers, rateLimiter *rl.RateLimiter) *Cl
 		panic(err)
 	}
 
-	if c != nil {
-		return &Client{
-			httpClient:  c,
-			Cache:       cache,
-			Headers:     headers,
-			Log:         l,
-			RateLimiter: rateLimiter,
-		}
-	}
-	return &Client{
+	client := &Client{
 		httpClient:  &http.Client{},
 		Cache:       cache,
-		Headers:     headers,
+		Headers:     Headers{},
 		Log:         l,
-		RateLimiter: rateLimiter,
+		RateLimiter: nil,
 	}
+
+	for _, option := range options {
+		switch opt := option.(type) {
+		case *http.Client:
+			client.httpClient = opt
+		case Headers:
+			client.Headers = opt
+		case *rl.RateLimiter:
+			client.RateLimiter = opt
+		}
+	}
+
+	if client.RateLimiter == nil {
+		client.RateLimiter = rl.NewRateLimiter(100)
+	}
+
+	return client
 }
 
 // UpdateHeaders changes the headers for the HTTP client
@@ -233,24 +242,30 @@ func SetXMLPayload(req *http.Request, data interface{}) error {
 	return nil
 }
 
-func (c *Client) DoRequest(method string, url string, query interface{}, data interface{}) (*http.Response, []byte, error) {
+func (c *Client) DoRequest(ctx context.Context, method string, url string, query interface{}, data interface{}) (*http.Response, []byte, error) {
 	realTime := retry.RealTime{}
-	return c.doRetry(method, url, query, data, realTime)
+	return c.doRetry(ctx, method, url, query, data, realTime)
 }
 
-func (c *Client) doRetry(method string, url string, query interface{}, data interface{}, time retry.Time) (*http.Response, []byte, error) {
+func (c *Client) doRetry(ctx context.Context, method string, url string, query interface{}, data interface{}, time retry.Time) (*http.Response, []byte, error) {
 	var resp *http.Response
 	var body []byte
-	err := retry.Retry(func() error {
-		var reqErr error
-		resp, body, reqErr = c.do(method, url, query, data)
-		return reqErr
-	}, time)
+	err := retry.Retry(
+		func() error {
+			var reqErr error
+			resp, body, reqErr = c.do(ctx, method, url, query, data)
+			return reqErr
+		},
+		func(err error) bool {
+			return err != nil && (resp == nil || IsRetryableStatusCode(resp.StatusCode))
+		},
+		time,
+	)
 
 	return resp, body, err
 }
 
-func (c *Client) do(method string, url string, query interface{}, data interface{}) (*http.Response, []byte, error) {
+func (c *Client) do(ctx context.Context, method string, url string, query interface{}, data interface{}) (*http.Response, []byte, error) {
 	// Validate HTTP method
 	validMethods := map[string]bool{
 		"GET": true, "POST": true, "PUT": true, "DELETE": true,
@@ -264,6 +279,7 @@ func (c *Client) do(method string, url string, query interface{}, data interface
 	if err != nil {
 		return nil, nil, err
 	}
+	req = req.WithContext(ctx)
 
 	SetQueryParams(req, query)
 
@@ -273,7 +289,12 @@ func (c *Client) do(method string, url string, query interface{}, data interface
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, &RequestError{
+			StatusCode: http.StatusInternalServerError,
+			Method:     method,
+			URL:        url,
+			Message:    err.Error(),
+		}
 	}
 	defer resp.Body.Close()
 
@@ -288,16 +309,25 @@ func (c *Client) do(method string, url string, query interface{}, data interface
 		return nil, nil, fmt.Errorf("reading response body: %w", err)
 	}
 
-	switch resp.StatusCode {
-	case http.StatusOK, http.StatusNoContent:
+	switch {
+	case resp.StatusCode >= 200 && resp.StatusCode < 300:
 		return resp, body, nil
-	case http.StatusTooManyRequests:
-		fmt.Println(string(body)) // Will consider logging instead of printing
+	case IsRedirectCode(resp.StatusCode):
+		c.Log.Warning("Redirect status code encountered:", resp.StatusCode)
+		return resp, body, c.handleErrorResponse(resp, body)
+	case IsRetryableStatusCode(resp.StatusCode):
+		c.Log.Warning("Retryable status code encountered:", resp.StatusCode)
+		return resp, body, c.handleErrorResponse(resp, body)
+	case IsNonRetryableCode(resp.StatusCode):
+		c.Log.Error("Non-retryable status code encountered:", resp.StatusCode)
+		return resp, body, c.handleErrorResponse(resp, body)
+	case IsTemporaryErrorCode(resp.StatusCode):
+		c.Log.Warning("Temporary error code encountered:", resp.StatusCode)
+		return resp, body, c.handleErrorResponse(resp, body)
 	default:
-		return nil, body, fmt.Errorf(string(body))
+		c.Log.Error("Unexpected status code:", resp.StatusCode)
+		return resp, body, c.handleErrorResponse(resp, body)
 	}
-
-	return nil, body, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 }
 
 func setPayload(req *http.Request, data interface{}, bodyType string) error {
