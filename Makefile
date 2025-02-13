@@ -23,7 +23,8 @@ docs:
 
 # Starts the hugo test server
 server:
-	hugo server -s hugo --disableFastRender
+	git submodule foreach git pull origin main && \
+	$(shell go env GOPATH)/bin/hugo server -s hugo --disableFastRender
 
 # Formats the code
 pretty:

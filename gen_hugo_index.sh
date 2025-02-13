@@ -94,11 +94,12 @@ add_cards_to_index() {
 
     if [[ -f "${index_file}" ]]; then
         log INFO "Adding cards to: ${index_file}"
-        local temp_file
-        temp_file=$(mktemp)
+        local temp_file=$(mktemp)
 
+        # Copy content before the cards section
         awk '/{{< \/cards >}}/{exit} {print}' "${index_file}" > "${temp_file}"
 
+        # Add cards for each subdirectory or markdown file
         for item in "${dir_path}"/*; do
             if [[ -d "${item}" ]]; then
                 local name
