@@ -49,6 +49,7 @@ type AssetQuery struct {
 	StatusID       int    `url:"status_id,omitempty"`       // Return only assets associated with the specified status ID.
 	AssignedTo     int    `url:"assigned_to,omitempty"`     // Return only assets that are assigned to this ID (requires AssignedType) *Not in api reference doc but used on the web hosted service*
 	AssignedType   string `url:"assigned_type,omitempty"`   // Return only assets of this type that are assigned to a specific ID (requires AssignedTo and uses the original snipeit models) https://github.com/snipe/snipe-it/tree/master/app/Models *Not in api reference but used on the web hosted service*
+	Filter         string `url:"filter,omitempty"`          // Return assets based on matches made with a json string filter (https://github.com/snipe/snipe-it/issues/6917) *Not in api reference but used on the web hosted service*
 }
 
 // ### AssetQuery implements QueryInterface
@@ -70,6 +71,7 @@ func (q *AssetQuery) Copy() QueryInterface {
 		StatusID:       q.StatusID,
 		AssignedTo:     q.AssignedTo,
 		AssignedType:   q.AssignedType,
+		Filter:         q.Filter,
 	}
 }
 
@@ -173,7 +175,7 @@ func (c *AssetClient) GetAssetByTag(tag string) (*Hardware[HardwareGET], error) 
 }
 
 /*
- * Get Hardware Assets by Tag 
+ * Get Hardware Assets by Tag
  * /api/v1/hardware/bytag/{tag}
  * - https://snipe-it.readme.io/reference/hardware-by-asset-tag
  */
