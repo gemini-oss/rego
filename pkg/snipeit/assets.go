@@ -71,7 +71,7 @@ func (q *AssetQuery) Copy() QueryInterface {
 		StatusID:       q.StatusID,
 		AssignedTo:     q.AssignedTo,
 		AssignedType:   q.AssignedType,
-		Filter:         q.Filter,
+		Filter: 				q.Filter,
 	}
 }
 
@@ -135,10 +135,10 @@ func (c *AssetClient) GetAllAssets() (*HardwareList, error) {
  * /api/v1/hardware/byserial/{serial}
  * - https://snipe-it.readme.io/reference/hardware-by-serial
  */
-func (c *AssetClient) GetAssetBySerial(serial string) (*Hardware[HardwareGET], error) {
+func (c *AssetClient) GetAssetBySerial(serial string) (*HardwareList, error) {
 	url := c.BuildURL(Assets, "byserial", serial)
 
-	var cache Hardware[HardwareGET]
+	var cache HardwareList
 	if c.GetCache(url, &cache) {
 		return &cache, nil
 	}
@@ -149,33 +149,11 @@ func (c *AssetClient) GetAssetBySerial(serial string) (*Hardware[HardwareGET], e
 	}
 
 	c.SetCache(url, asset, 5*time.Minute)
-	return (*asset.Rows)[0], nil
+	return &asset, nil
 }
 
 /*
- * Get Hardware Assets by Tag
- * /api/v1/hardware/bytag/{tag}
- * - https://snipe-it.readme.io/reference/hardware-by-asset-tag
- */
-func (c *AssetClient) GetAssetByTag(tag string) (*Hardware[HardwareGET], error) {
-	url := c.BuildURL(Assets, "bytag", tag)
-
-	var cache Hardware[HardwareGET]
-	if c.GetCache(url, &cache) {
-		return &cache, nil
-	}
-
-	asset, err := do[HardwareList](c.Client, "GET", url, nil, nil)
-	if err != nil {
-		c.Log.Fatalf("Error fetching hardware asset: %v", err)
-	}
-
-	c.SetCache(url, asset, 5*time.Minute)
-	return (*asset.Rows)[0], nil
-}
-
-/*
- * Get Hardware Assets by Tag
+ * Get Hardware Assets by Tag 
  * /api/v1/hardware/bytag/{tag}
  * - https://snipe-it.readme.io/reference/hardware-by-asset-tag
  */
@@ -201,10 +179,10 @@ func (c *AssetClient) GetAssetByTag(tag string) (*Hardware, error) {
  * /api/v1/hardware
  * - https://snipe-it.readme.io/reference/hardware-create
  */
-func (c *AssetClient) CreateAsset(p *Hardware[HardwarePOST]) (*Hardware[HardwarePOST], error) {
+func (c *AssetClient) CreateAsset(p *Hardware) (*Hardware, error) {
 	url := c.BuildURL(Assets)
 
-	hardware, err := do[SnipeITResponse[Hardware[HardwarePOST]]](c.Client, "POST", url, nil, p)
+	hardware, err := do[SnipeITResponse[Hardware]](c.Client, "POST", url, nil, p)
 	if err != nil {
 		c.Log.Fatalf("Error creating asset: %v", err)
 	}
@@ -216,10 +194,10 @@ func (c *AssetClient) CreateAsset(p *Hardware[HardwarePOST]) (*Hardware[Hardware
  * /api/v1/hardware/{id}
  * - https://snipe-it.readme.io/reference/hardware-partial-update
  */
-func (c *AssetClient) PartialUpdateAsset(id uint32, h *Hardware[HardwarePUTPATCH]) (*Hardware[HardwarePUTPATCH], error) {
+func (c *AssetClient) PartialUpdateAsset(id int, p *Hardware) (*Hardware, error) {
 	url := c.BuildURL(Assets, id)
 
-	hardware, err := do[SnipeITResponse[Hardware[HardwarePUTPATCH]]](c.Client, "PATCH", url, nil, h)
+	hardware, err := do[SnipeITResponse[Hardware]](c.Client, "PATCH", url, nil, p)
 	if err != nil {
 		c.Log.Fatalf("Error updating asset: %v", err)
 	}
@@ -233,17 +211,17 @@ func (c *AssetClient) PartialUpdateAsset(id uint32, h *Hardware[HardwarePUTPATCH
  * /api/v1/hardware/{id}
  * - https://snipe-it.readme.io/reference/hardware-delete
  */
-func (c *AssetClient) DeleteAsset(id int64) (string, error) {
+func (c *AssetClient) DeleteAsset(id int) (string, error) {
 	url := c.BuildURL(Assets, id)
 
-	hardware, err := do[SnipeITResponse[Hardware[PPPD]]](c.Client, "DELETE", url, nil, nil)
+	hardware, err := do[SnipeITResponse[Hardware]](c.Client, "DELETE", url, nil, nil)
 	if err != nil {
 		c.Log.Fatalf("Error deleting asset: %v", err)
 	}
 
-	switch hardware.Messages.StringValue {
+	switch hardware.Messages {
 	case "The asset was deleted successfully.", "Asset does not exist.":
-		return hardware.Messages.StringValue, err
+		return hardware.Messages, err
 	default:
 		return hardware.Status, err
 	}
