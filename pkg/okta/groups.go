@@ -117,6 +117,33 @@ func (c *GroupsClient) ListAllGroupRules() (*GroupRules, error) {
 }
 
 /*
+ * # List All Users of a Group
+ * /api/v1/groups/{groupId}/users
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Group/#tag/Group/operation/listGroupUsers
+ */
+func (c *Client) ListGroupMembers(groupID string) (*Users, error) {
+	c.Log.Printf("Listing members of group with ID %s", groupID)
+	url := c.BuildURL(OktaGroups, groupID, "users")
+
+	var cache Users
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	q := GroupParameters{
+		Limit: 10000,
+	}
+
+	users, err := doPaginated[Users](c, "GET", url, q, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	c.SetCache(url, users, 5*time.Minute)
+	return users, nil
+}
+
+/*
  * # Assign a User to a Group
  * /api/v1/groups/{groupId}/users/{userId}
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Group/#tag/Group/operation/assignUserToGroup
