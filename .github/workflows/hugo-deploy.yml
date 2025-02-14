@@ -19,6 +19,10 @@ jobs:
           ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}   # Needed to push to GitHub
           submodules: true                          # Needed since Hugo theme is a submodule
 
+      - name: Ensure Submodules are Updated
+        run: |
+          git submodule foreach git pull origin main
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh

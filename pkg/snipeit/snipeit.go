@@ -2,7 +2,7 @@
 # SnipeIT
 
 This package initializes all the methods for functions which interact with the SnipeIT API:
-https://developer.okta.com/docs/api/
+https://snipe-it.readme.io/reference/api-overview
 
 :Copyright: (c) 2023 by Gemini Space Station, LLC., see AUTHORS for more info
 :License: See the LICENSE file for details
@@ -13,6 +13,7 @@ https://developer.okta.com/docs/api/
 package snipeit
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -154,7 +155,10 @@ type PaginatedResponse[E any] interface {
  */
 func do[T any](c *Client, method string, url string, query interface{}, data interface{}) (T, error) {
 	var result T
-	res, body, err := c.HTTP.DoRequest(method, url, query, data)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	res, body, err := c.HTTP.DoRequest(ctx, method, url, query, data)
 	if err != nil {
 		return *new(T), err
 	}

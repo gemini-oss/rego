@@ -185,7 +185,7 @@ func (c *LocationClient) DeleteLocation(id int) error {
 
 	// At time of writing, this endpoint only returns status 200 with accepted requests
 	location, _ := do[SnipeITResponse[Location]](c.Client, "DELETE", url, nil, nil)
-	if location.Messages != "The location was deleted successfully." {
+	if location.Messages.StringValue != "The location was deleted successfully." {
 		c.Log.Warningf("Error deleting location: %v", location.Messages)
 	}
 

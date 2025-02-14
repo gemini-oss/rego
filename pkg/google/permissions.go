@@ -52,6 +52,10 @@ type PermissionsQuery struct {
 	UseDomainAdminAccess      bool   `url:"useDomainAdminAccess,omitempty"`      // Issue the request as a domain administrator.
 }
 
+func (q *PermissionsQuery) SetPageToken(token string) {
+	q.PageToken = token
+}
+
 /*
  * Check if the PermissionsQuery is empty
  */

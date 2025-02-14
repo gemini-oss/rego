@@ -4,7 +4,7 @@
 This package initializes all the methods for functions which interact with the Google Sheets API:
 https://developers.google.com/sheets/api/reference/rest
 
-:Copyright: (c) 2023 by Gemini Space Station, LLC, see AUTHORS for more info
+:Copyright: (c) 2025 by Gemini Space Station, LLC, see AUTHORS for more info
 :License: See the LICENSE file for details
 :Author: Anthony Dardano <anthony.dardano@gemini.com>
 */
@@ -85,7 +85,7 @@ func (c *SheetsClient) VerifySheetValueRange(vr *ValueRange) error {
 /*
  * Generate Google Sheets ValueRange from a slice of any structs
  */
-func (c *SheetsClient) GenerateValueRange(data []interface{}, sheetName string, headers *[]string) *ValueRange {
+func (c *SheetsClient) GenerateValueRange(data []any, sheetName string, headers *[]string) *ValueRange {
 	vr := &ValueRange{
 		MajorDimension: "ROWS",
 	}
@@ -97,38 +97,73 @@ func (c *SheetsClient) GenerateValueRange(data []interface{}, sheetName string, 
 	}
 
 	// Ensure headers as the first row
-	vr.Values = append(vr.Values, *headers)
+	vr.Values = append(vr.Values, []string{})
 
 	// Initialize map to track the maximum length encountered for each header
-	finalHeaders := *headers
-
-	// Collect all rows data first to determine the maxFieldLen
-	allRows := make([][][]string, 0, len(data))
-	for _, d := range data {
-		orderedData, err := ss.FlattenStructFields(d, headers)
+	// If no headers are provided, generate them from the entire data slice.
+	var generate bool
+	if headers == nil || len(*headers) == 0 {
+		genHeaders, err := ss.GenerateFieldNames("", reflect.ValueOf(data))
 		if err != nil {
-			continue // Skip this row if there was an error
+			c.Log.Tracef("Failed to generate headers: %v", err)
+			return vr
 		}
-		allRows = append(allRows, orderedData)
-		if len(orderedData) > len(finalHeaders) {
-			finalHeaders = *headers
+		headers = genHeaders
+		generate = true
+	}
+	// Start with the baseline headers.
+	finalHeaders := make([]string, len(*headers))
+	copy(finalHeaders, *headers)
+
+	// allRows will hold the flattened data for each row as a map of header->value.
+	allRows := make([]map[string]string, 0, len(data))
+
+	// Process each row in the data slice.
+	for _, d := range data {
+		var orderedData [][]string
+		var err error
+		if generate {
+			orderedData, err = ss.FlattenStructFields(d, ss.WithGenerate())
+		} else {
+			orderedData, err = ss.FlattenStructFields(d, ss.WithHeaders(headers))
 		}
+		if err != nil {
+			c.Log.Tracef("Failed to flatten struct fields: %v", err)
+			continue // Skip rows with errors
+		}
+
+		// Build a map for this row: header -> value.
+		rowMap := make(map[string]string)
+		for _, pair := range orderedData {
+			if len(pair) >= 2 {
+				rowMap[pair[0]] = pair[1]
+			}
+		}
+		allRows = append(allRows, rowMap)
+
+		// Create a candidate header list from the keys of this row.
+		candidate := make([]string, 0, len(rowMap))
+		for k := range rowMap {
+			candidate = append(candidate, k)
+		}
+		// Merge candidate headers into our finalHeaders while preserving order.
+		finalHeaders = ss.MergeFields(finalHeaders, candidate)
 	}
 
-	// Now build the values for the ValueRange ensuring all rows are aligned
-	for _, rows := range allRows {
-		row := make([]string, len(finalHeaders)) // Create a slice for the row with the exact number of headers
-		for _, data := range rows {
-			for i, header := range finalHeaders {
-				if data[0] == header {
-					row[i] = data[1] // Place data in the correct column according to header
-					break
-				}
-			}
+	// Build the final 2D slice of strings (row order determined by finalHeaders).
+	// First row: the headers.
+	headerRow := make([]string, len(finalHeaders))
+	copy(headerRow, finalHeaders)
+	vr.Values[0] = headerRow
+
+	// Each subsequent row: look up each header value (empty string if missing).
+	for _, rowMap := range allRows {
+		row := make([]string, len(finalHeaders))
+		for i, header := range finalHeaders {
+			row[i] = rowMap[header]
 		}
 		vr.Values = append(vr.Values, row)
 	}
-	vr.Values[0] = finalHeaders // Ensure the headers are correct
 
 	return vr
 }
@@ -282,7 +317,7 @@ func (c *SheetsClient) FormatHeaderAndAutoSize(spreadsheetID string, sheet *Shee
  * # Save to Sheet
  * - Saves a variety of data types to a Google Sheet (array, map, slice, struct)
  */
-func (c *SheetsClient) SaveToSheet(data interface{}, sheetID, sheetName string, headers *[]string) error {
+func (c *SheetsClient) SaveToSheet(data any, sheetID, sheetName string, headers *[]string) error {
 	// Dereference all pointers first to simplify further processing
 	val, err := ss.DerefPointers(reflect.ValueOf(data))
 	if err != nil {
@@ -328,14 +363,6 @@ func (c *SheetsClient) SaveToSheet(data interface{}, sheetID, sheetName string, 
 	case [][]string:
 		vr.Values = v
 	default:
-		// Generate headers if not provided
-		if headers == nil {
-			headers, err = ss.GenerateFieldNames("", val)
-			if err != nil {
-				return err
-			}
-		}
-
 		vr, err = c.prepareAndGenerateValueRange(val, sheetName, headers)
 		if err != nil {
 			return err
@@ -361,21 +388,21 @@ func (c *SheetsClient) SaveToSheet(data interface{}, sheetID, sheetName string, 
 }
 
 func (c *SheetsClient) prepareAndGenerateValueRange(val reflect.Value, sheetName string, headers *[]string) (*ValueRange, error) {
-	var sheetData []interface{}
+	var sheetData []any
 
 	switch val.Kind() {
 	case reflect.Map:
-		sheetData = make([]interface{}, 0, val.Len())
+		sheetData = make([]any, 0, val.Len())
 		for _, key := range val.MapKeys() {
 			sheetData = append(sheetData, val.MapIndex(key).Interface())
 		}
 	case reflect.Slice, reflect.Array:
-		sheetData = make([]interface{}, val.Len())
+		sheetData = make([]any, val.Len())
 		for i := 0; i < val.Len(); i++ {
 			sheetData[i] = val.Index(i).Interface()
 		}
 	case reflect.Struct:
-		sheetData = []interface{}{val.Interface()}
+		sheetData = []any{val.Interface()}
 	default:
 		return nil, fmt.Errorf("unsupported data type: %s", val.Kind())
 	}

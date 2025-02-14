@@ -63,6 +63,10 @@ type DeviceQuery struct {
 	SortOrder            string `url:"sortOrder,omitempty"`            // Whether to return results in ascending or descending order. Should be one of the defined SortOrder enums.
 }
 
+func (q *DeviceQuery) SetPageToken(token string) {
+	q.PageToken = token
+}
+
 // ### Chainable DeviceClient Methods
 // ---------------------------------------------------------------------
 func (c *DeviceClient) MaxResults(max int) *DeviceClient {
@@ -91,6 +95,10 @@ type PolicyQuery struct {
 	Filter    string `url:"filter,omitempty"`    // https://developers.google.com/chrome/policy/guides/list-policy-schemas#filter_syntax
 	PageSize  int    `url:"pageSize,omitempty"`  // The maximum number of policy schemas to return, defaults to 100 and has a maximum of 1000.
 	PageToken string `url:"pageToken,omitempty"` // Token for requesting the next page of query results.
+}
+
+func (q *PolicyQuery) SetPageToken(token string) {
+	q.PageToken = token
 }
 
 /*
@@ -124,7 +132,7 @@ func (c *DeviceClient) ListAllChromeOS(customer *Customer) (*ChromeOSDevices, er
 		return &cache, nil
 	}
 
-	devices, err := doPaginated[ChromeOSDevices](c.Client, "GET", url, c.DeviceQuery, nil)
+	devices, err := doPaginated[ChromeOSDevices, *DeviceQuery](c.Client, "GET", url, &c.DeviceQuery, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +158,7 @@ func (c *DeviceClient) ListAllProvisionedChromeOS(customer *Customer) (*ChromeOS
 
 	c.Query("status:provisioned")
 
-	devices, err := doPaginated[ChromeOSDevices](c.Client, "GET", url, c.DeviceQuery, nil)
+	devices, err := doPaginated[ChromeOSDevices, *DeviceQuery](c.Client, "GET", url, &c.DeviceQuery, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +185,7 @@ func (c *DeviceClient) ListAllDevicePolicySchemas(customer *Customer) (*PolicySc
 		return &cache, nil
 	}
 
-	policySchemas, err := doPaginated[PolicySchemas](c.Client, "GET", url, q, nil)
+	policySchemas, err := doPaginated[PolicySchemas, *PolicyQuery](c.Client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +220,7 @@ func (c *DeviceClient) ResolvePolicySchemas(customer *Customer, ou *OrgUnit) (*R
 	}
 
 	req.PolicySchemaFilter = "chrome.users.*"
-	userPolicies, err := doPaginated[ResolvedPolicies](c.Client, "POST", url, nil, req)
+	userPolicies, err := doPaginated[ResolvedPolicies, *PolicyQuery](c.Client, "POST", url, nil, req)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +235,7 @@ func (c *DeviceClient) ResolvePolicySchemas(customer *Customer, ou *OrgUnit) (*R
 	}
 
 	req.PolicySchemaFilter = "chrome.devices.*"
-	devicePolicies, err := doPaginated[ResolvedPolicies](c.Client, "POST", url, nil, req)
+	devicePolicies, err := doPaginated[ResolvedPolicies, *PolicyQuery](c.Client, "POST", url, nil, req)
 	if err != nil {
 		return nil, err
 	}

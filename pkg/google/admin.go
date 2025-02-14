@@ -90,6 +90,10 @@ type ReportsQuery struct {
 	IncludeIndirectRoleAssignments bool   `url:"includeIndirectRoleAssignments,omitempty"` // Whether to include indirect role assignments.
 }
 
+func (q *ReportsQuery) SetPageToken(token string) {
+	q.PageToken = token
+}
+
 /*
  * List all Roles in the domain with pagination support
  * /admin/directory/v1/customer/{customer}/roles
@@ -407,7 +411,7 @@ func (c *AdminClient) GetFileOwnership(fileID string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	c.Log.Println(ss.PrettyJSON(fileReport))
+	c.Log.Debug(ss.PrettyJSON(fileReport))
 
 	if len(fileReport.Items) == 0 {
 		return "", fmt.Errorf("no events found for file %s", fileID)
@@ -478,7 +482,7 @@ func (c *AdminClient) GetOU(customer *Customer, orgUnitPath string) (*OrgUnit, e
 }
 
 /*
- * Clone Chrome Policies for Organization Units by Path
+ * Clone Direct Chrome Policies (Non-Inherited) for Organization Units by Path
  * chromepolicy.googleapis.com/v1/{customer=customers/*}/policies/orgunits:batchModify
  * https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies.orgunits/batchModify
  */
@@ -505,27 +509,36 @@ func (c *AdminClient) CloneOU(customer *Customer, sourcePath, targetPath string)
 		return err
 	}
 
+	// We want to ensure we only clone policies directly applied to the source OU (non-inherited).
 	userPayload := PolicyModificationRequests{
 		Requests: createPolicyModificationRequests(*sourcePolicies.Users.Direct, targetOU, schemas),
 	}
 
-	c.Log.Println("Cloning user policies...")
-	_, err = do[any](c.Client, "POST", url, nil, userPayload)
-	if err != nil {
-		return err
-	}
-	c.Log.Printf("Successfully cloned user policies! (https://admin.google.com/ac/chrome/settings/user?ac_ouid=%s)", strings.TrimPrefix(targetOU.ID, "id:"))
-
 	devicePayload := PolicyModificationRequests{
-		Requests: createPolicyModificationRequests(*sourcePolicies.Devices.ResolvedPolicies, targetOU, schemas),
+		Requests: createPolicyModificationRequests(*sourcePolicies.Devices.Direct, targetOU, schemas),
 	}
 
-	c.Log.Println("Cloning device policies...")
-	_, err = do[any](c.Client, "POST", url, nil, devicePayload)
-	if err != nil {
-		return err
+	if len(userPayload.Requests) > 0 {
+		c.Log.Println("Cloning user policies...")
+		_, err = do[any](c.Client, "POST", url, nil, userPayload)
+		if err != nil {
+			return err
+		}
+		c.Log.Printf("Successfully cloned user policies! (https://admin.google.com/ac/chrome/settings/user?ac_ouid=%s)", strings.TrimPrefix(targetOU.ID, "id:"))
+	} else {
+		c.Log.Println("No user policies to clone.")
 	}
-	c.Log.Printf("Successfully cloned chrome device policies! (https://admin.google.com/ac/chrome/settings/device?ac_ouid=%s)", strings.TrimPrefix(targetOU.ID, "id:"))
+
+	if len(devicePayload.Requests) > 0 {
+		c.Log.Println("Cloning device policies...")
+		_, err = do[any](c.Client, "POST", url, nil, devicePayload)
+		if err != nil {
+			return err
+		}
+		c.Log.Printf("Successfully cloned chrome device policies! (https://admin.google.com/ac/chrome/settings/device?ac_ouid=%s)", strings.TrimPrefix(targetOU.ID, "id:"))
+	} else {
+		c.Log.Println("No device policies to clone.")
+	}
 
 	return nil
 }

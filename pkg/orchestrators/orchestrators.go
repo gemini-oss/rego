@@ -39,7 +39,7 @@ type Client struct {
  * Format the sheet
  */
 func (c *Client) OktaRoleReportToGoogleSheet() error {
-	roleReports, err := c.Okta.GenerateRoleReport()
+	roleReports, err := c.Okta.Roles().GenerateRoleReport()
 	if err != nil {
 		return err
 	}

@@ -59,6 +59,17 @@ func (c *Client) BuildURL(endpoint string, customer *Customer, parameters ...str
 		url = endpoint
 	}
 
+	// If the URL has multiple %s placeholders, ensure to use the appropriate parameters
+	if strings.Contains(url, "%s") {
+		args := make([]any, len(parameters))
+		for i, param := range parameters {
+			args[i] = param
+		}
+		url = fmt.Sprintf(url, args...)
+		parameters = parameters[len(args):] // Remove used parameters from the slice
+	}
+
+	// Handle any remaining parameters
 	for _, param := range parameters {
 		if param != "" {
 			if strings.HasPrefix(param, ":") {
@@ -76,7 +87,7 @@ func (c *Client) BuildURL(endpoint string, customer *Customer, parameters ...str
 /*
  * SetCache stores a Google API response in the cache
  */
-func (c *Client) SetCache(key string, value interface{}, duration time.Duration) {
+func (c *Client) SetCache(key string, value any, duration time.Duration) {
 	data, err := json.Marshal(value)
 	if err != nil {
 		c.Log.Error("Error marshalling cache data:", err)
@@ -88,7 +99,7 @@ func (c *Client) SetCache(key string, value interface{}, duration time.Duration)
 /*
  * GetCache retrieves a Google API response from the cache
  */
-func (c *Client) GetCache(key string, target interface{}) bool {
+func (c *Client) GetCache(key string, target any) bool {
 	data, found := c.Cache.Get(key)
 	if !found {
 		return false
@@ -124,7 +135,10 @@ func (c *Client) GenerateJWT(data []byte) (*requests.Client, error) {
 	c.Log.Println("Generating JWT Token")
 	t, err := jwtConfig.TokenSource(ctx).Token()
 	if err != nil {
-		c.Log.Printf("Unable to generate token: %v", err)
+		c.Log.Fatalf("Unable to generate token: %v", err)
+	}
+	if t == nil {
+		c.Log.Fatal("Unable to generate token. Ensure you have the correct scopes set in your client secret file or are using the correct subject")
 	}
 	c.Log.Printf("Token Successfully Generated")
 
@@ -384,33 +398,40 @@ func NewClient(ac AuthCredentials, verbosity int) (*Client, error) {
 	return nil, nil
 }
 
-// GoogleAPIResponse is an interface for Google API responses involving pagination
-type GoogleAPIResponse interface {
-	Append(interface{})
+// GoogleAPIResponse is a generic interface for Google API responses involving pagination
+type GoogleAPIResponse[T any] interface {
+	Append(T) T
 	PageToken() string
+}
+
+// GoogleQuery is an interface for Google API queries involving pagination
+type GoogleQuery interface {
+	// SetPageToken updates the query’s page token.
+	SetPageToken(string)
 }
 
 /*
  * Perform a generic request to the Google API
  */
-func do[T any](c *Client, method string, url string, query interface{}, data interface{}) (T, error) {
+func do[T any](c *Client, method string, url string, query any, data any) (T, error) {
 	var result T
-	res, body, err := c.HTTP.DoRequest(method, url, query, data)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	res, body, err := c.HTTP.DoRequest(ctx, method, url, query, data)
 	if err != nil {
-		return *new(T), err
+		if requests.IsNonRetryableCode(res.StatusCode) {
+			var googleError ErrorResponse
+			err = json.Unmarshal(body, &googleError)
+			if err != nil {
+				return *new(T), fmt.Errorf("error unmarshalling API error response: %w", err)
+			}
+			return *new(T), googleError.Error
+		}
 	}
 
 	c.Log.Println("Response Status:", res.Status)
 	c.Log.Debug("Response Body:", string(body))
-
-	if res.StatusCode >= 400 {
-		var googleError ErrorResponse
-		err = json.Unmarshal(body, &googleError)
-		if err != nil {
-			return *new(T), fmt.Errorf("error unmarshalling API error response: %w", err)
-		}
-		return *new(T), googleError.Error
-	}
 
 	err = json.Unmarshal(body, &result)
 	if err != nil {
@@ -420,7 +441,7 @@ func do[T any](c *Client, method string, url string, query interface{}, data int
 	return result, nil
 }
 
-func doPaginated[T GoogleAPIResponse](c *Client, method string, url string, query interface{}, data interface{}) (*T, error) {
+func doPaginated[T GoogleAPIResponse[T], Q GoogleQuery](c *Client, method string, url string, query Q, data any) (*T, error) {
 	var r T
 	results := r
 
@@ -432,13 +453,14 @@ func doPaginated[T GoogleAPIResponse](c *Client, method string, url string, quer
 			return nil, err
 		}
 
-		r.Append(r)
+		results = results.Append(r)
 
 		pageToken = r.PageToken()
 		if pageToken == "" {
-			results = r
 			break
 		}
+
+		query.SetPageToken(pageToken)
 	}
 
 	return &results, nil

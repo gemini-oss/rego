@@ -77,6 +77,10 @@ type DriveFileQuery struct {
 	UseContentAsIndexableText bool   `url:"useContentAsIndexableText,omitempty"` // Whether to use the uploaded content as indexable text.
 }
 
+func (q *DriveFileQuery) SetPageToken(token string) {
+	q.PageToken = token
+}
+
 /*
  * Check if the DriveQuery is empty
  */

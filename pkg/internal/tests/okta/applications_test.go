@@ -40,7 +40,7 @@ func TestListAllApplications(t *testing.T) {
 
 	client := setupTestClient(server.URL)
 
-	apps, err := client.ListAllApplications()
+	apps, err := client.Applications().ListAllApplications()
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}

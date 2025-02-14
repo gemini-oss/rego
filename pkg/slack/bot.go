@@ -13,6 +13,7 @@ https://api.slack.com/web
 package slack
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -148,7 +149,7 @@ func (c *Client) GetBotID() (string, error) {
 	}
 	p.Token = c.Token
 
-	res, body, err := c.HTTP.DoRequest("POST", url, nil, p)
+	res, body, err := c.HTTP.DoRequest(context.Background(), "POST", url, nil, p)
 	if err != nil {
 		return "", err
 	}
@@ -178,7 +179,7 @@ func (c *Client) SendMessage(e *Event, m *SlackMessage) error {
 		Markdown: true,
 	}
 
-	res, body, err := c.HTTP.DoRequest("POST", url, nil, message)
+	res, body, err := c.HTTP.DoRequest(context.Background(), "POST", url, nil, message)
 	if err != nil {
 		return err
 	}
@@ -202,7 +203,7 @@ func (c *Client) SendReply(e *Event, m *SlackMessage) error {
 		ThreadTS: e.EventTS,
 	}
 
-	res, body, err := c.HTTP.DoRequest("POST", url, nil, reply)
+	res, body, err := c.HTTP.DoRequest(context.Background(), "POST", url, nil, reply)
 	if err != nil {
 		return err
 	}

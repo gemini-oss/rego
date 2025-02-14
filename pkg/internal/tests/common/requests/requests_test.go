@@ -3,12 +3,14 @@ package requests_test
 
 import (
 	"bytes"
+	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
-	"github.com/gemini-oss/rego/pkg/common/log"
 	"github.com/gemini-oss/rego/pkg/common/ratelimit"
 	"github.com/gemini-oss/rego/pkg/common/requests"
 )
@@ -32,6 +34,18 @@ func mockHTTPClient(responseBody string, statusCode int, err error) *http.Client
 			}, nil
 		}),
 	}
+}
+
+func setupMockServer(t *testing.T, method string, status int, body string) *httptest.Server {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != method && method != "INVALID" {
+			t.Errorf("Unexpected method: got %v, want %v", r.Method, method)
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+		w.WriteHeader(status)
+		w.Write([]byte(body))
+	}))
 }
 
 func TestNewClient(t *testing.T) {
@@ -253,76 +267,59 @@ func TestSetFormURLEncodedPayload(t *testing.T) {
 }
 
 func TestDoRequest(t *testing.T) {
-	// Mock HTTP client for simulating responses
-	mockClient := mockHTTPClient("mock response", http.StatusOK, nil)
-
 	tests := []struct {
-		name       string
-		method     string
-		url        string
-		query      interface{}
-		data       interface{}
-		wantErr    bool
-		wantBody   string
-		wantStatus int
+		name           string
+		method         string
+		responseStatus int
+		responseBody   string
+		query          interface{}
+		data           interface{}
+		wantErr        bool
 	}{
 		{
-			"GET Valid Request",
-			"GET",
-			"http://gemini.com",
-			nil,
-			nil,
-			false,
-			"mock response",
-			http.StatusOK,
+			name:           "GET Valid Request",
+			method:         "GET",
+			responseStatus: http.StatusOK,
+			responseBody:   "mock response",
+			wantErr:        false,
 		},
 		{
-			"POST Valid Request",
-			"POST",
-			"http://gemini.com",
-			nil,
-			map[string]interface{}{"field1": "value1"},
-			false,
-			"mock response",
-			http.StatusOK,
+			name:           "POST Invalid Request",
+			method:         "POST",
+			responseStatus: http.StatusBadRequest,
+			responseBody:   "Bad Request",
+			data:           map[string]interface{}{"field1": "value1"},
+			wantErr:        true,
 		},
 		{
-			"Invalid Method",
-			"INVALID",
-			"http://gemini.com",
-			nil,
-			nil,
-			true,
-			"",
-			0,
-		},
-		{
-			"Invalid URL",
-			"GET",
-			":",
-			nil,
-			nil,
-			true,
-			"",
-			0,
+			name:           "Invalid Method",
+			method:         "INVALID",
+			responseStatus: http.StatusOK,
+			responseBody:   "",
+			wantErr:        true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			client := requests.NewClient(mockClient, requests.Headers{"Content-Type": requests.JSON}, nil)
-			resp, body, err := client.DoRequest(tt.method, tt.url, tt.query, tt.data)
+			mockServer := setupMockServer(t, tt.method, tt.responseStatus, tt.responseBody)
+			defer mockServer.Close()
+
+			client := requests.NewClient(mockServer.Client(), requests.Headers{"Content-Type": requests.JSON}, nil)
+
+			ctx := context.Background()
+			resp, body, err := client.DoRequest(ctx, tt.method, mockServer.URL, tt.query, tt.data)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DoRequest() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
-
 			if !tt.wantErr {
-				if string(body) != tt.wantBody {
-					t.Errorf("DoRequest() body = %s, want %s", string(body), tt.wantBody)
+				if string(body) != tt.responseBody {
+					t.Errorf("DoRequest() body = %s, want %s", string(body), tt.responseBody)
 				}
-				if resp.StatusCode != tt.wantStatus {
-					t.Errorf("DoRequest() status code = %v, want %v", resp.StatusCode, tt.wantStatus)
+				if resp.StatusCode != tt.responseStatus {
+					t.Errorf("DoRequest() status code = %v, want %v", resp.StatusCode, tt.responseStatus)
 				}
 			}
 		})
@@ -330,47 +327,227 @@ func TestDoRequest(t *testing.T) {
 }
 
 func TestRetryLogic(t *testing.T) {
-	rateLimitStatusCode := http.StatusTooManyRequests
-	normalStatusCode := http.StatusOK
-	rateLimitedResponse := "Rate limited"
-	normalResponse := "Success"
+	tests := []struct {
+		name                string
+		responseSequence    []int
+		expectedRequests    int
+		expectedFinalStatus int
+		expectedError       bool
+		timeout             time.Duration
+	}{
+		{
+			name:                "Successful after retries",
+			responseSequence:    []int{429, 429, 429, 200},
+			expectedRequests:    4,
+			expectedFinalStatus: 200,
+			expectedError:       false,
+			timeout:             5 * time.Second,
+		},
+		{
+			name:                "Timeout before success",
+			responseSequence:    []int{429, 429, 429, 200},
+			expectedRequests:    2,
+			expectedFinalStatus: 429,
+			expectedError:       true,
+			timeout:             1 * time.Second,
+		},
+		{
+			name:                "Non-retryable error",
+			responseSequence:    []int{400},
+			expectedRequests:    1,
+			expectedFinalStatus: 400,
+			expectedError:       true,
+			timeout:             5 * time.Second,
+		},
+		{
+			name:                "Max retries reached",
+			responseSequence:    []int{429, 429, 429, 429, 429, 429},
+			expectedRequests:    5,
+			expectedFinalStatus: 429,
+			expectedError:       true,
+			timeout:             10 * time.Second,
+		},
+	}
 
-	// Counter to track the number of requests made
-	var requestCount int
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var requestCount int
+			mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if requestCount >= len(tt.responseSequence) {
+					t.Errorf("Unexpected request: count=%d", requestCount)
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				status := tt.responseSequence[requestCount]
+				requestCount++
+				w.WriteHeader(status)
+				w.Write([]byte(fmt.Sprintf("Response %d", requestCount)))
+				time.Sleep(200 * time.Millisecond) // Add a slight delay to each response
+			}))
+			defer mockServer.Close()
 
-	// Mock HTTP client to simulate rate-limited responses
-	mockClient := &http.Client{
-		Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
-			requestCount++
-			if requestCount <= 3 { // Simulate being rate-limited for the first three requests
-				return &http.Response{
-					StatusCode: rateLimitStatusCode,
-					Body:       io.NopCloser(bytes.NewBufferString(rateLimitedResponse)),
-					Header:     make(http.Header),
-				}, nil
+			rateLimiter := ratelimit.NewRateLimiter(100, 1*time.Minute)
+			client := requests.NewClient(mockServer.Client(), nil, rateLimiter)
+
+			ctx, cancel := context.WithTimeout(context.Background(), tt.timeout)
+			defer cancel()
+
+			resp, _, err := client.DoRequest(ctx, "GET", mockServer.URL, nil, nil)
+
+			if tt.expectedError && err == nil {
+				t.Errorf("Expected an error, but got none")
+			} else if !tt.expectedError && err != nil {
+				t.Errorf("Unexpected error: %v", err)
 			}
-			// Return a normal response on the fourth request
-			return &http.Response{
-				StatusCode: normalStatusCode,
-				Body:       io.NopCloser(bytes.NewBufferString(normalResponse)),
-				Header:     make(http.Header),
-			}, nil
-		}),
+
+			if resp != nil && resp.StatusCode != tt.expectedFinalStatus {
+				t.Errorf("Expected final status %d, got %d", tt.expectedFinalStatus, resp.StatusCode)
+			}
+
+			if requestCount != tt.expectedRequests {
+				t.Errorf("Expected %d total requests, got %d", tt.expectedRequests, requestCount)
+			}
+		})
+	}
+}
+
+func TestErrorHandling(t *testing.T) {
+	tests := []struct {
+		name           string
+		responseStatus int
+		responseBody   string
+		expectedError  string
+	}{
+		{"JSON Error", http.StatusBadRequest, `{"error":"invalid input"}`, `{"error":"invalid input"}`},
+		{"Plain Text Error", http.StatusInternalServerError, "Internal Server Error", "Internal Server Error"},
+		{"Unexpected Error", http.StatusServiceUnavailable, "", "Unexpected error (Status: 503)"},
 	}
 
-	c := requests.NewClient(mockClient, nil, ratelimit.NewRateLimiter(log.NewLogger("{requests_test}", log.TRACE), 3))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(tt.responseStatus)
+				w.Write([]byte(tt.responseBody))
+			}))
+			defer mockServer.Close()
 
-	_, body, err := c.DoRequest("GET", "http://gemini.com", nil, nil)
-	if err != nil {
-		t.Fatalf("DoRequest() error: %v", err)
+			client := requests.NewClient(mockServer.Client(), requests.Headers{"Content-Type": requests.JSON}, nil)
+
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+
+			_, _, err := client.DoRequest(ctx, "GET", mockServer.URL, nil, nil)
+
+			if err == nil {
+				t.Errorf("Expected an error, but got none")
+				return
+			}
+
+			reqErr, ok := err.(*requests.RequestError)
+			if !ok {
+				t.Errorf("Expected error of type *requests.RequestError, got %T", err)
+				return
+			}
+
+			if reqErr.StatusCode != tt.responseStatus {
+				t.Errorf("Expected status code %d, got %d", tt.responseStatus, reqErr.StatusCode)
+			}
+
+			if reqErr.Message != tt.expectedError {
+				t.Errorf("Expected error message '%s', got '%s'", tt.expectedError, reqErr.Message)
+			}
+		})
+	}
+}
+
+func TestStatusCodeChecks(t *testing.T) {
+	tests := []struct {
+		name       string
+		statusCode int
+		checks     map[string]bool
+	}{
+		{
+			"Redirect",
+			http.StatusFound,
+			map[string]bool{
+				"IsRedirectCode":        true,
+				"IsRetryableStatusCode": false,
+				"IsNonRetryableCode":    false,
+				"IsTemporaryErrorCode":  false,
+			},
+		},
+		{
+			"Retryable",
+			http.StatusTooManyRequests,
+			map[string]bool{
+				"IsRedirectCode":        false,
+				"IsRetryableStatusCode": true,
+				"IsNonRetryableCode":    false,
+				"IsTemporaryErrorCode":  false,
+			},
+		},
+		{
+			"Non-Retryable",
+			http.StatusBadRequest,
+			map[string]bool{
+				"IsRedirectCode":        false,
+				"IsRetryableStatusCode": false,
+				"IsNonRetryableCode":    true,
+				"IsTemporaryErrorCode":  false,
+			},
+		},
+		{
+			"Temporary Error",
+			http.StatusInternalServerError,
+			map[string]bool{
+				"IsRedirectCode":        false,
+				"IsRetryableStatusCode": true,
+				"IsNonRetryableCode":    false,
+				"IsTemporaryErrorCode":  true,
+			},
+		},
 	}
 
-	responseBody := string(body)
-	if responseBody != normalResponse {
-		t.Errorf("DoRequest() expected body %s, got %s", normalResponse, responseBody)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := requests.IsRedirectCode(tt.statusCode); got != tt.checks["IsRedirectCode"] {
+				t.Errorf("IsRedirectCode() = %v, want %v", got, tt.checks["IsRedirectCode"])
+			}
+			if got := requests.IsRetryableStatusCode(tt.statusCode); got != tt.checks["IsRetryableStatusCode"] {
+				t.Errorf("IsRetryableStatusCode() = %v, want %v", got, tt.checks["IsRetryableStatusCode"])
+			}
+			if got := requests.IsNonRetryableCode(tt.statusCode); got != tt.checks["IsNonRetryableCode"] {
+				t.Errorf("IsNonRetryableCode() = %v, want %v", got, tt.checks["IsNonRetryableCode"])
+			}
+			if got := requests.IsTemporaryErrorCode(tt.statusCode); got != tt.checks["IsTemporaryErrorCode"] {
+				t.Errorf("IsTemporaryErrorCode() = %v, want %v", got, tt.checks["IsTemporaryErrorCode"])
+			}
+		})
 	}
+}
 
-	if requestCount != 4 { // 3 retries + 1 successful request
-		t.Errorf("DoRequest() expected 4 total requests, got %d", requestCount)
-	}
+func TestClientMethods(t *testing.T) {
+	client := requests.NewClient(nil, requests.Headers{"Content-Type": requests.JSON}, nil)
+
+	t.Run("UpdateContentType", func(t *testing.T) {
+		client.UpdateContentType(requests.FormURLEncoded)
+		if client.Headers["Content-Type"] != requests.FormURLEncoded {
+			t.Errorf("Expected Content-Type to be %s, got %s", requests.FormURLEncoded, client.Headers["Content-Type"])
+		}
+	})
+
+	t.Run("UpdateBodyType", func(t *testing.T) {
+		client.UpdateBodyType(requests.XML)
+		if client.BodyType != requests.XML {
+			t.Errorf("Expected BodyType to be %s, got %s", requests.XML, client.BodyType)
+		}
+	})
+
+	t.Run("ExtractParam", func(t *testing.T) {
+		url := "http://gemini.com?param1=value1&param2=value2"
+		param := client.ExtractParam(url, "param1")
+		if param != "value1" {
+			t.Errorf("Expected extracted param to be 'value1', got '%s'", param)
+		}
+	})
 }

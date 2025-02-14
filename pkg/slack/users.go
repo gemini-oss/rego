@@ -13,6 +13,7 @@ https://api.slack.com/web
 package slack
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -44,7 +45,7 @@ func (c *Client) ListUsers() (*Users, error) {
 		Token: c.Token,
 	}
 
-	res, body, err := c.HTTP.DoRequest("POST", url, nil, p)
+	res, body, err := c.HTTP.DoRequest(context.Background(), "POST", url, nil, p)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +72,7 @@ func (c *Client) GetUserChannels(userID string) (*UserChannels, error) {
 		Types: "public_channel,private_channel",
 	}
 
-	res, body, err := c.HTTP.DoRequest("GET", url, q, nil)
+	res, body, err := c.HTTP.DoRequest(context.Background(), "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}

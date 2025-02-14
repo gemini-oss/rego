@@ -14,7 +14,6 @@ This package initializes all the methods for functions which interact with the J
 package jamf
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
@@ -31,24 +30,15 @@ var (
  * - https://developer.jamf.com/jamf-pro/reference/post_v1-mdm-renew-profile
  */
 func (c *Client) RenewMDMProfile(udids []string) (*ManagementResponse, error) {
-	mr := &ManagementResponse{}
-
 	url := c.BuildURL(RenewProfile)
 
 	payload := map[string][]string{
 		"udids": udids,
 	}
 
-	res, body, err := c.HTTP.DoRequest("POST", url, nil, payload)
+	mr, err := do[*ManagementResponse](c, "POST", url, nil, payload)
 	if err != nil {
 		return nil, err
-	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debugf(string(body))
-
-	err = json.Unmarshal(body, &mr)
-	if err != nil {
-		return nil, fmt.Errorf("unmarshalling user: %w", err)
 	}
 
 	return mr, nil
@@ -62,12 +52,10 @@ func (c *Client) RenewMDMProfile(udids []string) (*ManagementResponse, error) {
 func (c *Client) RepairManagementFramework(id string) (string, error) {
 	url := c.BuildURL(fmt.Sprintf("%s/redeploy/%s", ManagementFramework, id))
 
-	res, body, err := c.HTTP.DoRequest("POST", url, nil, nil)
+	mf, err := do[interface{}](c, "POST", url, nil, nil)
 	if err != nil {
 		return "", err
 	}
-	c.Log.Println("Response Status:", res.Status)
-	c.Log.Debugf(string(body))
 
-	return string(body), nil
+	return fmt.Sprintf("%v", mf), nil
 }
