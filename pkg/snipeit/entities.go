@@ -209,39 +209,51 @@ type HardwarePUTPATCH struct {
 
 // Hardware represents an individual hardware item.
 // https://snipe-it.readme.io/reference/hardware-list#sortable-columns
-type Hardware[M any] struct {
-	*HardwareBase   `json:",inline"`
-	Method          M                             `json:",inline"`
-	Model           *Model[GET]                   `json:"model,omitempty"`             // Model of the hardware item.
-	ModelNumber     string                        `json:"model_number,omitempty"`      // Model number of the hardware item.
-	EOL             *Timestamp                    `json:"eol,omitempty"`               // End of life of a hardware item.
-	AssetEOLDate    *Timestamp                    `json:"asset_eol_date,omitempty"`    // Asset end of life date of the hardware item.
-	StatusLabel     *StatusLabel                  `json:"status_label,omitempty"`      // Status label of the hardware item.
-	Image           string                        `json:"image,omitempty"`             // Image of the hardware item.
-	QR              string                        `json:"qr,omitempty"`                // QR code of the hardware item.
-	AltBarcode      string                        `json:"alt_barcode,omitempty"`       // Alternate barcode of the hardware item.
-	WarrantyExpires string                        `json:"warranty_expires,omitempty"`  // Warranty expiry date of the hardware item.
-	LastAuditDate   *string                       `json:"last_audit_date,omitempty"`   // Last audit date of the hardware item.
-	NextAuditDate   *string                       `json:"next_audit_date,omitempty"`   // Next audit date of the hardware item.
-	Age             string                        `json:"age,omitempty"`               // Age of the hardware item.
-	LastCheckout    *Timestamp                    `json:"last_checkout,omitempty"`     // Time when the hardware item was last checked out.
-	ExpectedCheckin *Timestamp                    `json:"expected_checkin,omitempty"`  // Expected check-in date of the hardware item.
-	CheckinCounter  int                           `json:"checkin_counter,omitempty"`   // Check-in counter of the hardware item.
-	CheckoutCounter int                           `json:"checkout_counter,omitempty"`  // Check-out counter of the hardware item.
-	RequestsCounter int                           `json:"requests_counter,omitempty"`  // Request counter of the hardware item.
-	UserCanCheckout bool                          `json:"user_can_checkout,omitempty"` // Whether the user can check-out the hardware item.
-	CustomFields    *map[string]map[string]string `json:"custom_fields,omitempty"`     // Custom fields of a Snipe-IT asset (This will typically be the `DB Field` property in the WebUI)
+type Hardware struct {
+	ID               int               `json:"id,omitempty"`                // ID of the hardware item.
+	Name             string            `json:"name,omitempty"`              // Name of the hardware item.
+	AssetTag         string            `json:"asset_tag,omitempty"`         // Asset tag of the hardware item.
+	Serial           string            `json:"serial,omitempty"`            // Serial number of the hardware item.
+	Model            *Record           `json:"model,omitempty"`             // Model of the hardware item.
+	BYOD             bool              `json:"byod,omitempty"`              // Whether the hardware item is BYOD.
+	ModelNumber      string            `json:"model_number,omitempty"`      // Model number of the hardware item.
+	EOL              string            `json:"eol,omitempty"`               // End of life of the hardware item.
+	AssetEOLDate     *DateInfo         `json:"asset_eol_date,omitempty"`    // Asset end of life date of the hardware item.
+	StatusLabel      *StatusLabel      `json:"status_label,omitempty"`      // Status label of the hardware item.
+	Category         *Record           `json:"category,omitempty"`          // Category of the hardware item.
+	Manufacturer     *Record           `json:"manufacturer,omitempty"`      // Manufacturer of the hardware item.
+	Supplier         *Record           `json:"supplier,omitempty"`          // Supplier of the hardware item.
+	Notes            string            `json:"notes,omitempty"`             // Notes associated with the hardware item.
+	OrderNumber      string            `json:"order_number,omitempty"`      // Order number of the hardware item.
+	Company          *Record           `json:"company,omitempty"`           // Company of the hardware item.
+	Location         *Record           `json:"location,omitempty"`          // Location of the hardware item.
+	RTDLocation      *Record           `json:"rtd_location,omitempty"`      // RTD location of the hardware item.
+	Image            string            `json:"image,omitempty"`             // Image of the hardware item.
+	QR               string            `json:"qr,omitempty"`                // QR code of the hardware item.
+	AltBarcode       string            `json:"alt_barcode,omitempty"`       // Alternate barcode of the hardware item.
+	AssignedTo       *User             `json:"assigned_to,omitempty"`       // User to whom the hardware item is assigned.
+	WarrantyMonths   string            `json:"warranty_months,omitempty"`   // Warranty months of the hardware item.
+	WarrantyExpires  *DateInfo         `json:"warranty_expires,omitempty"`  // Warranty expiry date of the hardware item.
+	CreatedAt        *DateInfo         `json:"created_at,omitempty"`        // Time when the hardware item was created.
+	UpdatedAt        *DateInfo         `json:"updated_at,omitempty"`        // Time when the hardware item was last updated.
+	LastAuditDate    *DateInfo         `json:"last_audit_date,omitempty"`   // Last audit date of the hardware item.
+	NextAuditDate    *DateInfo         `json:"next_audit_date,omitempty"`   // Next audit date of the hardware item.
+	DeletedAt        string            `json:"deleted_at,omitempty"`        // Time when the hardware item was deleted.
+	PurchaseDate     *DateInfo         `json:"purchase_date,omitempty"`     // Purchase date of the hardware item.
+	Age              string            `json:"age,omitempty"`               // Age of the hardware item.
+	LastCheckout     *DateInfo         `json:"last_checkout,omitempty"`     // Time when the hardware item was last checked out.
+	ExpectedCheckin  *DateInfo         `json:"expected_checkin,omitempty"`  // Expected check-in date of the hardware item.
+	PurchaseCost     string            `json:"purchase_cost,omitempty"`     // Purchase cost of the hardware item.
+	CheckinCounter   int               `json:"checkin_counter,omitempty"`   // Check-in counter of the hardware item.
+	CheckoutCounter  int               `json:"checkout_counter,omitempty"`  // Check-out counter of the hardware item.
+	RequestsCounter  int               `json:"requests_counter,omitempty"`  // Request counter of the hardware item.
+	UserCanCheckout  bool              `json:"user_can_checkout,omitempty"` // Whether the user can check-out the hardware item.
+	CustomFields     *CustomFields     `json:"custom_fields,omitempty"`     // Custom fields of the hardware item.
+	AvailableActions *AvailableActions `json:"available_actions,omitempty"` // Available actions for the hardware item.
+	CustomAssetFields
 }
 
-func (h *Hardware[M]) UnmarshalJSON(data []byte) error {
-	hw, err := generics.UnmarshalGeneric[Hardware[M], M](data)
-	if err != nil {
-		return err
-	}
-
-	*h = *hw
-	return nil
-}
+type CustomAssetFields map[string]interface{} // Custom fields of a Snipe-IT asset (This will typically be the `DB Field` property in the WebUI)
 
 // END OF ASSETS STRUCTS
 //-------------------------------------------------------------------------
