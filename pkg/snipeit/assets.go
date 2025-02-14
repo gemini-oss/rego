@@ -47,6 +47,9 @@ type AssetQuery struct {
 	LocationID     int    `url:"location_id,omitempty"`     // Return only assets associated with the specified location ID.
 	Status         string `url:"status,omitempty"`          // Optionally restrict asset results to one of these status types: RTD, Deployed, Undeployable, Deleted, Archived, Requestable
 	StatusID       int    `url:"status_id,omitempty"`       // Return only assets associated with the specified status ID.
+	AssignedTo     int    `url:"assigned_to,omitempty"`     // Return only assets that are assigned to this ID (requires AssignedType) *Not in api reference doc but used on the web hosted service*
+	AssignedType   string `url:"assigned_type,omitempty"`   // Return only assets of this type that are assigned to a specific ID (requires AssignedTo and uses the original snipeit models) https://github.com/snipe/snipe-it/tree/master/app/Models *Not in api reference but used on the web hosted service*
+	Filter         string `url:"filter,omitempty"`          // Return assets based on matches made with a json string filter (https://github.com/snipe/snipe-it/issues/6917) *Not in api reference but used on the web hosted service*
 }
 
 // ### AssetQuery implements QueryInterface
@@ -66,6 +69,9 @@ func (q *AssetQuery) Copy() QueryInterface {
 		LocationID:     q.LocationID,
 		Status:         q.Status,
 		StatusID:       q.StatusID,
+		AssignedTo:     q.AssignedTo,
+		AssignedType:   q.AssignedType,
+		Filter: 				q.Filter,
 	}
 }
 
@@ -89,17 +95,12 @@ func (q *AssetQuery) SetOffset(offset int) {
 //---------------------------------------------------------------------
 
 /*
- * List all Hardware Assets in Snipe-IT
- * /api/v1/hardware
- * - https://snipe-it.readme.io/reference/hardware-list
+* List all Hardware Assets that conform to a query in Snipe-IT
+* /api/v1/hardware
+* - https://snipe-it.readme.io/reference/hardware-list
  */
-func (c *AssetClient) GetAllAssets() (*HardwareList, error) {
+func (c *AssetClient) GetAssetsByQuery(q AssetQuery) (*HardwareList, error) {
 	url := c.BuildURL(Assets)
-
-	q := AssetQuery{
-		Limit:  500,
-		Offset: 0,
-	}
 
 	var cache HardwareList
 	if c.GetCache(url, &cache) {
@@ -116,14 +117,28 @@ func (c *AssetClient) GetAllAssets() (*HardwareList, error) {
 }
 
 /*
+ * List all Hardware Assets in Snipe-IT
+ * /api/v1/hardware
+ * - https://snipe-it.readme.io/reference/hardware-list
+ */
+func (c *AssetClient) GetAllAssets() (*HardwareList, error) {
+	q := AssetQuery{
+		Limit:  500,
+		Offset: 0,
+	}
+
+	return c.GetAssetsByQuery(q)
+}
+
+/*
  * Get Hardware Assets by Serial
  * /api/v1/hardware/byserial/{serial}
  * - https://snipe-it.readme.io/reference/hardware-by-serial
  */
-func (c *AssetClient) GetAssetBySerial(serial string) (*Hardware[HardwareGET], error) {
+func (c *AssetClient) GetAssetBySerial(serial string) (*HardwareList, error) {
 	url := c.BuildURL(Assets, "byserial", serial)
 
-	var cache Hardware[HardwareGET]
+	var cache HardwareList
 	if c.GetCache(url, &cache) {
 		return &cache, nil
 	}
@@ -134,29 +149,29 @@ func (c *AssetClient) GetAssetBySerial(serial string) (*Hardware[HardwareGET], e
 	}
 
 	c.SetCache(url, asset, 5*time.Minute)
-	return (*asset.Rows)[0], nil
+	return &asset, nil
 }
 
 /*
- * Get Hardware Assets by Tag
+ * Get Hardware Assets by Tag 
  * /api/v1/hardware/bytag/{tag}
  * - https://snipe-it.readme.io/reference/hardware-by-asset-tag
  */
-func (c *AssetClient) GetAssetByTag(tag string) (*Hardware[HardwareGET], error) {
+func (c *AssetClient) GetAssetByTag(tag string) (*Hardware, error) {
 	url := c.BuildURL(Assets, "bytag", tag)
 
-	var cache Hardware[HardwareGET]
+	var cache Hardware
 	if c.GetCache(url, &cache) {
 		return &cache, nil
 	}
 
-	asset, err := do[HardwareList](c.Client, "GET", url, nil, nil)
+	asset, err := do[Hardware](c.Client, "GET", url, nil, nil)
 	if err != nil {
 		c.Log.Fatalf("Error fetching hardware asset: %v", err)
 	}
 
 	c.SetCache(url, asset, 5*time.Minute)
-	return (*asset.Rows)[0], nil
+	return &asset, nil
 }
 
 /*
@@ -164,10 +179,10 @@ func (c *AssetClient) GetAssetByTag(tag string) (*Hardware[HardwareGET], error) 
  * /api/v1/hardware
  * - https://snipe-it.readme.io/reference/hardware-create
  */
-func (c *AssetClient) CreateAsset(p *Hardware[HardwarePOST]) (*Hardware[HardwarePOST], error) {
+func (c *AssetClient) CreateAsset(p *Hardware) (*Hardware, error) {
 	url := c.BuildURL(Assets)
 
-	hardware, err := do[SnipeITResponse[Hardware[HardwarePOST]]](c.Client, "POST", url, nil, p)
+	hardware, err := do[SnipeITResponse[Hardware]](c.Client, "POST", url, nil, p)
 	if err != nil {
 		c.Log.Fatalf("Error creating asset: %v", err)
 	}
@@ -179,10 +194,10 @@ func (c *AssetClient) CreateAsset(p *Hardware[HardwarePOST]) (*Hardware[Hardware
  * /api/v1/hardware/{id}
  * - https://snipe-it.readme.io/reference/hardware-partial-update
  */
-func (c *AssetClient) PartialUpdateAsset(id uint32, h *Hardware[HardwarePUTPATCH]) (*Hardware[HardwarePUTPATCH], error) {
+func (c *AssetClient) PartialUpdateAsset(id int, p *Hardware) (*Hardware, error) {
 	url := c.BuildURL(Assets, id)
 
-	hardware, err := do[SnipeITResponse[Hardware[HardwarePUTPATCH]]](c.Client, "PATCH", url, nil, h)
+	hardware, err := do[SnipeITResponse[Hardware]](c.Client, "PATCH", url, nil, p)
 	if err != nil {
 		c.Log.Fatalf("Error updating asset: %v", err)
 	}
@@ -196,17 +211,17 @@ func (c *AssetClient) PartialUpdateAsset(id uint32, h *Hardware[HardwarePUTPATCH
  * /api/v1/hardware/{id}
  * - https://snipe-it.readme.io/reference/hardware-delete
  */
-func (c *AssetClient) DeleteAsset(id int64) (string, error) {
+func (c *AssetClient) DeleteAsset(id int) (string, error) {
 	url := c.BuildURL(Assets, id)
 
-	hardware, err := do[SnipeITResponse[Hardware[PPPD]]](c.Client, "DELETE", url, nil, nil)
+	hardware, err := do[SnipeITResponse[Hardware]](c.Client, "DELETE", url, nil, nil)
 	if err != nil {
 		c.Log.Fatalf("Error deleting asset: %v", err)
 	}
 
-	switch hardware.Messages.StringValue {
+	switch hardware.Messages {
 	case "The asset was deleted successfully.", "Asset does not exist.":
-		return hardware.Messages.StringValue, err
+		return hardware.Messages, err
 	default:
 		return hardware.Status, err
 	}
