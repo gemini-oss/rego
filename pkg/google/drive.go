@@ -447,3 +447,27 @@ func (c *DriveClient) GetFilePath(id string) (string, error) {
 
 	return parentPath + "/" + file.Name, nil
 }
+
+// CreatePermission creates a new permission for a file
+// https://developers.google.com/drive/api/reference/rest/v3/permissions
+func (c *DriveClient) CreatePermission(fileID string, role string, email string) error {
+	url := fmt.Sprintf("%s/%s/permissions", DriveFiles, fileID)
+
+	permission := struct {
+		Role         string `json:"role"`
+		Type         string `json:"type"`
+		EmailAddress string `json:"emailAddress"`
+	}{
+		Role:         role,
+		Type:         "user",
+		EmailAddress: email,
+	}
+
+	// Using the internal do function that's available within the google package
+	_, err := do[interface{}](c.Client, "POST", url, nil, &permission)
+	if err != nil {
+		return fmt.Errorf("failed to create permission: %v", err)
+	}
+	return nil
+}
+
