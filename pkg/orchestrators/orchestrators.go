@@ -126,11 +126,11 @@ func (c *Client) ADReportToGoogleSheet(group string) error {
 		Range:          "A:Z",
 		MajorDimension: "ROWS",
 	}
-	headers := []string{"SAM Account Name", "First", "Last", "User Principal Name (UPN)", "Display Name", "Group"}
+	headers := []string{"SAM Account Name", "First", "Last", "User Principal Name (UPN)", "Last Login", "Enabled", "Group"}
 	vr.Values = append(vr.Values, headers)
 
 	for _, user := range *users {
-		vr.Values = append(vr.Values, []string{user.SAMAccountName, user.GivenName, user.SN, user.UserPrincipalName, user.DisplayName, group})
+		vr.Values = append(vr.Values, []string{user.SAMAccountName, user.GivenName, user.SN, user.UserPrincipalName, fmt.Sprintf("%v", user.LastLogonTimestamp), fmt.Sprintf("%d", user.UserAccountControl), group})
 	}
 
 	rows := len(vr.Values)

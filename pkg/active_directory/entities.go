@@ -49,53 +49,53 @@ type Users []*User
 // User represents an AD user with detailed fields (AKA: Contact)
 // https://learn.microsoft.com/en-us/windows/win32/adschema/c-user
 type User struct {
-	AccountExpires             string   `ldap:"accountExpires"`             // https://learn.microsoft.com/en-us/windows/win32/adschema/a-accountexpires
-	AdminCount                 int      `ldap:"adminCount"`                 // https://learn.microsoft.com/en-us/windows/win32/adschema/a-admincount
-	AltSecurityIdentities      []string `ldap:"altSecurityIdentities"`      // https://learn.microsoft.com/en-us/windows/win32/adschema/a-altsecurityidentities
-	BadPasswordTime            int64    `ldap:"badPasswordTime"`            // https://learn.microsoft.com/en-us/windows/win32/adschema/a-badpasswordtime
-	BadPwdCount                int      `ldap:"badPwdCount"`                // https://learn.microsoft.com/en-us/windows/win32/adschema/a-badpwdcount
-	City                       string   `ldap:"l"`                          // https://learn.microsoft.com/en-us/windows/win32/adschema/a-l
-	CodePage                   int      `ldap:"codePage"`                   // https://learn.microsoft.com/en-us/windows/win32/adschema/a-codepage
-	CommonName                 string   `ldap:"cn"`                         // https://learn.microsoft.com/en-us/windows/win32/adschema/a-cn
-	Country                    string   `ldap:"c"`                          // https://learn.microsoft.com/en-us/windows/win32/adschema/a-c
-	CountryCode                int      `ldap:"countryCode"`                // https://learn.microsoft.com/en-us/windows/win32/adschema/a-countrycode
-	Department                 string   `ldap:"department"`                 // https://learn.microsoft.com/en-us/windows/win32/adschema/a-department
-	DistinguishedName          string   `ldap:"dn"`                         // https://learn.microsoft.com/en-us/windows/win32/adschema/a-distinguishedName
-	DSCorePropagationData      string   `ldap:"dSCorePropagationData"`      // https://learn.microsoft.com/en-us/windows/win32/adschema/a-dscorepropagationdata
-	DisplayName                string   `ldap:"displayName"`                // https://learn.microsoft.com/en-us/windows/win32/adschema/a-displayname
-	Division                   string   `ldap:"division"`                   // https://learn.microsoft.com/en-us/windows/win32/adschema/a-division
-	EmployeeID                 string   `ldap:"employeeID"`                 // https://learn.microsoft.com/en-us/windows/win32/adschema/a-employeeid
-	EmployeeNumber             string   `ldap:"employeeNumber"`             // https://learn.microsoft.com/en-us/windows/win32/adschema/a-employeenumber
-	GivenName                  string   `ldap:"givenName"`                  // https://learn.microsoft.com/en-us/windows/win32/adschema/a-givenname
-	InstanceType               int      `ldap:"instanceType"`               // https://learn.microsoft.com/en-us/windows/win32/adschema/a-instancetype
-	LastLogoff                 int64    `ldap:"lastLogoff"`                 // https://learn.microsoft.com/en-us/windows/win32/adschema/a-lastlogoff
-	LastLogon                  int64    `ldap:"lastLogon"`                  // https://learn.microsoft.com/en-us/windows/win32/adschema/a-lastlogon
-	LastLogonTimestamp         string   `ldap:"lastLogonTimestamp"`         // https://learn.microsoft.com/en-us/windows/win32/adschema/a-lastlogontimestamp
-	Manager                    string   `ldap:"manager"`                    // https://learn.microsoft.com/en-us/windows/win32/adschema/a-manager
-	Mail                       string   `ldap:"mail"`                       // https://learn.microsoft.com/en-us/windows/win32/adschema/a-mail
-	MemberOf                   []string `ldap:"memberOf"`                   // https://learn.microsoft.com/en-us/windows/win32/adschema/a-memberof
-	Mobile                     string   `ldap:"mobile"`                     // https://learn.microsoft.com/en-us/windows/win32/adschema/a-mobile
-	Name                       string   `ldap:"name"`                       // https://learn.microsoft.com/en-us/windows/win32/adschema/a-name
-	ObjectCategory             string   `ldap:"objectCategory"`             // https://learn.microsoft.com/en-us/windows/win32/adschema/a-objectcategory
-	ObjectClass                string   `ldap:"objectClass"`                // https://learn.microsoft.com/en-us/windows/win32/adschema/a-objectclass
-	ObjectGUID                 []byte   `ldap:"objectGUID"`                 // https://learn.microsoft.com/en-us/windows/win32/adschema/a-objectguid
-	ObjectSID                  []byte   `ldap:"objectSid"`                  // https://learn.microsoft.com/en-us/windows/win32/adschema/a-objectsid
-	PhysicalDeliveryOfficeName string   `ldap:"physicalDeliveryOfficeName"` // https://learn.microsoft.com/en-us/windows/win32/adschema/a-physicaldeliveryofficename
-	PostalCode                 string   `ldap:"postalCode"`                 // https://learn.microsoft.com/en-us/windows/win32/adschema/a-postalcode
-	PwdLastSet                 int64    `ldap:"pwdLastSet"`                 // https://learn.microsoft.com/en-us/windows/win32/adschema/a-pwdlastset
-	ReplPropertyMetaData       string   `ldap:"replPropertyMetaData"`       // https://learn.microsoft.com/en-us/windows/win32/adschema/a-replpropertymetadata
-	SAMAccountName             string   `ldap:"sAMAccountName"`             // https://learn.microsoft.com/en-us/windows/win32/adschema/a-samaccountname
-	SAMAccountType             int      `ldap:"sAMAccountType"`             // https://learn.microsoft.com/en-us/windows/win32/adschema/a-samaccounttype
-	SN                         string   `ldap:"sn"`                         // https://learn.microsoft.com/en-us/windows/win32/adschema/a-sn
-	StreetAddress              string   `ldap:"streetAddress"`              // https://learn.microsoft.com/en-us/windows/win32/adschema/a-streetaddress
-	TelephoneNumber            string   `ldap:"telephoneNumber"`            // https://learn.microsoft.com/en-us/windows/win32/adschema/a-telephonenumber
-	Title                      string   `ldap:"title"`                      // https://learn.microsoft.com/en-us/windows/win32/adschema/a-title
-	UserAccountControl         int      `ldap:"userAccountControl"`         // https://learn.microsoft.com/en-us/windows/win32/adschema/a-useraccountcontrol
-	UserPrincipalName          string   `ldap:"userPrincipalName"`          // https://learn.microsoft.com/en-us/windows/win32/adschema/a-userprincipalname
-	USNChanged                 int64    `ldap:"uSNChanged"`                 // https://learn.microsoft.com/en-us/windows/win32/adschema/a-usnchanged
-	USNCreated                 int64    `ldap:"uSNCreated"`                 // https://learn.microsoft.com/en-us/windows/win32/adschema/a-usncreated
-	WhenChanged                string   `ldap:"whenChanged"`                // https://learn.microsoft.com/en-us/windows/win32/adschema/a-whenchanged
-	WhenCreated                string   `ldap:"whenCreated"`                // https://learn.microsoft.com/en-us/windows/win32/adschema/a-whencreated
+	AccountExpires             time.Time   `ldap:"accountExpires"`             // https://learn.microsoft.com/en-us/windows/win32/adschema/a-accountexpires
+	AdminCount                 int         `ldap:"adminCount"`                 // https://learn.microsoft.com/en-us/windows/win32/adschema/a-admincount
+	AltSecurityIdentities      []string    `ldap:"altSecurityIdentities"`      // https://learn.microsoft.com/en-us/windows/win32/adschema/a-altsecurityidentities
+	BadPasswordTime            int64       `ldap:"badPasswordTime"`            // https://learn.microsoft.com/en-us/windows/win32/adschema/a-badpasswordtime
+	BadPwdCount                int         `ldap:"badPwdCount"`                // https://learn.microsoft.com/en-us/windows/win32/adschema/a-badpwdcount
+	City                       string      `ldap:"l"`                          // https://learn.microsoft.com/en-us/windows/win32/adschema/a-l
+	CodePage                   int         `ldap:"codePage"`                   // https://learn.microsoft.com/en-us/windows/win32/adschema/a-codepage
+	CommonName                 string      `ldap:"cn"`                         // https://learn.microsoft.com/en-us/windows/win32/adschema/a-cn
+	Country                    string      `ldap:"c"`                          // https://learn.microsoft.com/en-us/windows/win32/adschema/a-c
+	CountryCode                int         `ldap:"countryCode"`                // https://learn.microsoft.com/en-us/windows/win32/adschema/a-countrycode
+	Department                 string      `ldap:"department"`                 // https://learn.microsoft.com/en-us/windows/win32/adschema/a-department
+	DistinguishedName          string      `ldap:"dn"`                         // https://learn.microsoft.com/en-us/windows/win32/adschema/a-distinguishedName
+	DSCorePropagationData      []time.Time `ldap:"dSCorePropagationData"`      // https://learn.microsoft.com/en-us/windows/win32/adschema/a-dscorepropagationdata
+	DisplayName                string      `ldap:"displayName"`                // https://learn.microsoft.com/en-us/windows/win32/adschema/a-displayname
+	Division                   string      `ldap:"division"`                   // https://learn.microsoft.com/en-us/windows/win32/adschema/a-division
+	EmployeeID                 string      `ldap:"employeeID"`                 // https://learn.microsoft.com/en-us/windows/win32/adschema/a-employeeid
+	EmployeeNumber             string      `ldap:"employeeNumber"`             // https://learn.microsoft.com/en-us/windows/win32/adschema/a-employeenumber
+	GivenName                  string      `ldap:"givenName"`                  // https://learn.microsoft.com/en-us/windows/win32/adschema/a-givenname
+	InstanceType               int         `ldap:"instanceType"`               // https://learn.microsoft.com/en-us/windows/win32/adschema/a-instancetype
+	LastLogoff                 time.Time   `ldap:"lastLogoff"`                 // https://learn.microsoft.com/en-us/windows/win32/adschema/a-lastlogoff
+	LastLogon                  time.Time   `ldap:"lastLogon"`                  // https://learn.microsoft.com/en-us/windows/win32/adschema/a-lastlogon
+	LastLogonTimestamp         time.Time   `ldap:"lastLogonTimestamp"`         // https://learn.microsoft.com/en-us/windows/win32/adschema/a-lastlogontimestamp
+	Manager                    string      `ldap:"manager"`                    // https://learn.microsoft.com/en-us/windows/win32/adschema/a-manager
+	Mail                       string      `ldap:"mail"`                       // https://learn.microsoft.com/en-us/windows/win32/adschema/a-mail
+	MemberOf                   []string    `ldap:"memberOf"`                   // https://learn.microsoft.com/en-us/windows/win32/adschema/a-memberof
+	Mobile                     string      `ldap:"mobile"`                     // https://learn.microsoft.com/en-us/windows/win32/adschema/a-mobile
+	Name                       string      `ldap:"name"`                       // https://learn.microsoft.com/en-us/windows/win32/adschema/a-name
+	ObjectCategory             string      `ldap:"objectCategory"`             // https://learn.microsoft.com/en-us/windows/win32/adschema/a-objectcategory
+	ObjectClass                []string    `ldap:"objectClass"`                // https://learn.microsoft.com/en-us/windows/win32/adschema/a-objectclass
+	ObjectGUID                 string      `ldap:"objectGUID"`                 // https://learn.microsoft.com/en-us/windows/win32/adschema/a-objectguid
+	ObjectSID                  string      `ldap:"objectSid"`                  // https://learn.microsoft.com/en-us/windows/win32/adschema/a-objectsid
+	PhysicalDeliveryOfficeName string      `ldap:"physicalDeliveryOfficeName"` // https://learn.microsoft.com/en-us/windows/win32/adschema/a-physicaldeliveryofficename
+	PostalCode                 string      `ldap:"postalCode"`                 // https://learn.microsoft.com/en-us/windows/win32/adschema/a-postalcode
+	PwdLastSet                 time.Time   `ldap:"pwdLastSet"`                 // https://learn.microsoft.com/en-us/windows/win32/adschema/a-pwdlastset
+	ReplPropertyMetaData       string      `ldap:"replPropertyMetaData"`       // https://learn.microsoft.com/en-us/windows/win32/adschema/a-replpropertymetadata
+	SAMAccountName             string      `ldap:"sAMAccountName"`             // https://learn.microsoft.com/en-us/windows/win32/adschema/a-samaccountname
+	SAMAccountType             int         `ldap:"sAMAccountType"`             // https://learn.microsoft.com/en-us/windows/win32/adschema/a-samaccounttype
+	SN                         string      `ldap:"sn"`                         // https://learn.microsoft.com/en-us/windows/win32/adschema/a-sn
+	StreetAddress              string      `ldap:"streetAddress"`              // https://learn.microsoft.com/en-us/windows/win32/adschema/a-streetaddress
+	TelephoneNumber            string      `ldap:"telephoneNumber"`            // https://learn.microsoft.com/en-us/windows/win32/adschema/a-telephonenumber
+	Title                      string      `ldap:"title"`                      // https://learn.microsoft.com/en-us/windows/win32/adschema/a-title
+	UserAccountControl         int         `ldap:"userAccountControl"`         // https://learn.microsoft.com/en-us/windows/win32/adschema/a-useraccountcontrol
+	UserPrincipalName          string      `ldap:"userPrincipalName"`          // https://learn.microsoft.com/en-us/windows/win32/adschema/a-userprincipalname
+	USNChanged                 string      `ldap:"uSNChanged"`                 // https://learn.microsoft.com/en-us/windows/win32/adschema/a-usnchanged
+	USNCreated                 string      `ldap:"uSNCreated"`                 // https://learn.microsoft.com/en-us/windows/win32/adschema/a-usncreated
+	WhenChanged                time.Time   `ldap:"whenChanged"`                // https://learn.microsoft.com/en-us/windows/win32/adschema/a-whenchanged
+	WhenCreated                time.Time   `ldap:"whenCreated"`                // https://learn.microsoft.com/en-us/windows/win32/adschema/a-whencreated
 }
 
 type Groups []*Group
@@ -268,4 +268,47 @@ const (
 	ObjectClassUser   LDAPObjectClass = "user"
 	ObjectClassGroup  LDAPObjectClass = "group"
 	ObjectClassPerson LDAPObjectClass = "person"
+)
+
+// Enum values for SAMAccountType
+// https://learn.microsoft.com/en-us/windows/win32/adschema/a-samaccounttype
+const (
+	SAM_DOMAIN_OBJECT             int = 0x00000000 // A domain object.
+	SAM_GROUP_OBJECT              int = 0x10000000 // A group object.
+	SAM_NON_SECURITY_GROUP_OBJECT int = 0x10000001 // A non-security group object.
+	SAM_ALIAS_OBJECT              int = 0x20000000 // An alias object.
+	SAM_NON_SECURITY_ALIAS_OBJECT int = 0x20000001 // A non-security alias object.
+	SAM_USER_OBJECT               int = 0x30000000 // A user object.
+	SAM_NORMAL_USER_ACCOUNT       int = 0x30000000 // A normal user account.
+	SAM_MACHINE_ACCOUNT           int = 0x30000001 // A machine account.
+	SAM_TRUST_ACCOUNT             int = 0x30000002 // A trust account.
+	SAM_APP_BASIC_GROUP           int = 0x40000000 // An application basic group.
+	SAM_APP_QUERY_GROUP           int = 0x40000001 // An application query group.
+	SAM_ACCOUNT_TYPE_MAX          int = 0x7FFFFFFF // The maximum value for a SAM account type.
+)
+
+// Enum values for UserAccountControl
+// https://learn.microsoft.com/en-us/windows/win32/api/iads/ne-iads-ads_user_flag_enum
+const (
+	ADS_UF_SCRIPT                                 int = 0x0001    // The logon script will be run.
+	ADS_UF_ACCOUNTDISABLED                        int = 0x0002    // The account is disabled.
+	ADS_UF_HOMEDIR_REQUIRED                       int = 0x0008    // A home directory is required.
+	ADS_UF_LOCKOUT                                int = 0x0010    // The account is currently locked out.
+	ADS_UF_PASSWD_NOTREQD                         int = 0x0020    // No password is required.
+	ADS_UF_PASSWD_CANT_CHANGE                     int = 0x0040    // The user cannot change the password.
+	ADS_UF_ENCRYPTED_TEXT_PASSWORD_ALLOWED        int = 0x0080    // The user can send an encrypted password.
+	ADS_UF_TEMP_DUPLICATE_ACCOUNT                 int = 0x0100    // This is an account for users whose primary account is in another domain. This account provides user access to this domain, but not to any domain that trusts this domain. Also known as a local user account.
+	ADS_UF_NORMAL_ACCOUNT                         int = 0x0200    // This is a default account type that represents a typical user.
+	ADS_UF_INTERDOMAIN_TRUST_ACCOUNT              int = 0x0800    // This is a trust account for a system domain that trusts other domains.
+	ADS_UF_WORKSTATION_TRUST_ACCOUNT              int = 0x1000    // This is a computer account for a computer that is a member of this domain.
+	ADS_UF_SERVER_TRUST_ACCOUNT                   int = 0x2000    // This is a computer account for a system backup domain controller that is a member of this domain.
+	ADS_UF_DONT_EXPIRE_PASSWD                     int = 0x10000   // The password for this account will never expire.
+	ADS_UF_MNS_LOGON_ACCOUNT                      int = 0x20000   // This is an MNS logon account.
+	ADS_UF_SMARTCARD_REQUIRED                     int = 0x40000   // The user must log on using a smart card.
+	ADS_UF_TRUSTED_FOR_DELEGATION                 int = 0x80000   // The service account (user or computer account), under which a service runs, is trusted for Kerberos delegation. Any such service can impersonate a client requesting the service.
+	ADS_UF_NOT_DELEGATED                          int = 0x100000  // The security context of the user will not be delegated to a service even if the service account is set as trusted for Kerberos delegation.
+	ADS_UF_USE_DES_KEY_ONLY                       int = 0x200000  // Restrict this principal to use only Data Encryption Standard (DES) encryption types for keys.
+	ADS_UF_DONT_REQUIRE_PREAUTH                   int = 0x400000  // This account does not require Kerberos pre-authentication for logon.
+	ADS_UF_PASSWORD_EXPIRED                       int = 0x800000  // The user password has expired. This flag is created by the system using data from the Pwd-Last-Set attribute and the domain policy.
+	ADS_UF_TRUSTED_TO_AUTHENTICATE_FOR_DELEGATION int = 0x1000000 // The account is enabled for delegation. This is a security-sensitive setting; accounts with this option enabled should be strictly controlled. This setting enables a service running under the account to assume a client identity and authenticate as that user to other remote servers on the network.
 )

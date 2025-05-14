@@ -807,6 +807,38 @@ type UserLocation struct {
 // END OF JAMF COMPUTER HISTORY STRUCTS
 //---------------------------------------------------------------------
 
+// ### Jamf Web Admin Structs
+// ---------------------------------------------------------------------
+// JamfUsers represents a list of user accounts from the Jamf Admin WebUI
+type JamfUsers []JamfUser
+
+// JamfUser represents a single user account record.
+type JamfUser struct {
+	ID                        int    `json:"userId,omitempty"`                    // The unique identifier of the user.
+	Username                  string `json:"username,omitempty"`                  // The user's login name.
+	RealName                  string `json:"realname,omitempty"`                  // The user's full name.
+	Password                  string `json:"password,omitempty"`                  // The user's password.
+	PasswordModified          int64  `json:"passwordModified,omitempty"`          // Timestamp (in seconds) when the password was last modified.
+	Email                     string `json:"email,omitempty"`                     // The user's email address.
+	Phone                     string `json:"phone,omitempty"`                     // The user's phone number.
+	LDAPServerID              string `json:"ldapServerId,omitempty"`              // The LDAP server used for authentication.
+	DistinguishedName         string `json:"distinguishedName,omitempty"`         // The user's distinguished name in LDAP.
+	SiteID                    int    `json:"siteId,omitempty"`                    // The site ID associated with the user.
+	AccessLevel               string `json:"accessLevel,omitempty"`               // The user's access level (e.g., "Full Access", "Limited Access").
+	PrivilegeLevel            string `json:"privilegeLevel,omitempty"`            // The user's privilege level (e.g., "ADMINISTRATOR", "CUSTOM").
+	LastPasswordChange        string `json:"lastPasswordChange,omitempty"`        // The date and time when the password was last changed.
+	ChangePasswordOnNextLogin bool   `json:"changePasswordOnNextLogin,omitempty"` // Indicates if the user must change the password upon next login.
+	FailedLoginAttempts       int    `json:"failedLoginAttempts,omitempty"`       // The number of failed login attempts.
+	ForcePasswordChange       bool   `json:"forcePasswordChange,omitempty"`       // Indicates if the user must change the password upon next login.
+	Expires                   string `json:"expires,omitempty"`                   // The expiration date of the account in ISO 8601 format.
+	WebAdmin                  bool   `json:"webAdmin,omitempty"`                  // Indicates if the user has web administration privileges.
+	AccountStatus             string `json:"accountStatus,omitempty"`             // The status of the user account (e.g., "Enabled", "Disabled").
+	Disabled                  bool   `json:"disabled,omitempty"`                  // Indicates if the user account is disabled.
+}
+
+// END OF JAMF WEB ADMIN STRUCTS
+//---------------------------------------------------------------------
+
 // ### Enums
 // --------------------------------------------------------------------
 // Inteded for Device Query parameters, `Sections` serves as a namespace for valid Computer Detail section constants.

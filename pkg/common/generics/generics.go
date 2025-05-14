@@ -8,6 +8,93 @@ import (
 	"strings"
 )
 
+// MarshalGeneric is the exact dual of UnmarshalGeneric.
+//
+//	– T is the concrete wrapper type (e.g. License[M])
+//	– M is the generic field type (e.g. LicensePOST)
+//
+// The function encodes *t to JSON, flattening the one field whose type
+// is M (or *M) and every other field that carries the `,inline` tag
+// exactly the way encoding/json does for embedded structs.
+func MarshalGeneric[T any, M any](t *T) ([]byte, error) {
+	val := reflect.ValueOf(t).Elem()
+	typ := val.Type()
+
+	genericType := reflect.TypeOf((*M)(nil)).Elem()
+	genericField := -1
+
+	// Find the generic field
+	for i := 0; i < typ.NumField(); i++ {
+		ft := typ.Field(i).Type
+		if ft == genericType || (ft.Kind() == reflect.Ptr && ft.Elem() == genericType) {
+			if genericField != -1 {
+				return nil, errors.New("multiple generic fields found")
+			}
+			genericField = i
+		}
+	}
+
+	merge := func(dst, src map[string]any) {
+		for k, v := range src {
+			dst[k] = v
+		}
+	}
+
+	root := map[string]any{}
+
+	// Walk the struct again and collect keys.
+	for i := 0; i < typ.NumField(); i++ {
+		sf := typ.Field(i)
+		fv := val.Field(i)
+
+		// Handle the generic field later.
+		if i == genericField {
+			continue
+		}
+
+		tag := sf.Tag.Get("json")
+		if tag == "-" {
+			continue
+		}
+
+		// Anonymous or explicit `,inline` → treat as embedded.
+		if sf.Anonymous || strings.Contains(tag, "inline") {
+			b, err := json.Marshal(fv.Interface())
+			if err != nil {
+				return nil, err
+			}
+			tmp := map[string]any{}
+			if err := json.Unmarshal(b, &tmp); err != nil {
+				return nil, err
+			}
+			merge(root, tmp)
+			continue
+		}
+
+		// Normal field: honour the first part of the tag as the key.
+		key := strings.Split(tag, ",")[0]
+		if key == "" {
+			key = sf.Name
+		}
+		root[key] = fv.Interface()
+	}
+
+	// Finally flatten the generic field.
+	if genericField != -1 {
+		b, err := json.Marshal(val.Field(genericField).Interface())
+		if err != nil {
+			return nil, err
+		}
+		tmp := map[string]any{}
+		if err := json.Unmarshal(b, &tmp); err != nil {
+			return nil, err
+		}
+		merge(root, tmp)
+	}
+
+	return json.Marshal(root)
+}
+
 // UnmarshalGeneric unmarshals JSON into a generic struct T that contains an inline generic field of type M.
 // The generic field is automatically detected by scanning T for a field whose type is M (or a pointer to M).
 // All keys that are not consumed by other fields are assumed to belong to this generic field.
@@ -198,4 +285,18 @@ func collectInlineKeys(t reflect.Type, raw map[string]json.RawMessage, inlineMap
 			delete(raw, key)
 		}
 	}
+}
+
+// DerefGeneric returns the concrete struct type of E and whether E itself is a pointer.
+func DerefGeneric[E any]() (reflect.Type, bool) {
+	t := reflect.TypeOf((*E)(nil)).Elem()
+	if t.Kind() == reflect.Pointer {
+		return t.Elem(), true
+	}
+	return t, false
+}
+
+// Pointer returns a pointer to the value of type T.
+func Pointer[T any](val T) *T {
+	return &val
 }

@@ -14,6 +14,7 @@ package okta
 
 import (
 	"fmt"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -78,7 +79,7 @@ func (c *RolesClient) GenerateRoleReport() (*RoleReports, error) {
 	var rolesErrMutex sync.Mutex
 	var rolesErrors []error
 
-	sem := make(chan struct{}, 10)
+	sem := make(chan struct{}, runtime.GOMAXPROCS(0))
 	var wg sync.WaitGroup
 
 	for _, user := range *users {
