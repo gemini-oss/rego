@@ -14,6 +14,7 @@ package google
 
 import (
 	"fmt"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -266,7 +267,7 @@ func (c *AdminClient) GenerateRoleReport(roleId string, customer *Customer) ([]*
 
 	// Use a buffered channel as a semaphore to limit concurrent requests.
 	// 10 is the maximum number of concurrent requests.
-	sem := make(chan struct{}, 10)
+	sem := make(chan struct{}, runtime.GOMAXPROCS(0))
 
 	// WaitGroup to ensure all go routines complete their tasks.
 	var wg sync.WaitGroup

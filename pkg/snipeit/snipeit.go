@@ -16,6 +16,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -185,7 +186,7 @@ func doConcurrent[T PaginatedResponse[E], E any](c *Client, method, url string, 
 	}
 
 	// Init concurrency control
-	sem := make(chan struct{}, 10)
+	sem := make(chan struct{}, runtime.GOMAXPROCS(0))
 	var wg sync.WaitGroup
 	var resultsMutex sync.Mutex
 

@@ -51,8 +51,8 @@ func (pl PaginatedList[E]) Elements() *[]*E {
 	return pl.Rows
 }
 
-func (pl PaginatedList[E]) Map() map[interface{}]*E {
-	result := make(map[interface{}]*E)
+func (pl PaginatedList[E]) Map() map[any]*E {
+	result := make(map[any]*E)
 	for _, item := range *pl.Rows {
 		switch entity := any(item).(type) {
 		case *Hardware[any]:
@@ -123,7 +123,7 @@ type GET struct {
 	DeletedAt *DateInfo `json:"deleted_at,omitempty"` // Time when the item was deleted.
 
 	Category     *Record `json:"category,omitempty"`     // Category of the hardware item.
-	Company      *Record `json:"company,omitempty"`      // {HARDWARE,USER} Company
+	Company      *Record `json:"company,omitempty"`      // {HARDWARE,USER,LICENSE} Company
 	Department   *Record `json:"department,omitempty"`   // {USER} Department
 	Depreciation *Record `json:"depreciation,omitempty"` // {MODEL} Depreciation
 	Location     *Record `json:"location,omitempty"`     // {HARDWARE,MODEL,USER} Location of the entity
@@ -131,7 +131,7 @@ type GET struct {
 	Manufacturer *Record `json:"manufacturer,omitempty"` // {ACCESSORY,HARDWARE} Manufacturer
 	Parent       *Record `json:"parent,omitempty"`       // {Location} Parent of the location
 	RTDLocation  *Record `json:"rtd_location,omitempty"` // {HARDWARE} RTD [Ready to Deploy] location
-	Supplier     *Record `json:"supplier,omitempty"`     // Supplier of the hardware item.
+	Supplier     *Record `json:"supplier,omitempty"`     // {HARDWARE,LICENSE} Supplier of the item.
 }
 
 // SnipeIT {POST, PUT, PATCH, DELETE} fields
@@ -139,18 +139,18 @@ type PPPD struct {
 	CreatedAt      *string `json:"created_at,omitempty"`      // Time when the item was created.
 	UpdatedAt      *string `json:"updated_at,omitempty"`      // Time when the item was last updated.
 	DeletedAt      *string `json:"deleted_at,omitempty"`      // Time when the item was deleted.
-	CategoryID     *uint32 `json:"category_id,omitempty"`     // {MODEL} Category ID
-	CompanyID      *uint32 `json:"company_id,omitempty"`      // Company ID
+	CategoryID     *uint32 `json:"category_id,omitempty"`     // {MODEL,LICENSE} Category ID
+	CompanyID      *uint32 `json:"company_id,omitempty"`      // {HARDWARE,LICENSE} Company ID
 	DepartmentID   *uint32 `json:"department_id,omitempty"`   // Department ID
 	DepreciationID *uint32 `json:"depreciation_id,omitempty"` // {MODEL} Depreciation ID
 	FieldsetID     *uint32 `json:"fieldset_id,omitempty"`     // {MODEL} Fieldset ID
 	LocationID     *uint32 `json:"location_id,omitempty"`     // Location ID
-	ManufacturerID *uint32 `json:"manufacturer_id,omitempty"` // {MODEL} Manufacturer ID
+	ManufacturerID *uint32 `json:"manufacturer_id,omitempty"` // {MODEL,LICENSE} Manufacturer ID
 	ModelID        *uint32 `json:"model_id,omitempty"`        // Model ID
 	ParentID       *uint32 `json:"parent_id,omitempty"`       // {Location} Parent ID
 	RTDLocationID  *uint32 `json:"rtd_location_id,omitempty"` // RTD Location ID
 	StatusID       *uint32 `json:"status_id,omitempty"`       // {HARDWARE} Status ID
-	SupplierID     *uint32 `json:"supplier_id,omitempty"`     // {HARDWARE} Supplier ID
+	SupplierID     *uint32 `json:"supplier_id,omitempty"`     // {HARDWARE,LICENSE} Supplier ID
 }
 
 // QueryInterface defines methods for queries with pagination and filtering
@@ -274,22 +274,52 @@ type Accessory struct {
 // ### Categories
 // -------------------------------------------------------------------------
 // Source: https://snipe-it.readme.io/reference/categories
-type CategoryList = PaginatedList[Category]
+type CategoryList = PaginatedList[Category[CategoryGET]]
 
 // Category represents an individual category.
 // https://snipe-it.readme.io/reference/categories#sortable-columns
-type Category struct {
+type CategoryBase struct {
 	*SnipeIT          `json:",inline"`
-	Image             string `json:"image,omitempty"`
-	CategoryType      string `json:"category_type,omitempty"`
-	EULA              bool   `json:"eula,omitempty"`
-	CheckinEmail      bool   `json:"checkin_email,omitempty"`
-	RequireAcceptance bool   `json:"require_acceptance,omitempty"`
-	AssetsCount       int64  `json:"assets_count,omitempty"`
-	AccessoriesCount  int64  `json:"accessories_count,omitempty"`
-	ConsumablesCount  int64  `json:"consumables_count,omitempty"`
-	ComponentsCount   int64  `json:"components_count,omitempty"`
-	LicensesCount     int64  `json:"licenses_count,omitempty"`
+	Type              string `json:"category_type,omitempty"`
+	UseDefaultEULA    bool   `json:"use_default_eula,omitempty,omitzero"`
+	RequireAcceptance bool   `json:"require_acceptance,omitempty,omitzero"`
+	CheckinEmail      bool   `json:"checkin_email,omitempty,omitzero"`
+}
+
+type CategoryGET struct {
+	GET              `json:",inline"`
+	Image            *string `json:"image,omitempty"`
+	HasEULA          bool    `json:"has_eula,omitempty,omitzero"`
+	EULA             string  `json:"use_default_eula,omitempty"`
+	AssetsCount      uint32  `json:"assets_count,omitempty"`
+	AccessoriesCount uint32  `json:"accessories_count,omitempty"`
+	ConsumablesCount uint32  `json:"consumables_count,omitempty"`
+	ComponentsCount  uint32  `json:"components_count,omitempty"`
+	LicensesCount    uint32  `json:"licenses_count,omitempty"`
+	Notes            string  `json:"notes,omitempty"`
+}
+
+type CategoryPOST struct {
+	PPPD `json:",inline"`
+}
+
+type Category[M any] struct {
+	*CategoryBase `json:",inline"`
+	Method        M `json:",inline"`
+}
+
+func (c Category[M]) MarshalJSON() ([]byte, error) {
+	return generics.MarshalGeneric[Category[M], M](&c)
+}
+
+func (c *Category[M]) UnmarshalJSON(data []byte) error {
+	cat, err := generics.UnmarshalGeneric[Category[M], M](data)
+	if err != nil {
+		return err
+	}
+
+	*c = *cat
+	return nil
 }
 
 // END OF CATEGORY STRUCTS
@@ -388,12 +418,163 @@ type Model[M any] struct {
 // END OF MODELS STRUCTS
 //-------------------------------------------------------------------------
 
+// ### Licenses
+// -------------------------------------------------------------------------
+// Source: https://snipe-it.readme.io/reference/licenses
+type LicenseList = PaginatedList[License[LicenseGET]]
+
+type LicenseBase struct {
+	*SnipeIT       `json:",inline"`
+	LicenseName    string     `json:"license_name,omitempty"`    // Owner/contact name
+	LicenseEmail   string     `json:"license_email,omitempty"`   // Owner/contact email
+	Maintained     bool       `json:"maintained,omitempty"`      // Whether the license is maintained
+	Notes          string     `json:"notes,omitempty"`           // Notes associated with the license
+	OrderNumber    string     `json:"order_number,omitempty"`    // Order number of the license
+	PurchaseOrder  string     `json:"purchase_order,omitempty"`  // Purchase order of the license
+	PurchaseDate   *Timestamp `json:"purchase_date,omitempty"`   // Purchase date of the license
+	ExpirationDate *Timestamp `json:"expiration_date,omitempty"` // Expiration date of the license
+}
+
+type LicenseGET struct {
+	GET          `json:",inline"`
+	ProductKey   string `json:"product_key,omitempty"`      // Product key of the license
+	PurchaseCost string `json:"purchase_cost,omitempty"`    // Purchase cost of the license
+	Seats        int    `json:"seats,omitempty"`            // Number of seats for the license (int on GET, string on POST)
+	FreeSeats    int    `json:"free_seats_count,omitempty"` // Number of free seats for the license
+}
+
+type LicensePOST struct {
+	PPPD         `json:",inline"`
+	Seats        string   `json:"seats,omitempty"`         // Number of seats for the license (int on GET, string on POST)
+	ProductKey   string   `json:"serial,omitempty"`        // Product key of the license (but POSTs as serial)
+	PurchaseCost *float64 `json:"purchase_cost,omitempty"` // Purchase cost of the license. (string on GET, float on POST,PATCH)
+	Reassignable bool     `json:"reassignable,omitempty"`  // Whether the license is reassignable
+}
+
+type License[M any] struct {
+	*LicenseBase `json:",inline"`
+	Method       M `json:",inline"`
+}
+
+func (l License[M]) MarshalJSON() ([]byte, error) {
+	return generics.MarshalGeneric[License[M], M](&l)
+}
+
+func (l *License[M]) UnmarshalJSON(data []byte) error {
+	lic, err := generics.UnmarshalGeneric[License[M], M](data)
+	if err != nil {
+		return err
+	}
+
+	*l = *lic
+	return nil
+}
+
+type LicenseBuilder func() *License[LicensePOST]
+
+// NewLicense starts a fresh *License[LicensePOST] and hands the builder back.
+// Philosophy is that we build licenses for PPPD methods but not for GET, which is
+// why LicensePOST is hard-coded instead of using a Generic type
+func NewLicense(name string) LicenseBuilder {
+	lic := &License[LicensePOST]{
+		LicenseBase: &LicenseBase{
+			SnipeIT: &SnipeIT{
+				Record: &Record{Name: name},
+			},
+		},
+		Method: *new(LicensePOST),
+	}
+	return func() *License[LicensePOST] { return lic }
+}
+
+func (b LicenseBuilder) Build() *License[LicensePOST] { return b() }
+
+func (b LicenseBuilder) LicenseEmail(v string) LicenseBuilder {
+	lic := b()
+	lic.LicenseEmail = v
+	return func() *License[LicensePOST] { return lic }
+}
+
+func (b LicenseBuilder) Maintained(v bool) LicenseBuilder {
+	lic := b()
+	lic.Maintained = v
+	return func() *License[LicensePOST] { return lic }
+}
+
+func (b LicenseBuilder) LicenseName(v string) LicenseBuilder {
+	lic := b()
+	lic.LicenseName = v
+	return func() *License[LicensePOST] { return lic }
+}
+
+func (b LicenseBuilder) Notes(v string) LicenseBuilder {
+	lic := b()
+	lic.Notes = v
+	return func() *License[LicensePOST] { return lic }
+}
+
+func (b LicenseBuilder) OrderNumber(v string) LicenseBuilder {
+	lic := b()
+	lic.OrderNumber = v
+	return func() *License[LicensePOST] { return lic }
+}
+
+func (b LicenseBuilder) PurchaseOrder(v string) LicenseBuilder {
+	lic := b()
+	lic.PurchaseOrder = v
+	return func() *License[LicensePOST] { return lic }
+}
+
+func (b LicenseBuilder) PurchaseDate(v string) LicenseBuilder {
+	lic := b()
+	lic.PurchaseDate.ParseDate(v)
+	return func() *License[LicensePOST] { return lic }
+}
+
+func (b LicenseBuilder) ExpirationDate(v string) LicenseBuilder {
+	lic := b()
+	lic.ExpirationDate.ParseDate(v)
+	return func() *License[LicensePOST] { return lic }
+}
+
+func (b LicenseBuilder) CategoryID(v uint32) LicenseBuilder {
+	lic := b()
+	lic.Method.PPPD.CategoryID = &v
+	return func() *License[LicensePOST] { return lic }
+}
+
+func (b LicenseBuilder) Seats(v string) LicenseBuilder {
+	lic := b()
+	lic.Method.Seats = v
+	return func() *License[LicensePOST] { return lic }
+}
+
+func (b LicenseBuilder) ProductKey(v string) LicenseBuilder {
+	lic := b()
+	lic.Method.ProductKey = v
+	return func() *License[LicensePOST] { return lic }
+}
+
+func (b LicenseBuilder) PurchaseCost(v float64) LicenseBuilder {
+	lic := b()
+	lic.Method.PurchaseCost = &v
+	return func() *License[LicensePOST] { return lic }
+}
+
+func (b LicenseBuilder) Reassignable(v bool) LicenseBuilder {
+	lic := b()
+	lic.Method.Reassignable = v
+	return func() *License[LicensePOST] { return lic }
+}
+
+// END OF LICENSE STRUCTS
+// -------------------------------------------------------------------------
 // ### Common Asset types
 // -------------------------------------------------------------------------
 // Record represents an id:name pairing for many types of records in Snipe-IT.
 type Record struct {
-	ID   uint32 `json:"id"`   // ID of the record {category, company, department, location, manufacturer, supplier, etc.}
-	Name string `json:"name"` // Name of the record {category, company, department, location, manufacturer, supplier, etc.}
+	ID   uint32 `json:"id,omitzero"` // ID of the record {category, company, department, location, manufacturer, supplier, etc.}
+	Name string `json:"name"`        // Name of the record {category, company, department, location, manufacturer, supplier, etc.}
 }
 
 const (
@@ -403,7 +584,7 @@ const (
 
 // Timestamp is a time.Time but JSON marshals/unmarshals as a string in the format "2006-01-02 15:04:05"
 type Timestamp struct {
-	time.Time
+	time.Time `json:",omitzero"`
 }
 
 func (ts Timestamp) MarshalJSON() ([]byte, error) {
@@ -414,7 +595,7 @@ func (ts *Timestamp) UnmarshalJSON(b []byte) error {
 	d := &DateInfo{}
 	// If successful and the Date field is not empty, use it
 	if err := json.Unmarshal(b, d); err == nil && d.Date != "" {
-		return ts.parseDate(d.Date)
+		return ts.ParseDate(d.Date)
 	}
 
 	// If that fails, try to unmarshal directly into a string
@@ -423,11 +604,11 @@ func (ts *Timestamp) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	return ts.parseDate(dateStr)
+	return ts.ParseDate(dateStr)
 }
 
 // parseDate attempts to parse a date string in ISO 8601 format first, then falls back to MySQL DATETIME format.
-func (ts *Timestamp) parseDate(dateStr string) error {
+func (ts *Timestamp) ParseDate(dateStr string) error {
 	t, err := time.Parse(iso8601, dateStr)
 	if err != nil {
 		t, err = time.Parse(snipeTime, dateStr)
@@ -465,3 +646,14 @@ type AvailableActions struct {
 
 // END OF COMMON ASSET TYPES
 //-------------------------------------------------------------------------
+
+// ### Enums
+// --------------------------------------------------------------------
+
+const (
+	CATEGORY_TYPE_ASSET      string = "Asset"
+	CATEGORY_TYPE_ACCESSORY  string = "Accessory"
+	CATEGORY_TYPE_CONSUMABLE string = "Consumable"
+	CATEGORY_TYPE_COMPONENT  string = "Component"
+	CATEGORY_TYPE_LICENSE    string = "License"
+)

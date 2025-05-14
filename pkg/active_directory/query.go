@@ -21,15 +21,16 @@ import (
 )
 
 const (
-	LDAP_MATCHING_RULE_BIT_AND  = "1.2.840.113556.1.4.803"  // A match is found only if all bits from the attribute match the value. This rule is equivalent to a bitwise AND operator.
-	LDAP_MATCHING_RULE_BIT_OR   = "1.2.840.113556.1.4.804"  // A match is found if any bits from the attribute match the value. This rule is equivalent to a bitwise OR operator.
-	LDAP_MATCHING_RULE_IN_CHAIN = "1.2.840.113556.1.4.1941" // This rule is limited to filters that apply to the DN. This is a special "extended" match operator that walks the chain of ancestry in objects all the way to the root until it finds a match.
+	LDAP_MATCHING_RULE_BIT_AND      = "1.2.840.113556.1.4.803"  // A match is found only if all bits from the attribute match the value. This rule is equivalent to a bitwise AND operator.
+	LDAP_MATCHING_RULE_BIT_OR       = "1.2.840.113556.1.4.804"  // A match is found if any bits from the attribute match the value. This rule is equivalent to a bitwise OR operator.
+	LDAP_MATCHING_RULE_IN_CHAIN     = "1.2.840.113556.1.4.1941" // This rule is limited to filters that apply to the DN. This is a special "extended" match operator that walks the chain of ancestry in objects all the way to the root until it finds a match.
+	LDAP_MATCHING_RULE_DN_WITH_DATA = "1.2.840.113556.1.4.2253" // https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/e5bfc285-05b9-494e-a123-c5c4341c450e
 
 	FILTER_USER_ACTIVE                 = "(&(objectCategory=person)(objectClass=user)(!userAccountControl:" + LDAP_MATCHING_RULE_BIT_AND + ":=2))"    // List all active users
-	FILTER_USER_ADMIN                  = "(&(objectClass=user)(objectCategory=Person)(adminCount=1))"                                                 // List all users in privileged groups [Domain Admins, Enterprise Admins, etc.]
-	FILTER_USER_DISABLED               = "(&(objectCategory=person)(objectClass=user)(useraccountcontrol:" + LDAP_MATCHING_RULE_BIT_AND + ":=16))"    // List all disabled users
+	FILTER_USER_ADMIN                  = "(&(objectCategory=person)(objectClass=user)(adminCount=1))"                                                 // List all users in privileged groups [Domain Admins, Enterprise Admins, etc.]
+	FILTER_USER_DISABLED               = "(&(objectCategory=person)(objectClass=user)(useraccountcontrol:" + LDAP_MATCHING_RULE_BIT_AND + ":=2))"     // List all disabled users
 	FILTER_USER_NESTED_GROUP           = "(&(objectClass=user)(memberOf:" + LDAP_MATCHING_RULE_IN_CHAIN + ":=CN=%s,%s,%s))"                           // To Do: Implement better DN handling
-	FILTER_USER_LOCKED                 = "(&(objectCategory=person)(objectClass=user)(useraccountcontrol:" + LDAP_MATCHING_RULE_BIT_AND + ":=16))"    // List all locked users
+	FILTER_USER_LOCKED                 = "(&(objectCategory=person)(objectClass=user)(lockoutTime>=1))"                                               // List all locked users
 	FILTER_USER_PASSWORD_NEVER_EXPIRES = "(&(objectCategory=person)(objectClass=user)(useraccountcontrol:" + LDAP_MATCHING_RULE_BIT_AND + ":=65536))" // List all users with passwords that never expire
 )
 

@@ -14,6 +14,7 @@ package google
 
 import (
 	"fmt"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -320,7 +321,7 @@ func determineParentPath(file *File) string {
 }
 
 func (c *DriveClient) processFileList(q *DriveFileQuery, parentPath string, allFiles *FileList) error {
-	sem := make(chan struct{}, 10)
+	sem := make(chan struct{}, runtime.GOMAXPROCS(0))
 	filesChannel := make(chan *FileList)
 	filesErrChannel := make(chan error)
 

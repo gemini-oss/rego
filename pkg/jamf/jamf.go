@@ -18,6 +18,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -228,7 +229,7 @@ func doConcurrent[T JamfAPIResponse](c *Client, method string, url string, q *De
 	errCh := make(chan error, totalPages)
 
 	// Use a buffered channel as a semaphore to limit concurrent requests.
-	sem := make(chan struct{}, 10)
+	sem := make(chan struct{}, runtime.GOMAXPROCS(0))
 	var wg sync.WaitGroup
 
 	// Start goroutines for each page
