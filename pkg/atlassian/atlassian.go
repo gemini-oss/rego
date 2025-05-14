@@ -3,9 +3,6 @@
 
 This package initializes all the methods for functions which interact with the Atlassian APIs:
 
-* Jira Cloud
-- https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/#about
-
 * Confluence Cloud
 - https://developer.atlassian.com/cloud/confluence/rest/v1/intro/#about
 
@@ -15,7 +12,10 @@ This package initializes all the methods for functions which interact with the A
 * Jira Software Cloud
 - https://developer.atlassian.com/cloud/jira/software/rest/intro/#introduction
 
-:Copyright: (c) 2023 by Gemini Space Station, LLC., see AUTHORS for more info
+* Cloud Admin
+- https://developer.atlassian.com/cloud/admin/rest-apis/
+
+:Copyright: (c) 2025 by Gemini Space Station, LLC., see AUTHORS for more info
 :License: See the LICENSE file for details
 :Author: Anthony Dardano <anthony.dardano@gemini.com>
 */
@@ -27,16 +27,31 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
+
+	"github.com/gemini-oss/rego/pkg/common/cache"
+	"github.com/gemini-oss/rego/pkg/common/config"
+	"github.com/gemini-oss/rego/pkg/common/log"
+	"github.com/gemini-oss/rego/pkg/common/ratelimit"
+	"github.com/gemini-oss/rego/pkg/common/requests"
 )
 
 var (
-	CloudAdmin = fmt.Sprintf("%s/admin/%s", AtlassianBase, "%s")
+	BaseURL                    = fmt.Sprintf("https://%s/", "%s")
+	CloudAdmin                 = fmt.Sprintf("%s/admin", CloudURL)           // https://developer.atlassian.com/cloud/admin/organization/rest/intro/#uri
+	JiraCloud                  = fmt.Sprintf("%s/rest/api/3", "%s")          // https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/#ad-hoc-api-calls
+	JiraSoftwareCloud          = fmt.Sprintf("%s/rest/agile/latest", "%s")   // https://developer.atlassian.com/cloud/jira/software/rest/intro/#uri-structure
+	JiraServiceManagementCloud = fmt.Sprintf("%s/rest/servicedeskapi", "%s") // https://developer.atlassian.com/cloud/jira/service-desk/rest/intro/#ad-hoc-api-calls
+	Forms                      = fmt.Sprintf("%s/jira/forms", CloudURL)      // https://developer.atlassian.com/cloud/forms/rest/intro/#ad-hoc-api-calls
+	ConfluenceCloud            = fmt.Sprintf(V2, "%s/wiki/api")              // https://developer.atlassian.com/cloud/confluence/rest/v2/intro/#using
 )
 
 const (
-	AtlassianBase = "https://api.atlassian.com"
-	V1            = "v1"
+	CloudURL = "https://api.atlassian.com/"
+	V1       = "%s/v1"
+	V2       = "%s/v2"
+	V3       = "%s/v3"
 )
 
 // BuildURL builds a URL for a given resource and identifiers.
@@ -82,6 +97,97 @@ func (c *Client) GetCache(key string, target interface{}) bool {
 		return false
 	}
 	return true
+}
+
+/*
+  - # Generate Atlassian Client
+  - @param logger *log.Logger
+  - @return *Client
+  - Example:
+
+```go
+
+	a := atlassian.NewClient(log.DEBUG)
+
+```
+*/
+func NewClient(verbosity int, opts ...Option) *Client {
+	log := log.NewLogger("{atlassian}", verbosity)
+
+	// Default config reads from environment for toggling -- `Twelve-Factor manifesto` principle
+	cfg := &clientConfig{
+		useSandbox: config.GetEnv("ATLASSIAN_USE_SANDBOX") == "true", // Expecting false if not set
+		orgID:      "ATLASSIAN_ORG_ID",
+		baseURL:    "ATLASSIAN_BASE_URL",
+		token:      "ATLASSIAN_API_TOKEN",
+	}
+
+	for _, opt := range opts {
+		opt(cfg)
+	}
+
+	// If sandbox is toggled (either from environment or an override),
+	// switch to sandbox environment variable names
+	switch cfg.useSandbox {
+	case true:
+		cfg.orgID = "ATLASSIAN_SANDBOX_ORG_ID"
+		cfg.baseURL = "ATLASSIAN_SANDBOX_BASE_URL"
+		cfg.token = "ATLASSIAN_SANDBOX_API_TOKEN"
+	}
+
+	orgName := config.GetEnv(cfg.orgID) // {ORG_NAME}.{BASE_URL}
+	if len(orgName) == 0 {
+		log.Fatalf("%s is not set", cfg.orgID)
+	}
+
+	orgName = strings.TrimPrefix(orgName, "https://")
+	orgName = strings.TrimPrefix(orgName, "http://")
+	orgName = strings.TrimSuffix(orgName, "") // Something.atlassian.net
+
+	base := config.GetEnv(cfg.baseURL) // {ORG_NAME}.{BASE_URL}
+	if len(base) == 0 {
+		log.Fatalf("%s is not set", cfg.baseURL)
+	}
+
+	base = strings.Trim(base, "./")
+	base = strings.TrimSuffix(base, ".com")
+
+	token := config.GetEnv(cfg.token)
+	if len(token) == 0 {
+		log.Fatalf("%s is not set", cfg.token)
+	}
+	BaseURL := fmt.Sprintf(BaseURL, orgName, base)
+
+	headers := requests.Headers{
+		"Authorization": "SSWS " + token,
+		"Accept":        requests.JSON,
+		"Content-Type":  requests.JSON,
+	}
+	httpClient := requests.NewClient(nil, headers, nil)
+	httpClient.BodyType = requests.JSON
+
+	// Look into `Functional Options` patterns for a better way to handle this (and other clients while we're at it)
+	encryptionKey := []byte(config.GetEnv("REGO_ENCRYPTION_KEY"))
+	if len(encryptionKey) == 0 {
+		log.Fatal("REGO_ENCRYPTION_KEY is not set")
+	}
+
+	cache, err := cache.NewCache(encryptionKey, "rego_cache_atlassian.gob", 1000000)
+	if err != nil {
+		panic(err)
+	}
+
+	// https://developer.atlassian.com/cloud/admin/organization/rest/intro/#rate%20limits
+	httpClient.RateLimiter = ratelimit.NewRateLimiter()
+	httpClient.RateLimiter.ResetHeaders = true
+	httpClient.RateLimiter.Log.Verbosity = verbosity
+
+	return &Client{
+		BaseURL: BaseURL,
+		HTTP:    httpClient,
+		Log:     log,
+		Cache:   cache,
+	}
 }
 
 /*
