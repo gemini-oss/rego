@@ -1,7 +1,7 @@
 /*
 # Lenel S2
 
-This package initializes all the methods for functions which interact with the Okta API:
+This package initializes all the methods for functions which interact with the Lenel S2 API:
 https://developer.okta.com/docs/api/
 
 :Copyright: (c) 2023 by Gemini Space Station, LLC., see AUTHORS for more info
@@ -23,7 +23,6 @@ import (
 	"github.com/gemini-oss/rego/pkg/common/cache"
 	"github.com/gemini-oss/rego/pkg/common/config"
 	"github.com/gemini-oss/rego/pkg/common/log"
-	_ "github.com/gemini-oss/rego/pkg/common/ratelimit"
 	"github.com/gemini-oss/rego/pkg/common/requests"
 )
 
@@ -207,11 +206,6 @@ func NewClient(baseURL string, verbosity int) *Client {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// https://developer.okta.com/docs/reference/rl-best-practices/
-	// httpClient.RateLimiter = ratelimit.NewRateLimiter()
-	// httpClient.RateLimiter.ResetHeaders = true
-	// httpClient.RateLimiter.Log.Verbosity = verbosity
 
 	return &Client{
 		BaseURL: url,

@@ -108,6 +108,11 @@ func NewClient(options ...interface{}) *Client {
 }
 
 // UpdateHeaders changes the headers for the HTTP client
+func (c *Client) UpdateAcceptType(contentType string) {
+	c.Headers["Accept"] = contentType
+}
+
+// UpdateHeaders changes the headers for the HTTP client
 func (c *Client) UpdateContentType(contentType string) {
 	c.Headers["Content-Type"] = contentType
 }

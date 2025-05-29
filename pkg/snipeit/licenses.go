@@ -13,6 +13,7 @@ https://snipe-it.readme.io/reference/licenses
 package snipeit
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -126,6 +127,28 @@ func (c *LicenseClient) GetAllLicenses() (*LicenseList, error) {
 }
 
 /*
+ * # Get an license in Snipe-IT by ID
+ * /api/v1/licenses/{id}
+ * - https://snipe-it.readme.io/reference/licensesid
+ */
+func (c *LicenseClient) GetLicense(id uint32) (*License[LicenseGET], error) {
+	url := c.BuildURL(Licenses, id)
+
+	var cache License[LicenseGET]
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	license, err := do[License[LicenseGET]](c.Client, "GET", url, nil, nil)
+	if err != nil {
+		c.Log.Fatalf("Error getting license: %v", err)
+	}
+
+	c.SetCache(url, license, 5*time.Minute)
+	return &license, nil
+}
+
+/*
  * # Create an license in Snipe-IT
  * /api/v1/licenses
  * - https://snipe-it.readme.io/reference/testinput (Yes, this is the correct link)
@@ -139,4 +162,129 @@ func (c *LicenseClient) CreateLicense(p *License[LicensePOST]) (*License[License
 	}
 
 	return license.Payload, nil
+}
+
+/*
+ * # Return all unique Seat ID's for a particular license (by ID)
+ * /api/v1/licenses/{id}/seats
+ * - https://snipe-it.readme.io/reference/licensesidseats
+ */
+func (c *LicenseClient) Seats(id uint32) (*SeatList, error) {
+	url := c.BuildURL(Licenses, id, "seats")
+
+	var cache SeatList
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	seats, err := do[SeatList](c.Client, "GET", url, nil, nil)
+	if err != nil {
+		c.Log.Fatalf("Error fetching seat list: %v", err)
+	}
+
+	c.SetCache(url, seats, 5*time.Minute)
+	return &seats, nil
+}
+
+/*
+ * # Return a Seat for a particular license (by ID)
+ * /api/v1/licenses/{id}/seats/{seat_id}
+ * - https://snipe-it.readme.io/reference/licensesidseatsseat_id
+ */
+func (c *LicenseClient) Seat(licenseID, seatID uint32) (*Seat[SeatGET], error) {
+	url := c.BuildURL(Licenses, licenseID, "seats")
+
+	var cache Seat[SeatGET]
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	seat, err := do[Seat[SeatGET]](c.Client, "GET", url, nil, nil)
+	if err != nil {
+		c.Log.Fatalf("Error creating license: %v", err)
+	}
+
+	c.SetCache(url, seat, 5*time.Minute)
+	return &seat, nil
+}
+
+// CheckoutFunc is a function type for checking out a license's seat
+type licenseCheckoutBuilder struct {
+	client    *LicenseClient
+	licenseID uint32
+	seatID    uint32
+	userID    *uint32
+	assetID   *uint32
+}
+
+/*
+ * # Checkout a Seat for a particular license (by ID)
+ * /api/v1/licenses/{id}/seats/{seat_id}
+ * - https://snipe-it.readme.io/reference/licensesidseatsseat_id-2
+ */
+func (c *LicenseClient) Checkout(licenseID, seatID uint32) *licenseCheckoutBuilder {
+	return &licenseCheckoutBuilder{
+		client:    c,
+		licenseID: licenseID,
+		seatID:    seatID,
+	}
+}
+
+func (b *licenseCheckoutBuilder) ToUser(userID uint32) (*Seat[SeatPOST], error) {
+	b.userID = &userID
+	return b.commit()
+}
+
+func (b *licenseCheckoutBuilder) ToAsset(assetID uint32) (*Seat[SeatPOST], error) {
+	b.assetID = &assetID
+	return b.commit()
+}
+
+func (b *licenseCheckoutBuilder) commit() (*Seat[SeatPOST], error) {
+	if (b.userID != nil && b.assetID != nil) || (b.userID == nil && b.assetID == nil) {
+		// Valid for check-in (both nil), or must only use one
+		if !(b.userID == nil && b.assetID == nil) {
+			return nil, fmt.Errorf("must assign either userID or assetID, not both")
+		}
+	}
+
+	url := b.client.BuildURL(Licenses, b.licenseID, "seats", b.seatID)
+	body := SeatPOST{
+		PPPD: PPPD{
+			AssetID: b.assetID,
+		},
+		AssignedTo: b.userID,
+	}
+
+	seat, err := do[SnipeITResponse[Seat[SeatPOST]]](b.client.Client, "PATCH", url, nil, body)
+	if err != nil {
+		return nil, fmt.Errorf("error updating license seat: %w", err)
+	}
+
+	b.client.SetCache(url, seat, 5*time.Minute)
+	return seat.Payload, nil
+}
+
+/*
+ * # Checkout a Seat for a particular license (by ID)
+ * /api/v1/licenses/{id}/seats/{seat_id}
+ * - https://snipe-it.readme.io/reference/licensesidseatsseat_id
+ */
+func (c *LicenseClient) Checkin(licenseID, seatID uint32) (*Seat[SeatPOST], error) {
+	url := c.BuildURL(Licenses, licenseID, "seats", seatID)
+
+	body := SeatPOST{
+		PPPD: PPPD{
+			AssetID: nil,
+		},
+		AssignedTo: nil,
+	}
+
+	seat, err := do[SnipeITResponse[Seat[SeatPOST]]](c.Client, "PATCH", url, nil, body)
+	if err != nil {
+		c.Log.Fatalf("Error checking in license: %v", err)
+	}
+
+	c.SetCache(url, seat, 5*time.Minute)
+	return seat.Payload, nil
 }

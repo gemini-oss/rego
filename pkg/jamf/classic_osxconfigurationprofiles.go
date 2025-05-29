@@ -22,25 +22,37 @@ var (
 	ConfigurationProfiles = fmt.Sprintf("%s/osxconfigurationprofiles", "%s") // /osxconfigurationprofiles
 )
 
+// ProfilesClient for chaining methods
+type ProfilesClient struct {
+	client *Client
+}
+
+// Entry point for web-related operations
+func (c *Client) Profiles() *ProfilesClient {
+	return &ProfilesClient{
+		client: c,
+	}
+}
+
 /*
  * # List All Configuration Profiles
  * /osxconfigurationprofiles
  * - https://developer.jamf.com/jamf-pro/reference/findosxconfigurationprofiles
  */
-func (c *Client) ListAllConfigurationProfiles() (*OSXConfigurationProfiles, error) {
-	url := c.BuildClassicURL(ConfigurationProfiles)
+func (pc *ProfilesClient) ListAllConfigurationProfiles() (*OSXConfigurationProfiles, error) {
+	url := pc.client.BuildClassicURL(ConfigurationProfiles)
 
 	var cache OSXConfigurationProfiles
-	if c.GetCache(url, &cache) {
+	if pc.client.GetCache(url, &cache) {
 		return &cache, nil
 	}
 
-	osxCP, err := do[OSXConfigurationProfiles](c, "GET", url, nil, nil)
+	osxCP, err := do[OSXConfigurationProfiles](pc.client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	c.SetCache(url, osxCP, 5*time.Minute)
+	pc.client.SetCache(url, osxCP, 5*time.Minute)
 	return &osxCP, nil
 }
 
@@ -49,20 +61,20 @@ func (c *Client) ListAllConfigurationProfiles() (*OSXConfigurationProfiles, erro
  * /osxconfigurationprofiles/id/{id}
  * - https://developer.jamf.com/jamf-pro/reference/findosxconfigurationprofiles
  */
-func (c *Client) GetConfigurationProfileDetails(id string) (*OSXConfigurationProfile, error) {
-	url := c.BuildClassicURL(ConfigurationProfiles, "id", id)
+func (pc *ProfilesClient) GetConfigurationProfileDetails(id string) (*OSXConfigurationProfile, error) {
+	url := pc.client.BuildClassicURL(ConfigurationProfiles, "id", id)
 
 	var cache OSXConfigurationProfile
-	if c.GetCache(url, &cache) {
+	if pc.client.GetCache(url, &cache) {
 		return &cache, nil
 	}
 
-	osxCP, err := do[OSXConfigurationProfile](c, "GET", url, nil, nil)
+	osxCP, err := do[OSXConfigurationProfile](pc.client, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	c.SetCache(url, osxCP, 5*time.Minute)
+	pc.client.SetCache(url, osxCP, 5*time.Minute)
 	return &osxCP, nil
 }
 
@@ -71,19 +83,19 @@ func (c *Client) GetConfigurationProfileDetails(id string) (*OSXConfigurationPro
  * /osxconfigurationprofiles/id/{id}
  * - https://developer.jamf.com/jamf-pro/reference/updateosxconfigurationprofilebyid
  */
-func (c *Client) UpdateConfigurationProfile(id string) (*OSXConfigurationProfile, error) {
-	url := c.BuildClassicURL(ConfigurationProfiles, "id", id)
+func (pc *ProfilesClient) UpdateConfigurationProfile(id string) (*OSXConfigurationProfile, error) {
+	url := pc.client.BuildClassicURL(ConfigurationProfiles, "id", id)
 
 	var cache OSXConfigurationProfile
-	if c.GetCache(url, &cache) {
+	if pc.client.GetCache(url, &cache) {
 		return &cache, nil
 	}
 
-	osxCP, err := do[*OSXConfigurationProfile](c, "PUT", url, nil, nil)
+	osxCP, err := do[*OSXConfigurationProfile](pc.client, "PUT", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	c.SetCache(url, osxCP, 5*time.Minute)
+	pc.client.SetCache(url, osxCP, 5*time.Minute)
 	return osxCP, nil
 }

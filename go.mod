@@ -5,6 +5,7 @@ go 1.24
 require (
 	github.com/go-ldap/ldap/v3 v3.4.11
 	golang.org/x/crypto v0.38.0
+	golang.org/x/net v0.40.0
 	golang.org/x/oauth2 v0.30.0
 	golang.org/x/text v0.25.0
 )
