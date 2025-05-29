@@ -30,7 +30,7 @@ type NetboxResponse[E any] struct {
 
 type Response[E any] struct {
 	APIError int    `xml:"APIERROR"`         // APIError holds API-level error codes if present (e.g. "1", "2", etc.)
-	Code     string `xml:"CODE"`             // // CODE is the command response code ("SUCCESS" or "FAIL")
+	Code     string `xml:"CODE"`             // CODE is the command response code ("SUCCESS" or "FAIL")
 	Details  *E     `xml:"DETAILS"`          // Can be an object of any type
 	Error    string `xml:"ERRMSG,omitempty"` // Error stores a human-readable error message from command-level failures.
 }

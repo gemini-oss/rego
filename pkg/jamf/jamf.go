@@ -17,6 +17,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"runtime"
 	"strings"
@@ -43,7 +44,9 @@ func (c *Client) BuildURL(endpoint string, identifiers ...interface{}) string {
 	for _, id := range identifiers {
 		url = fmt.Sprintf("%s/%v", url, id)
 	}
+	c.HTTP.UpdateAcceptType(fmt.Sprintf("%s, %s;q=0.9", requests.JSON, requests.XML))
 	c.HTTP.UpdateBodyType(requests.JSON)
+	c.HTTP.UpdateContentType(requests.JSON)
 	c.Log.Debug("url:", url)
 	return url
 }
@@ -54,7 +57,9 @@ func (c *Client) BuildClassicURL(endpoint string, identifiers ...interface{}) st
 	for _, id := range identifiers {
 		url = fmt.Sprintf("%s/%v", url, id)
 	}
+	c.HTTP.UpdateAcceptType(fmt.Sprintf("%s, %s;q=0.9", requests.XML, requests.JSON))
 	c.HTTP.UpdateBodyType(requests.XML)
+	c.HTTP.UpdateContentType(requests.XML)
 	c.Log.Debug("url:", url)
 	return url
 }
@@ -200,9 +205,19 @@ func do[T any](c *Client, method string, url string, query interface{}, data int
 	c.Log.Println("Response Status:", res.Status)
 	c.Log.Debug("Response Body:", string(body))
 
-	err = json.Unmarshal(body, &result)
-	if err != nil {
-		return *new(T), fmt.Errorf("unmarshalling error: %w", err)
+	switch c.HTTP.Headers["Content-Type"] {
+	case requests.JSON:
+		err = json.Unmarshal(body, &result)
+		if err != nil {
+			return *new(T), fmt.Errorf("unmarshalling error: %w", err)
+		}
+	case requests.XML:
+		err = xml.Unmarshal(body, &result)
+		if err != nil {
+			return *new(T), fmt.Errorf("unmarshalling error: %w", err)
+		}
+	default:
+		return *new(T), fmt.Errorf("unsupported content type: %s", c.HTTP.Headers["Content-Type"])
 	}
 
 	return result, nil

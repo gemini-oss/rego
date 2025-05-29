@@ -46,3 +46,14 @@ clean:
 # Flush the cache and any tests
 flush:
 	@/bin/bash -c 'if compgen -G "$$TMPDIR/rego_*" > /dev/null; then rm -rf $$TMPDIR/rego_*; fi'
+
+# Replace every matching line in $(SRC_DIR) with NEW_COPYRIGHT
+SRC_DIR := pkg
+NEW_COPYRIGHT := ":Copyright: (c) 2025 by Gemini Space Station, LLC, see AUTHORS for more info"  # your replacement string
+
+.PHONY: update-copyright
+update-copyright:
+	@echo "Updating copyright lines to $(NEW_COPYRIGHT)…"
+	@find $(SRC_DIR) -type f -print0 | \
+	  perl -0 -pi -e 's/^:Copyright: \(c\) 202[0-9].*/$(NEW_COPYRIGHT)/mg'
+	@echo "Done."
