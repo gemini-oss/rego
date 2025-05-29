@@ -49,11 +49,11 @@ flush:
 
 # Replace every matching line in $(SRC_DIR) with NEW_COPYRIGHT
 SRC_DIR := pkg
-NEW_COPYRIGHT := ":Copyright: (c) 2025 by Gemini Space Station, LLC, see AUTHORS for more info"  # your replacement string
+NEW_COPYRIGHT  := :Copyright: (c) 2025 by Gemini Software Services, LLC., see AUTHORS for more info
 
 .PHONY: update-copyright
 update-copyright:
 	@echo "Updating copyright lines to $(NEW_COPYRIGHT)…"
 	@find $(SRC_DIR) -type f -print0 | \
-	  perl -0 -pi -e 's/^:Copyright: \(c\) 202[0-9].*/$(NEW_COPYRIGHT)/mg'
+	  xargs -0 perl -pi -e 's/^:Copyright: \(c\) 202[0-9].*/'"$(NEW_COPYRIGHT)"'/mg'
 	@echo "Done."

@@ -6,7 +6,7 @@ This package initializes all the methods for functions which interact with the O
 * Organizations REST API
 - https://developer.atlassian.com/cloud/admin/organization/rest/intro/#uri
 
-:Copyright: (c) 2025 by Gemini Space Station, LLC., see AUTHORS for more info
+:Copyright: (c) 2025 by Gemini Software Services, LLC., see AUTHORS for more info
 :License: See the LICENSE file for details
 :Author: Anthony Dardano <anthony.dardano@gemini.com>
 */
