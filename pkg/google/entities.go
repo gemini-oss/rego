@@ -3,7 +3,7 @@
 
 This package contains many structs for handling responses from the Google API:
 
-:Copyright: (c) 2023 by Gemini Space Station, LLC, see AUTHORS for more info
+:Copyright: (c) 2025 by Gemini Software Services, LLC., see AUTHORS for more info
 :License: See the LICENSE file for details
 :Author: Anthony Dardano <anthony.dardano@gemini.com>
 */

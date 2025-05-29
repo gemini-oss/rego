@@ -4,7 +4,7 @@
 This package contains various structs for handling Active Directory objects like Users, Groups, etc.
 - https://learn.microsoft.com/en-us/windows/win32/adschema/classes-all
 
-:Copyright: (c) 2024 by Gemini Space Station, LLC, see AUTHORS for more info
+:Copyright: (c) 2025 by Gemini Software Services, LLC., see AUTHORS for more info
 :License: See the LICENSE file for details
 :Author: Anthony Dardano <anthony.dardano@gemini.com>
 */

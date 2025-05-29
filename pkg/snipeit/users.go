@@ -4,7 +4,7 @@
 This package initializes all the methods for functions which interact with the SnipeIT Users endpoints:
 https://snipe-it.readme.io/reference/users
 
-:Copyright: (c) 2025 by Gemini Space Station, LLC., see AUTHORS for more info
+:Copyright: (c) 2025 by Gemini Software Services, LLC., see AUTHORS for more info
 :License: See the LICENSE file for details
 :Author: Anthony Dardano <anthony.dardano@gemini.com>
 */

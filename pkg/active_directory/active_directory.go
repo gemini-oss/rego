@@ -4,7 +4,7 @@
 This package initializes all the methods which interact with {Active Directory/LDAP}:
 - https://docs.microsoft.com/en-us/windows/win32/ad/active-directory-schema
 
-:Copyright: (c) 2024 by Gemini Space Station, LLC, see AUTHORS for more info
+:Copyright: (c) 2025 by Gemini Software Services, LLC., see AUTHORS for more info
 :License: See the LICENSE file for details
 :Author: Anthony Dardano <anthony.dardano@gemini.com>
 */

@@ -3,7 +3,7 @@
 
 This package contains some functions involving practical examples of multi-service orchestration.
 
-:Copyright: (c) 2024 by Gemini Space Station, LLC., see AUTHORS for more info
+:Copyright: (c) 2025 by Gemini Software Services, LLC., see AUTHORS for more info
 :License: See the LICENSE file for details
 :Author: Anthony Dardano <anthony.dardano@gemini.com>
 */

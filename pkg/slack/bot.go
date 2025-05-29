@@ -4,7 +4,7 @@
 This package initializes the methods for functions which handle a typical Slack bot with the Slack Web API:
 https://api.slack.com/web
 
-:Copyright: (c) 2023 by Gemini Space Station, LLC., see AUTHORS for more info
+:Copyright: (c) 2025 by Gemini Software Services, LLC., see AUTHORS for more info
 :License: See the LICENSE file for details
 :Author: Anthony Dardano <anthony.dardano@gemini.com>
 */
