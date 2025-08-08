@@ -40,3 +40,21 @@ go.work
 # ReGo Cache files
 *_cache.json
 *.gob
+
+# Git diff files
+*.diff
+
+# Test data and fixtures
+**/testdata/
+**/fixtures/
+**/*.fixture
+**/*.fixture.xml
+**/*.fixture.json
+
+# Test artifacts
+test-results/
+test-reports/
+coverage/
+
+# Claude Memory Files
+**/CLAUDE.md

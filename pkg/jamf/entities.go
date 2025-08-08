@@ -37,8 +37,8 @@ type Client struct {
 // ### Jamf Generic Structs
 // ---------------------------------------------------------------------
 type JamfProperty struct {
-	ID   interface{} `json:"id,omitempty" xml:"id,omitempty"`     // ID of the object.
-	Name string      `json:"name,omitempty" xml:"name,omitempty"` // Name of the object.
+	ID   int    `json:"id,omitempty" xml:"id,omitempty"`     // ID of the object.
+	Name string `json:"name,omitempty" xml:"name,omitempty"` // Name of the object.
 }
 
 // END OF JAMF GENERIC STRUCTS
@@ -533,7 +533,16 @@ type UserAndLocation struct {
 // ---------------------------------------------------------------------
 // Response structure for the Jamf Pro API for Configuration Profiles
 type Users struct {
-	List *[]*User `json:"users"` // List of JSS users
+	Size int      `xml:"size"`              // Size of the user list.
+	List *[]*User `json:"users" xml:"user"` // List of JSS users
+}
+
+func (u *Users) Map() map[string]*User {
+	userMap := make(map[string]*User, len(*u.List))
+	for _, user := range *u.List {
+		userMap[user.Name] = user
+	}
+	return userMap
 }
 
 // User represents the details of a JSS User.

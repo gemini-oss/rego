@@ -488,9 +488,9 @@ func (c *AdminClient) GetOU(customer *Customer, orgUnitPath string) (*OrgUnit, e
  * https://developers.google.com/chrome/policy/reference/rest/v1/customers.policies.orgunits/batchModify
  */
 func (c *AdminClient) CloneOU(customer *Customer, sourcePath, targetPath string) error {
-	url := c.BuildURL(DevicePolicies, customer, "orgunits:batchModify")
+	url := c.BuildURL(ChromePolicies, customer, "orgunits:batchModify")
 
-	schemas, err := c.Devices().ListAllDevicePolicySchemas(customer)
+	schemas, err := c.ChromePolicy().ListAllChromePolicySchemas(customer)
 	if err != nil {
 		return err
 	}
@@ -500,7 +500,7 @@ func (c *AdminClient) CloneOU(customer *Customer, sourcePath, targetPath string)
 		return err
 	}
 
-	sourcePolicies, err := c.Devices().ResolvePolicySchemas(customer, sourceOU)
+	sourcePolicies, err := c.ChromePolicy().ResolvePolicySchemas(customer, sourceOU)
 	if err != nil {
 		return err
 	}
@@ -544,7 +544,7 @@ func (c *AdminClient) CloneOU(customer *Customer, sourcePath, targetPath string)
 	return nil
 }
 
-func createPolicyModificationRequests(policies []*ResolvedPolicy, targetOU *OrgUnit, schemas *PolicySchemas) []*PolicyModificationRequest {
+func createPolicyModificationRequests(policies []*ResolvedPolicy, target PolicyTarget, schemas *PolicySchemas) []*PolicyModificationRequest {
 	var requests []*PolicyModificationRequest
 	for _, policy := range policies {
 		var fields []string
@@ -563,7 +563,7 @@ func createPolicyModificationRequests(policies []*ResolvedPolicy, targetOU *OrgU
 		}
 		requests = append(requests, &PolicyModificationRequest{
 			PolicyTargetKey: PolicyTargetKey{
-				TargetResource: fmt.Sprintf("orgunits/%s", strings.TrimPrefix(targetOU.ID, "id:")),
+				TargetResource: target.Resource(),
 			},
 			PolicyValue: policy.Value,
 			UpdateMask:  updateMask,

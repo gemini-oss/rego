@@ -70,7 +70,7 @@ type Client struct {
  * @param headers Headers
  * @return *Client
  */
-func NewClient(options ...interface{}) *Client {
+func NewClient(options ...any) *Client {
 	encryptionKey := []byte(config.GetEnv("REGO_ENCRYPTION_KEY"))
 	if len(encryptionKey) == 0 {
 		l.Fatal("REGO_ENCRYPTION_KEY is not set")
@@ -135,13 +135,16 @@ type Paginator struct {
 	Paged         bool   `json:"paged"`
 }
 
+// StreamHandler is a callback function for processing streaming data with a decoder
+type StreamHandler func(decoder any) error
+
 /*
  * DecodeJSON
  * @param body []byte
- * @param result interface{}
+ * @param result any
  * @return error
  */
-func DecodeJSON(body []byte, result interface{}) error {
+func DecodeJSON(body []byte, result any) error {
 	return json.Unmarshal(body, result)
 }
 
@@ -159,7 +162,7 @@ func (c *Client) CreateRequest(method string, url string) (*http.Request, error)
 	return req, nil
 }
 
-func SetQueryParams(req *http.Request, query interface{}) {
+func SetQueryParams(req *http.Request, query any) {
 	if query == nil {
 		return
 	}
@@ -172,7 +175,7 @@ func SetQueryParams(req *http.Request, query interface{}) {
 
 	for key, value := range parameters {
 		switch v := value.(type) {
-		case []interface{}:
+		case []any:
 			for _, item := range v {
 				q.Add(key, fmt.Sprintf("%v", item))
 			}
@@ -184,7 +187,7 @@ func SetQueryParams(req *http.Request, query interface{}) {
 	req.URL.RawQuery = q.Encode()
 }
 
-func SetJSONPayload(req *http.Request, data interface{}) error {
+func SetJSONPayload(req *http.Request, data any) error {
 	if data == nil {
 		return nil
 	}
@@ -203,7 +206,7 @@ func SetJSONPayload(req *http.Request, data interface{}) error {
 	return nil
 }
 
-func SetFormURLEncodedPayload(req *http.Request, data interface{}) error {
+func SetFormURLEncodedPayload(req *http.Request, data any) error {
 	if data == nil {
 		return nil
 	}
@@ -216,7 +219,7 @@ func SetFormURLEncodedPayload(req *http.Request, data interface{}) error {
 
 	for key, value := range parameters {
 		switch v := value.(type) {
-		case []interface{}:
+		case []any:
 			arrayKey := fmt.Sprintf("%s[]", key)
 			for _, item := range v {
 				formData.Add(arrayKey, fmt.Sprintf("%v", item))
@@ -232,7 +235,7 @@ func SetFormURLEncodedPayload(req *http.Request, data interface{}) error {
 	return nil
 }
 
-func SetXMLPayload(req *http.Request, data interface{}) error {
+func SetXMLPayload(req *http.Request, data any) error {
 	if data == nil {
 		return nil
 	}
@@ -247,12 +250,12 @@ func SetXMLPayload(req *http.Request, data interface{}) error {
 	return nil
 }
 
-func (c *Client) DoRequest(ctx context.Context, method string, url string, query interface{}, data interface{}) (*http.Response, []byte, error) {
+func (c *Client) DoRequest(ctx context.Context, method string, url string, query any, data any) (*http.Response, []byte, error) {
 	realTime := retry.RealTime{}
 	return c.doRetry(ctx, method, url, query, data, realTime)
 }
 
-func (c *Client) doRetry(ctx context.Context, method string, url string, query interface{}, data interface{}, time retry.Time) (*http.Response, []byte, error) {
+func (c *Client) doRetry(ctx context.Context, method string, url string, query any, data any, time retry.Time) (*http.Response, []byte, error) {
 	var resp *http.Response
 	var body []byte
 	err := retry.Retry(
@@ -270,7 +273,7 @@ func (c *Client) doRetry(ctx context.Context, method string, url string, query i
 	return resp, body, err
 }
 
-func (c *Client) do(ctx context.Context, method string, url string, query interface{}, data interface{}) (*http.Response, []byte, error) {
+func (c *Client) do(ctx context.Context, method string, url string, query any, data any) (*http.Response, []byte, error) {
 	// Validate HTTP method
 	validMethods := map[string]bool{
 		"GET": true, "POST": true, "PUT": true, "DELETE": true,
@@ -335,7 +338,55 @@ func (c *Client) do(ctx context.Context, method string, url string, query interf
 	}
 }
 
-func setPayload(req *http.Request, data interface{}, bodyType string) error {
+// DoStream performs an HTTP request optimized for streaming responses.
+// It automatically creates an appropriate decoder (XML or JSON) based on the content type
+// and passes it to the handler function for processing the stream.
+func (c *Client) DoStream(ctx context.Context, method string, url string, query any, data any, handler StreamHandler) error {
+	// Validate HTTP method
+	validMethods := map[string]bool{
+		"GET": true, "POST": true, "PUT": true, "DELETE": true,
+		"HEAD": true, "OPTIONS": true, "PATCH": true,
+	}
+	if _, valid := validMethods[method]; !valid {
+		return fmt.Errorf("invalid HTTP method: %s", method)
+	}
+
+	req, err := c.CreateRequest(method, url)
+	if err != nil {
+		return err
+	}
+	req = req.WithContext(ctx)
+
+	SetQueryParams(req, query)
+
+	if err := setPayload(req, data, c.BodyType); err != nil {
+		return err
+	}
+
+	// For streaming, we typically want no timeout on the client level but respect context cancellation
+	streamClient := &http.Client{Timeout: 0}
+
+	resp, err := streamClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("%s %s failed: %w", method, url, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("%s %s failed with status %d: %s", method, url, resp.StatusCode, string(body))
+	}
+
+	if c.RateLimiter != nil {
+		c.RateLimiter.UpdateFromHeaders(resp.Header)
+	}
+
+	// For streaming responses, always pass the raw reader
+	// The handler can decide how to process it (as XML, JSON, multipart, etc.)
+	return handler(resp.Body)
+}
+
+func setPayload(req *http.Request, data any, bodyType string) error {
 	switch bodyType {
 	case FormURLEncoded, fmt.Sprintf("%s; charset=utf-8", FormURLEncoded):
 		return SetFormURLEncodedPayload(req, data)

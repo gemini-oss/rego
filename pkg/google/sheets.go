@@ -71,7 +71,7 @@ type SheetValueQuery struct {
  */
 func (c *SheetsClient) VerifySheetValueRange(vr *ValueRange) error {
 	if vr.Range == "" {
-		vr.Range = "A:Z"
+		vr.Range = "A:ZZZ"
 	}
 	if vr.MajorDimension == "" {
 		vr.MajorDimension = "ROWS"
@@ -91,9 +91,9 @@ func (c *SheetsClient) GenerateValueRange(data []any, sheetName string, headers 
 	}
 
 	if sheetName != "" {
-		vr.Range = fmt.Sprintf("%s!A:ZZ", sheetName)
+		vr.Range = fmt.Sprintf("%s!A:ZZZ", sheetName)
 	} else {
-		vr.Range = "A:ZZ"
+		vr.Range = "A:ZZZ"
 	}
 
 	// Ensure headers as the first row
@@ -357,7 +357,7 @@ func (c *SheetsClient) SaveToSheet(data any, sheetID, sheetName string, headers 
 	}
 
 	vr := &ValueRange{
-		Range: fmt.Sprintf("%s!A:ZZ", sheetName),
+		Range: fmt.Sprintf("%s!A:ZZZ", sheetName),
 	}
 	switch v := data.(type) {
 	case [][]string:

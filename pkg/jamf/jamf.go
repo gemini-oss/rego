@@ -186,13 +186,13 @@ func NewClient(verbosity int) *Client {
 // JamfResult is an interface for Jamf API responses involving pagination
 type JamfAPIResponse interface {
 	Total() int
-	Append(interface{})
+	Append(any)
 }
 
 /*
  * Perform a generic request to the Jamf API
  */
-func do[T any](c *Client, method string, url string, query interface{}, data interface{}) (T, error) {
+func do[T any](c *Client, method string, url string, query any, data any) (T, error) {
 	var result T
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -226,7 +226,7 @@ func do[T any](c *Client, method string, url string, query interface{}, data int
 /*
  * Perform a concurrent generic request to the Jamf API
  */
-func doConcurrent[T JamfAPIResponse](c *Client, method string, url string, q *DeviceQuery, data interface{}) (*T, error) {
+func doConcurrent[T JamfAPIResponse](c *Client, method string, url string, q *DeviceQuery, data any) (*T, error) {
 	// Do initial request to get the total number of items
 	firstPage, err := do[T](c, method, url, q, data)
 	if err != nil {

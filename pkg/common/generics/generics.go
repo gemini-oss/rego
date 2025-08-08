@@ -4,6 +4,7 @@ package generics
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 )
@@ -164,7 +165,10 @@ func UnmarshalGeneric[T any, M any](data []byte) (*T, error) {
 		// If a matching key exists in the raw JSON, unmarshal it directly.
 		if rawVal, ok := raw[key]; ok {
 			if err := json.Unmarshal(rawVal, fieldVal.Addr().Interface()); err != nil {
-				return nil, err
+				if ute, ok := err.(*json.UnmarshalTypeError); ok {
+					return nil, fmt.Errorf("field '%s': cannot unmarshal %s into Go type %s (offset: %d)", key, ute.Value, ute.Type, ute.Offset)
+				}
+				return nil, fmt.Errorf("field '%s': %w", key, err)
 			}
 			// Remove the key from the raw map
 			delete(raw, key)
@@ -183,7 +187,10 @@ func UnmarshalGeneric[T any, M any](data []byte) (*T, error) {
 			// Unmarshal into a variable of type M.
 			var genericValue M
 			if err := json.Unmarshal(genericJSON, &genericValue); err != nil {
-				return nil, err
+				if ute, ok := err.(*json.UnmarshalTypeError); ok {
+					return nil, fmt.Errorf("generic field (type %s): cannot unmarshal %s into Go type %s", genericType.Name(), ute.Value, ute.Type)
+				}
+				return nil, fmt.Errorf("generic field (type %s): %w", genericType.Name(), err)
 			}
 
 			// Set the generic field.
@@ -240,7 +247,10 @@ func unmarshalInlineField(field reflect.Value, raw map[string]json.RawMessage) e
 		}
 		// Unmarshal into the inline struct.
 		if err := json.Unmarshal(data, field.Addr().Interface()); err != nil {
-			return err
+			if ute, ok := err.(*json.UnmarshalTypeError); ok {
+				return fmt.Errorf("inline struct %s: cannot unmarshal %s into Go type %s", field.Type().Name(), ute.Value, ute.Type)
+			}
+			return fmt.Errorf("inline struct %s: %w", field.Type().Name(), err)
 		}
 	}
 

@@ -356,20 +356,21 @@ type PermissionList struct {
 
 // https://developers.google.com/drive/api/reference/rest/v3/permissions#resource:-permission
 type Permission struct {
-	AllowFileDiscovery bool               `json:"allowFileDiscovery,omitempty"` // Whether the permission allows the file to be discovered through search. This is only applicable for permissions of type domain or anyone.
-	Deleted            bool               `json:"deleted,omitempty"`            // Output only. Whether the account associated with this permission has been deleted. This field only pertains to user and group permissions.
-	DisplayName        string             `json:"displayName,omitempty"`        // Output only. The "pretty" name of the value of the permission.
-	Domain             string             `json:"domain,omitempty"`             // The domain to which this permission refers.
-	EmailAddress       string             `json:"emailAddress,omitempty"`       // The email address of the user or group to which this permission refers.
-	ExpirationTime     string             `json:"expirationTime,omitempty"`     // The time at which this permission will expire (RFC 3339 date-time).
-	ID                 string             `json:"id,omitempty"`                 // Output only. The ID of this permission.
-	Kind               string             `json:"kind,omitempty"`               // Output only. Identifies what kind of resource this is. Value: the fixed string "drive#permission".
-	PermissionDetails  []PermissionDetail `json:"permissionDetails,omitempty"`  // Output only. Details of whether the permissions on this shared drive item are inherited or directly on this item.
-	PhotoLink          string             `json:"photoLink,omitempty"`          // Output only. A link to the user's profile photo, if available.
-	PendingOwner       bool               `json:"pendingOwner,omitempty"`       // Whether the account associated with this permission is a pending owner. Only populated for user type permissions for files that are not in a shared drive.
-	Role               string             `json:"role,omitempty"`               // The role granted by this permission. While new values may be supported in the future, the following are currently allowed: owner, organizer, fileOrganizer, writer, commenter, reader
-	Type               string             `json:"type,omitempty"`               // The type of the grantee. Valid values are: `user`, `group`, `domain`, `anyone`. When creating a permission, if type is `user`` or `group`, you must provide an `emailAddress` for the user or group. When type is `domain`, you must provide a `domain`. There isn't extra information required for `anyone`.
-	View               string             `json:"view,omitempty"`               // Indicates the view for this permission. Only populated for permissions that belong to a view. 'published' is the only supported value.
+	ID                           string             `json:"id,omitempty"`                           // Output only. The ID of this permission.
+	DisplayName                  string             `json:"displayName,omitempty"`                  // Output only. The "pretty" name of the value of the permission.
+	Type                         string             `json:"type,omitempty"`                         // The type of the grantee. Valid values are: `user`, `group`, `domain`, `anyone`. When creating a permission, if type is `user`` or `group`, you must provide an `emailAddress` for the user or group. When type is `domain`, you must provide a `domain`. There isn't extra information required for `anyone`.
+	PermissionDetails            []PermissionDetail `json:"permissionDetails,omitempty"`            // Output only. Details of whether the permissions on this shared drive item are inherited or directly on this item.
+	PhotoLink                    string             `json:"photoLink,omitempty"`                    // Output only. A link to the user's profile photo, if available.
+	EmailAddress                 string             `json:"emailAddress,omitempty"`                 // The email address of the user or group to which this permission refers.
+	Role                         string             `json:"role,omitempty"`                         // The role granted by this permission. While new values may be supported in the future, the following are currently allowed: owner, organizer, fileOrganizer, writer, commenter, reader
+	AllowFileDiscovery           bool               `json:"allowFileDiscovery,omitempty"`           // Whether the permission allows the file to be discovered through search. This is only applicable for permissions of type domain or anyone.
+	Domain                       string             `json:"domain,omitempty"`                       // The domain to which this permission refers.
+	ExpirationTime               string             `json:"expirationTime,omitempty"`               // The time at which this permission will expire (RFC 3339 date-time).
+	Deleted                      bool               `json:"deleted,omitempty"`                      // Output only. Whether the account associated with this permission has been deleted. This field only pertains to user and group permissions.
+	Kind                         string             `json:"kind,omitempty"`                         // Output only. Identifies what kind of resource this is. Value: the fixed string "drive#permission".
+	View                         string             `json:"view,omitempty"`                         // Indicates the view for this permission. Only populated for permissions that belong to a view. 'published' is the only supported value.
+	PendingOwner                 bool               `json:"pendingOwner,omitempty"`                 // Whether the account associated with this permission is a pending owner. Only populated for user type permissions for files that are not in a shared drive.
+	InheritedPermissionsDisabled bool               `json:"inheritedPermissionsDisabled,omitempty"` // When true, only organizers, owners, and users with permissions added directly on the item can access it.
 }
 
 type PermissionDetail struct {
@@ -1183,62 +1184,62 @@ func (u Users) Map() map[string]*User {
 
 // https://developers.google.com/admin-sdk/directory/reference/rest/v1/users#resource:-user
 type User struct {
-	AgreedToTerms              bool           `json:"agreedToTerms,omitempty"`              // User's agreement to terms status
-	Aliases                    []string       `json:"aliases,omitempty"`                    // User aliases
-	Archived                   bool           `json:"archived,omitempty"`                   // User's archival status
-	ChangePasswordAtNextLogin  bool           `json:"changePasswordAtNextLogin,omitempty"`  // User's change password at next login status
-	CreationTime               string         `json:"creationTime,omitempty"`               // User's creation time
-	CustomerID                 string         `json:"customerId,omitempty"`                 // User's customer ID
-	DeletionTime               string         `json:"deletionTime,omitempty"`               // User's deletion time
-	Emails                     []Email        `json:"emails,omitempty"`                     // User's emails
-	Etag                       string         `json:"etag,omitempty"`                       // ETag of the user
-	ExternalIds                []ExternalID   `json:"externalIds,omitempty"`                // User's external IDs
-	Gender                     Gender         `json:"gender,omitempty"`                     // User's gender
-	HashFunction               string         `json:"hashFunction,omitempty"`               // User's hash function
-	ID                         string         `json:"id,omitempty"`                         // User's ID
-	IncludeInGlobalAddressList bool           `json:"includeInGlobalAddressList,omitempty"` // User's inclusion status in global address list
-	IsAdmin                    bool           `json:"isAdmin,omitempty"`                    // User's admin status
-	IsDelegatedAdmin           bool           `json:"isDelegatedAdmin,omitempty"`           // User's delegated admin status
-	IsEnforcedIn2Sv            bool           `json:"isEnforcedIn2Sv,omitempty"`            // User's 2SV enforcement status
-	IsEnrolledIn2Sv            bool           `json:"isEnrolledIn2Sv,omitempty"`            // User's 2SV enrolment status
-	IsMailboxSetup             bool           `json:"isMailboxSetup,omitempty"`             // User's mailbox setup status
-	IMs                        []IM           `json:"ims,omitempty"`                        // User's instant messaging addresses
-	IpWhitelisted              bool           `json:"ipWhitelisted,omitempty"`              // User's IP whitelist status
-	Kind                       string         `json:"kind,omitempty"`                       // The type of the API resource
-	Languages                  []Language     `json:"languages,omitempty"`                  // User's languages
-	LastLoginTime              string         `json:"lastLoginTime,omitempty"`              // User's last login time
-	Locations                  []UserLocation `json:"locations,omitempty"`                  // User's locations
-	Name                       UserName       `json:"name,omitempty"`                       // User's name
-	NonEditableAliases         []string       `json:"nonEditableAliases,omitempty"`         // User's non-editable aliases
-	Notes                      Note           `json:"notes,omitempty"`                      // User's notes
-	OrgUnitPath                string         `json:"orgUnitPath,omitempty"`                // User's organizational unit path
-	Organizations              []Organization `json:"organizations,omitempty"`              // User's organizations
-	Password                   Password       `json:"password,omitempty"`                   // User's password
-	Phones                     []Phone        `json:"phones,omitempty"`                     // A list of the user's phone numbers
+	ID                         string         `json:"id,omitempty"`                         // The unique ID for the user. A user id can be used as a user request URI's userKey.
+	PrimaryEmail               string         `json:"primaryEmail,omitempty"`               // The user's primary email address. This property is required in a request to create a user account. The primaryEmail must be unique and cannot be an alias of another user.
+	Password                   Password       `json:"password,omitempty"`                   // Stores the password for the user account. The user's password value is required when creating a user account. It's optional when updating a user and should only be provided if the user is updating their account password. The password value is never returned in the API's response body.
+	HashFunction               string         `json:"hashFunction,omitempty"`               // Stores the hash format of the password property. The following hashFunction values are allowed: {MD5, SHA-1, crypt}
+	IsAdmin                    bool           `json:"isAdmin,omitempty"`                    // Output only. Indicates a user with super admininistrator privileges
+	IsDelegatedAdmin           bool           `json:"isDelegatedAdmin,omitempty"`           // Output only. Indicates if the user is a delegated administrator.
+	AgreedToTerms              bool           `json:"agreedToTerms,omitempty"`              // Output only. This property is true if the user has completed an initial login and accepted the Terms of Service agreement.
+	Suspended                  bool           `json:"suspended,omitempty"`                  // Indicates if user is suspended.
+	ChangePasswordAtNextLogin  bool           `json:"changePasswordAtNextLogin,omitempty"`  // Indicates if the user is forced to change their password at next login. This setting doesn't apply when the user signs in via a third-party identity provider.
+	IpWhitelisted              bool           `json:"ipWhitelisted,omitempty"`              // If true, the user's IP address is subject to a deprecated IP address allowlist configuration.
+	Name                       UserName       `json:"name,omitempty"`                       // Holds the given and family names of the user, and the read-only fullName value. The maximum number of characters in the givenName and in the familyName values is 60.
+	Kind                       string         `json:"kind,omitempty"`                       // Output only. The type of the API resource. For Users resources, the value is admin#directory#user.
+	Etag                       string         `json:"etag,omitempty"`                       // Output only. ETag of the resource.
+	Emails                     []Email        `json:"emails,omitempty"`                     // The list of the user's email addresses. The maximum allowed data size is 10KB.
+	ExternalIDs                []ExternalID   `json:"externalIds,omitempty"`                // The list of external IDs for the user, such as an employee or network ID. The maximum allowed data size is 2KB.
+	Relations                  []Relation     `json:"relations,omitempty"`                  // The list of the user's relationships to other users. The maximum allowed data size for this field is 2KB.
+	Aliases                    []string       `json:"aliases,omitempty"`                    // Output only. The list of the user's alias email addresses.
+	IsMailboxSetup             bool           `json:"isMailboxSetup,omitempty"`             // Output only. Indicates if the user's Google mailbox is created. This property is only applicable if the user has been assigned a Gmail license.
+	CustomerID                 string         `json:"customerId,omitempty"`                 // Output only. The customer ID to retrieve all account users. You can use the alias "my_customer" to represent your account's customerId.
+	Organizations              []Organization `json:"organizations,omitempty"`              // The list of organizations the user belongs to. The maximum allowed data size is 10KB.
+	LastLoginTime              string         `json:"lastLoginTime,omitempty"`              // Output only. The last time the user logged into the user's account. The value is in ISO 8601 date and time format.
+	Phones                     []Phone        `json:"phones,omitempty"`                     // A list of the user's phone numbers. The maximum allowed data size is 1KB.
+	SuspensionReason           string         `json:"suspensionReason,omitempty"`           // Output only. Has the reason a user account is suspended either by the administrator or by Google at the time of suspension. The property is returned only if the suspended property is true.
+	ThumbnailPhotoUrl          string         `json:"thumbnailPhotoUrl,omitempty"`          // Output only. The URL of the user's profile photo. The URL might be temporary or private.
+	Languages                  []Language     `json:"languages,omitempty"`                  // The list of the user's languages. The maximum allowed data size is 1KB.
 	PosixAccounts              []POSIXAccount `json:"posixAccounts,omitempty"`              // The list of POSIX account information for the user
-	PrimaryEmail               string         `json:"primaryEmail,omitempty"`               // User's primary email
-	RecoveryEmail              string         `json:"recoveryEmail,omitempty"`              // User's recovery email
-	RecoveryPhone              string         `json:"recoveryPhone,omitempty"`              // User's recovery phone number
-	Relations                  []Relation     `json:"relations,omitempty"`                  // User's relations
-	Roles                      []Role         `json:"roles,omitempty"`                      // User's roles
-	SshPublicKeys              []SSHPublicKey `json:"sshPublicKeys,omitempty"`              // A list of SSH public keys
-	Suspended                  bool           `json:"suspended,omitempty"`                  // User's suspension status
-	SuspensionReason           string         `json:"suspensionReason,omitempty"`           // User's suspension reason
-	ThumbnailPhotoEtag         string         `json:"thumbnailPhotoEtag,omitempty"`         // User's thumbnail photo ETag
-	ThumbnailPhotoUrl          string         `json:"thumbnailPhotoUrl,omitempty"`          // User's thumbnail photo URL
+	CreationTime               string         `json:"creationTime,omitempty"`               // Output only. The time the user's account was created. The value is in ISO 8601 date and time format. The time is the complete date plus hours, minutes, and seconds in the form YYYY-MM-DDThh:mm:ssTZD.
+	NonEditableAliases         []string       `json:"nonEditableAliases,omitempty"`         // Output only. The list of the user's non-editable alias email addresses. These are typically outside the account's primary domain or sub-domain.
+	SSHPublicKeys              []SSHPublicKey `json:"sshPublicKeys,omitempty"`              // A list of SSH public keys
+	Notes                      Note           `json:"notes,omitempty"`                      // Notes for the user as a nested object.
 	Websites                   []Website      `json:"websites,omitempty"`                   // The list of the user's websites
+	Locations                  []UserLocation `json:"locations,omitempty"`                  // The list of the user's locations. The maximum allowed data size is 10KB.
+	IncludeInGlobalAddressList bool           `json:"includeInGlobalAddressList,omitempty"` // Indicates if the user's profile is visible in the Google Workspace global address list when the contact sharing feature is enabled for the domain.
+	DeletionTime               string         `json:"deletionTime,omitempty"`               // Output only. The time the user's account was deleted. The value is in ISO 8601 date and time format. The time is the complete date plus hours, minutes, and seconds in the form YYYY-MM-DDThh:mm:ssTZD.
+	Gender                     Gender         `json:"gender,omitempty"`                     // A nested object containing the user's gender. Maximum allowed data size for this field is 1KB.
+	ThumbnailPhotoEtag         string         `json:"thumbnailPhotoEtag,omitempty"`         // Output only. ETag of the user's photo (Read-only)
+	IMs                        []IM           `json:"ims,omitempty"`                        // The user's Instant Messenger (IM) accounts. A user account can have multiple ims properties, but only one of these ims properties can be the primary IM contact.
+	IsEnrolledIn2Sv            bool           `json:"isEnrolledIn2Sv,omitempty"`            // Output only. Is enrolled in 2-step verification (Read-only)
+	IsEnforcedIn2Sv            bool           `json:"isEnforcedIn2Sv,omitempty"`            // Output only. Is 2-step verification enforced (Read-only)
+	Archived                   bool           `json:"archived,omitempty"`                   // Indicates if user is archived.
+	OrgUnitPath                string         `json:"orgUnitPath,omitempty"`                // The full path of the parent organization associated with the user. If the parent organization is the top-level, it is represented as a forward slash (/).
+	RecoveryEmail              string         `json:"recoveryEmail,omitempty"`              // Recovery email of the user.
+	RecoveryPhone              string         `json:"recoveryPhone,omitempty"`              // Recovery phone of the user. The phone number must be in the E.164 format, starting with the plus sign (+).
+	Roles                      []Role         `json:"roles,omitempty"`                      // User's roles
 }
 
 type Email struct {
-	Address    string `json:"address,omitempty"`    // The user's email address
-	CustomType string `json:"customType,omitempty"` // The custom value if the email address type is custom
-	Primary    bool   `json:"primary,omitempty"`    // Indicator if this is the user's primary email
-	Type       string `json:"type,omitempty"`       // The type of the email account
+	Address    string `json:"address,omitempty"`    // The user's email address. Also serves as the email ID. This value can be the user's primary email address or an alias
+	CustomType string `json:"customType,omitempty"` // If the email address type is custom, this property contains the custom value and must be set
+	Primary    bool   `json:"primary,omitempty"`    // Indicates if this is the user's primary email. Only one entry can be marked as primary
+	Type       string `json:"type,omitempty"`       // The type of the email account. If set to custom, customType must also be set. Acceptable values: {custom, home, other, work}
 }
 
 type ExternalID struct {
-	CustomType string `json:"customType,omitempty"` // The custom value if the external ID type is custom
-	Type       string `json:"type,omitempty"`       // The type of external ID
+	CustomType string `json:"customType,omitempty"` // If the external ID type is custom, this property contains the custom value and must be set
+	Type       string `json:"type,omitempty"`       // The type of external ID. If set to custom, customType must also be set. Acceptable values: {account, custom, customer, login_id, network, organization}
 	Value      string `json:"value,omitempty"`      // The value of the external ID
 }
 
@@ -1326,8 +1327,8 @@ type POSIXAccount struct {
 }
 
 type Relation struct {
-	CustomType string `json:"customType,omitempty"` // The custom value if the relationship type is custom
-	Type       string `json:"type,omitempty"`       // The type of relationship
+	CustomType string `json:"customType,omitempty"` // If the relationship type is custom, this property contains the custom value and must be set
+	Type       string `json:"type,omitempty"`       // The type of relationship. If set to custom, customType must also be set
 	Value      string `json:"value,omitempty"`      // The email address of the person the user is related to
 }
 
@@ -1345,6 +1346,42 @@ type Website struct {
 }
 
 // END OF USER STRUCTS
+//-----------------------------------------------------------------------------
+
+// ### Groups Structs
+// ----------------------------------------------------------------------------
+
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/groups/list#response-body
+type Groups struct {
+	Groups        []*Group `json:"groups,omitempty"`        // A page of group resources.
+	Etag          string   `json:"etag,omitempty"`          // ETag of the collection resource.
+	Kind          string   `json:"kind,omitempty"`          // Output only. The type of the API resource. For a list, the value is admin#directory#groups.
+	NextPageToken string   `json:"nextPageToken,omitempty"` // Token used to retrieve the next page of results.
+}
+
+func (g Groups) Map() map[string]*Group {
+	groupMap := make(map[string]*Group, len(g.Groups))
+	for _, group := range g.Groups {
+		groupMap[group.Email] = group
+	}
+	return groupMap
+}
+
+// https://developers.google.com/admin-sdk/directory/reference/rest/v1/groups#resource:-group
+type Group struct {
+	ID                 string   `json:"id,omitempty"`                 // Read-only. The unique ID of a group. A group ID can be used as a group request URI's groupKey.
+	Email              string   `json:"email,omitempty"`              // The group's primary email address. Must be unique within the customer’s domains.
+	Name               string   `json:"name,omitempty"`               // The group's display name.
+	Description        string   `json:"description,omitempty"`        // Extended description to help users understand the purpose of the group (max 4,096 chars).
+	AdminCreated       bool     `json:"adminCreated,omitempty"`       // Read-only. True if the group was created by an administrator.
+	DirectMembersCount string   `json:"directMembersCount,omitempty"` // The number of users that are direct members of the group. Child-group members aren’t included.
+	Kind               string   `json:"kind,omitempty"`               // Output only. The type of the API resource. For Groups resources, the value is admin#directory#group.
+	Etag               string   `json:"etag,omitempty"`               // ETag of the resource.
+	Aliases            []string `json:"aliases,omitempty"`            // Read-only. Alias email addresses for the group.
+	NonEditableAliases []string `json:"nonEditableAliases,omitempty"` // Read-only. Alias email addresses outside the primary domain or sub-domains.
+}
+
+// END OF GROUPS STRUCTS
 //-----------------------------------------------------------------------------
 
 // ### Device Structs
@@ -1551,7 +1588,11 @@ func (r *ResolvedPolicies) Init() {
 	r.ResolvedPolicies = new([]*ResolvedPolicy)
 }
 
+// FAILING FOR GROUPS WHEN DEVICE RULES ARE REQUESTED
 func (r ResolvedPolicies) Append(result ResolvedPolicies) ResolvedPolicies {
+	if result == (ResolvedPolicies{}) {
+		result.ResolvedPolicies = new([]*ResolvedPolicy)
+	}
 	if r.ResolvedPolicies == nil {
 		r.ResolvedPolicies = new([]*ResolvedPolicy)
 	}
