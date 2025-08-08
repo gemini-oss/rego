@@ -1,6 +1,9 @@
 package lenel_s2
 
 import (
+	"context"
+	"encoding/xml"
+	"errors"
 	"fmt"
 	"time"
 )
@@ -18,8 +21,10 @@ func (c *Client) GetAccessHistory(logID int) (*AccessHistory, error) {
 		"GetAccessHistory",
 		struct {
 			AfterLogID int `xml:"AFTERLOGID"`
+			MaxRecords int `xml:"MAXRECORDS"`
 		}{
 			AfterLogID: logID,
+			MaxRecords: 1000,
 		},
 	)
 
@@ -88,25 +93,57 @@ func (c *Client) GetEventHistory(logID int) (any, error) {
 	return *ah, nil
 }
 
-func (c *Client) StreamEvents() (any, error) {
-	url := c.BuildURL(NetBoxAPI)
-	cache_key := fmt.Sprintf("%s_%s", url, NetboxCommands.Events.StreamEvents)
-
-	var cache Events
-	if c.GetCache(cache_key, &cache) {
-		return &cache, nil
+// StreamEvents captures all events with optional context and SIEM forwarding
+func (c *Client) StreamEvents(opts ...StreamOption) ([]Event, error) {
+	// Default configuration
+	cfg := &streamConfig{
+		ctx: context.Background(),
 	}
+
+	// Apply options
+	for _, opt := range opts {
+		opt(cfg)
+	}
+
+	url := c.BuildURL(NetBoxAPI)
+	c.Log.Println("Starting StreamEvents to URL:", url)
+
+	c.HTTP.Headers["Connection"] = "keep-alive"
+	defer delete(c.HTTP.Headers, "Connection")
 
 	payload := c.BuildRequest(
 		NetboxCommands.Events.StreamEvents,
-		nil,
+		cfg.streamParams,
 	)
 
-	events, err := do[Events](c, "POST", url, payload)
-	if err != nil {
-		return nil, err
+	// Log the request payload
+	payloadXML, _ := xml.Marshal(payload)
+	c.Log.Debug("Stream request payload:", string(payloadXML))
+
+	// Process each event as it arrives
+	processFunc := func(event Event) bool {
+		c.Log.Println("Event received:", event.DescName, "at", event.CDT)
+		c.Log.Debug("Event details:", fmt.Sprintf("%+v", event))
+
+		// Forward to SIEM if forwarder provided
+		if cfg.siemForwarder != nil {
+			c.Log.Debug("Forwarding event to SIEM")
+			if err := cfg.siemForwarder(event); err != nil {
+				c.Log.Error("Failed to forward event to SIEM:", err)
+				// Continue processing other events even if one fails
+			}
+		}
+
+		return true // Continue streaming
 	}
 
-	c.SetCache(cache_key, events, 5*time.Minute)
-	return &events, nil
+	// doStream always returns collected events, even on context cancellation
+	events, err := doStream[Event](cfg.ctx, c, "POST", url, payload, processFunc)
+
+	// Log context cancellation but still return collected events
+	if errors.Is(err, context.Canceled) {
+		c.Log.Println("StreamEvents cancelled by context, returning", len(events), "collected events")
+	}
+
+	return events, err
 }

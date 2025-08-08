@@ -30,7 +30,7 @@ func (c *Client) Users() *UsersClient {
 }
 
 /*
- * Query Parameters for Drive Files
+ * Query Parameters for Users
  * Reference: https://developers.google.com/admin-sdk/directory/reference/rest/v1/users/list#query-parameters
  */
 type UserQuery struct {

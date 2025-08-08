@@ -16,6 +16,8 @@ package jamf
 import (
 	"fmt"
 	"time"
+
+	"github.com/gemini-oss/rego/pkg/common/log"
 )
 
 var (
@@ -27,14 +29,15 @@ var (
 
 // DeviceClient for chaining methods
 type DeviceClient struct {
-	client *Client
-	query  DeviceQuery
+	baseClient *Client
+	query      DeviceQuery
+	log        *log.Logger
 }
 
 // Entry point for device-related operations
 func (c *Client) Devices() *DeviceClient {
 	return &DeviceClient{
-		client: c,
+		baseClient: c,
 		query: DeviceQuery{ // Default query parameters
 			Sections: []string{
 				Section.General,
@@ -143,10 +146,10 @@ func (dc *DeviceClient) Filter(filter string) *DeviceClient {
  * - https://developer.jamf.com/jamf-pro/reference/get_v1-computers-inventory
  */
 func (dc *DeviceClient) ListAllComputers() (*Computers, error) {
-	url := dc.client.BuildURL(ComputersInventory)
+	url := dc.baseClient.BuildURL(ComputersInventory)
 
 	var cache Computers
-	if dc.client.GetCache(url, &cache) {
+	if dc.baseClient.GetCache(url, &cache) {
 		return &cache, nil
 	}
 
@@ -161,12 +164,12 @@ func (dc *DeviceClient) ListAllComputers() (*Computers, error) {
 		q.Sections = dc.query.Sections
 	}
 
-	computers, err := doConcurrent[Computers](dc.client, "GET", url, q, nil)
+	computers, err := doConcurrent[Computers](dc.baseClient, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	dc.client.SetCache(url, computers, 5*time.Minute)
+	dc.baseClient.SetCache(url, computers, 5*time.Minute)
 	return computers, nil
 }
 
@@ -176,19 +179,19 @@ func (dc *DeviceClient) ListAllComputers() (*Computers, error) {
  * - https://developer.jamf.com/jamf-pro/reference/get_v1-computers-inventory-detail-id
  */
 func (dc *DeviceClient) GetComputerDetails(id string) (*Computer, error) {
-	url := dc.client.BuildURL(ComputersInventoryDetail, id)
+	url := dc.baseClient.BuildURL(ComputersInventoryDetail, id)
 
 	var cache Computer
-	if dc.client.GetCache(url, &cache) {
+	if dc.baseClient.GetCache(url, &cache) {
 		return &cache, nil
 	}
 
-	computer, err := do[*Computer](dc.client, "GET", url, nil, nil)
+	computer, err := do[*Computer](dc.baseClient, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	dc.client.SetCache(url, computer, 5*time.Minute)
+	dc.baseClient.SetCache(url, computer, 5*time.Minute)
 	return computer, nil
 }
 
@@ -198,14 +201,14 @@ func (dc *DeviceClient) GetComputerDetails(id string) (*Computer, error) {
  * - https://developer.jamf.com/jamf-pro/reference/get_v1-computer-groups
  */
 func (dc *DeviceClient) ListAllComputerGroups() (*[]GroupMembership, error) {
-	url := dc.client.BuildURL(ComputerGroups)
+	url := dc.baseClient.BuildURL(ComputerGroups)
 
 	var cache *[]GroupMembership
-	if dc.client.GetCache(url, cache) {
+	if dc.baseClient.GetCache(url, cache) {
 		return cache, nil
 	}
 
-	groups, err := do[*[]GroupMembership](dc.client, "GET", url, nil, nil)
+	groups, err := do[*[]GroupMembership](dc.baseClient, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -219,10 +222,10 @@ func (dc *DeviceClient) ListAllComputerGroups() (*[]GroupMembership, error) {
  * - https://developer.jamf.com/jamf-pro/reference/get_v2-mobile-devices
  */
 func (dc *DeviceClient) ListAllMobileDevices() (*MobileDevices, error) {
-	url := dc.client.BuildURL(MobileDev)
+	url := dc.baseClient.BuildURL(MobileDev)
 
 	var cache MobileDevices
-	if dc.client.GetCache(url, &cache) {
+	if dc.baseClient.GetCache(url, &cache) {
 		return &cache, nil
 	}
 
@@ -237,11 +240,11 @@ func (dc *DeviceClient) ListAllMobileDevices() (*MobileDevices, error) {
 		q.Sections = dc.query.Sections
 	}
 
-	md, err := doConcurrent[MobileDevices](dc.client, "GET", url, q, nil)
+	md, err := doConcurrent[MobileDevices](dc.baseClient, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	dc.client.SetCache(url, md, 5*time.Minute)
+	dc.baseClient.SetCache(url, md, 5*time.Minute)
 	return md, nil
 }

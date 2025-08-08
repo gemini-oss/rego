@@ -11,26 +11,30 @@ func (c *Client) ListAllUsers() (*[]*Person, error) {
 
 	var cache People
 	if c.GetCache(cache_key, &cache) {
-		return &cache.People, nil
+		return cache.People, nil
 	}
 
 	payload := c.BuildRequest(
 		NetboxCommands.People.SearchPersonData,
 		struct {
-			StartFromKey int `xml:"STARTFROMKEY"`
+			AllPartitions bool `xml:"ALLPARTITIONS"`
+			StartFromKey  int  `xml:"STARTFROMKEY"`
+			NumToReturn   int  `xml:"NUMTORETURN"`
 		}{
-			StartFromKey: 0,
+			AllPartitions: true,
+			StartFromKey:  0,
+			NumToReturn:   1000,
 		},
 	)
 
-	users, err := do[People](c, "POST", url, payload)
+	users, err := doPaginated[People](c, "POST", url, payload)
 	if err != nil {
 		return nil, err
 	}
 
 	// Cache and return our successfully fetched list of users.
 	c.SetCache(cache_key, users, 5*time.Minute)
-	return &users.People, nil
+	return (*users).People, nil
 }
 
 func (c *Client) GetPerson(personID string) (*Person, error) {

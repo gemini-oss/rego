@@ -197,6 +197,7 @@ type HardwareGET struct {
 	AssignedTo   *User[UserGET] `json:"assigned_to,omitempty"`   // User to whom the hardware item is assigned. (object on GET, string on POST)
 	PurchaseCost string         `json:"purchase_cost,omitempty"` // Purchase cost of the hardware item. (string on GET, float on POST)
 	PurchaseDate *DateInfo      `json:"purchase_date,omitempty"` // Purchase date of the hardware item. (object on GET, string on PPPD)
+	CreatedBy    *Record        `json:"created_by,omitempty"`    // Who created the hardware item.
 }
 
 type HardwarePOST struct {
@@ -231,7 +232,7 @@ type Hardware[M any] struct {
 	Image           string                        `json:"image,omitempty"`             // Image of the hardware item.
 	QR              string                        `json:"qr,omitempty"`                // QR code of the hardware item.
 	AltBarcode      string                        `json:"alt_barcode,omitempty"`       // Alternate barcode of the hardware item.
-	WarrantyExpires string                        `json:"warranty_expires,omitempty"`  // Warranty expiry date of the hardware item.
+	WarrantyExpires *Timestamp                    `json:"warranty_expires,omitempty"`  // Warranty expiry date of the hardware item.
 	LastAuditDate   *string                       `json:"last_audit_date,omitempty"`   // Last audit date of the hardware item.
 	NextAuditDate   *string                       `json:"next_audit_date,omitempty"`   // Next audit date of the hardware item.
 	Age             string                        `json:"age,omitempty"`               // Age of the hardware item.
@@ -778,6 +779,9 @@ func (ts *Timestamp) UnmarshalJSON(b []byte) error {
 	// If that fails, try to unmarshal directly into a string
 	var dateStr string
 	if err := json.Unmarshal(b, &dateStr); err != nil {
+		if ute, ok := err.(*json.UnmarshalTypeError); ok {
+			return fmt.Errorf("expected date string or object with 'date' and 'formatted' fields, got %s", ute.Value)
+		}
 		return err
 	}
 
@@ -818,6 +822,9 @@ func (d *DateInfo) UnmarshalJSON(b []byte) error {
 	}
 
 	if err := json.Unmarshal(b, &aux); err != nil {
+		if ute, ok := err.(*json.UnmarshalTypeError); ok {
+			return fmt.Errorf("expected date object with 'datetime', 'date', and 'formatted' fields, got %s", ute.Value)
+		}
 		return err
 	}
 

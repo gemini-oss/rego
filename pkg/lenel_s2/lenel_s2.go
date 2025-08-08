@@ -13,10 +13,14 @@ https://developer.okta.com/docs/api/
 package lenel_s2
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"io"
+	"os"
+	"os/signal"
 	"strings"
 	"time"
 
@@ -223,7 +227,7 @@ type PaginatedResponse interface {
 	// Append merges a new page of results with the existing result set.
 	Append(resp PaginatedResponse) PaginatedResponse
 
-	SetCommand(nb *Client, cmd NetboxCommand) NetboxCommand
+	SetCommand(nb *Client, cmd *NetboxCommand) NetboxCommand
 }
 
 func do[T any](c *Client, method string, url string, payload NetboxCommand) (T, error) {
@@ -254,13 +258,13 @@ func do[T any](c *Client, method string, url string, payload NetboxCommand) (T, 
 
 // doPaginated runs a paginated API request that returns a type implementing PaginatedResponse.
 func doPaginated[T PaginatedResponse](c *Client, method string, url string, payload NetboxCommand) (*T, error) {
-	var r T
-	results := r
+	var results T
 
 	pageToken := ""
+	cmd := &payload
 
 	for {
-		r, err := do[T](c, method, url, payload)
+		r, err := do[T](c, method, url, *cmd)
 		if err != nil {
 			return nil, err
 		}
@@ -275,8 +279,253 @@ func doPaginated[T PaginatedResponse](c *Client, method string, url string, payl
 		}
 
 		// Set the page token into the query for the next request.
-		payload = r.SetCommand(c, payload)
+		*cmd = r.SetCommand(c, cmd)
 	}
 
 	return &results, nil
+}
+
+// StreamResult holds the collected data and any error from a streaming operation
+type StreamResult[T any] struct {
+	Data  []T
+	Error error
+}
+
+// StreamOption is a functional option for configuring streaming
+type StreamOption func(*streamConfig)
+
+type streamConfig struct {
+	ctx           context.Context
+	siemForwarder func(Event) error
+	streamParams  interface{} // Parameters built by the builder
+}
+
+// WithContext sets a custom context for the stream
+func WithContext(ctx context.Context) StreamOption {
+	return func(cfg *streamConfig) {
+		cfg.ctx = ctx
+	}
+}
+
+// WithEventStreamBuilder uses a builder to configure the stream parameters
+func WithEventParameters(params *StreamEventsParams) StreamOption {
+	return func(cfg *streamConfig) {
+		cfg.streamParams = params
+	}
+}
+
+// doStream processes streaming API requests and collects all data
+func doStream[T any](ctx context.Context, c *Client, method string, url string, payload NetboxCommand, processFunc func(T) bool) ([]T, error) {
+	// Channel for collecting results
+	resultChan := make(chan StreamResult[T], 1)
+
+	// Setup graceful shutdown
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt)
+
+	go func() {
+		<-sigChan
+		c.Log.Println("Interrupt received, stopping...")
+		cancel()
+	}()
+
+	// Run the stream processing in a goroutine
+	go func() {
+		var collected []T
+		c.Log.Debug("Starting stream processing")
+
+		streamErr := c.HTTP.DoStream(ctx, method, url, nil, payload, func(decoder interface{}) error {
+			// For S2 multipart streams, we should get a raw reader
+			reader, ok := decoder.(io.Reader)
+			if !ok {
+				return fmt.Errorf("expected io.Reader for multipart stream, got %T", decoder)
+			}
+
+			c.Log.Debug("Got io.Reader, creating scanner")
+
+			// Create a scanner to read the multipart stream line by line
+			scanner := bufio.NewScanner(reader)
+			var xmlBuffer strings.Builder
+			inXML := false
+			lineCount := 0
+
+			for scanner.Scan() {
+				line := scanner.Text()
+				lineCount++
+
+				// Log raw line in trace mode
+				c.Log.Trace(fmt.Sprintf("Line %d: %s", lineCount, line))
+
+				// Check if this line has XML content followed by boundary
+				if strings.Contains(line, "<NETBOX>") && strings.Contains(line, "--Boundary") {
+					// Extract XML part before the boundary
+					xmlPart := strings.Split(line, "--Boundary")[0]
+					c.Log.Debug("Found XML with boundary on same line:", xmlPart)
+
+					if err := parseStreamEvent(xmlPart, &collected, processFunc, c); err != nil {
+						if err == io.EOF {
+							c.Log.Println("Stream stopped by processFunc")
+							return nil
+						}
+						return err
+					}
+					continue
+				}
+
+				// Skip pure boundary lines
+				if line == "--Boundary" {
+					c.Log.Debug("Skipping pure boundary line")
+					continue
+				}
+
+				// Skip headers
+				if strings.HasPrefix(line, "Content-Type:") || strings.HasPrefix(line, "Content-Length:") {
+					c.Log.Debug("Skipping header line:", line)
+					continue
+				}
+
+				// Detect start of XML (without boundary)
+				if strings.Contains(line, "<NETBOX>") {
+					c.Log.Debug("Found start of XML at line", lineCount)
+					xmlBuffer.Reset()
+					xmlBuffer.WriteString(line)
+					xmlBuffer.WriteString("\n")
+					inXML = true
+
+					// Check if it's a single-line response
+					if strings.Contains(line, "</NETBOX>") {
+						inXML = false
+						xmlData := xmlBuffer.String()
+						c.Log.Debug("Found complete single-line XML:", xmlData)
+
+						if err := parseStreamEvent(xmlData, &collected, processFunc, c); err != nil {
+							if err == io.EOF {
+								c.Log.Println("Stream stopped by processFunc")
+								return nil
+							}
+							return err
+						}
+					}
+				} else if inXML {
+					xmlBuffer.WriteString(line)
+					xmlBuffer.WriteString("\n")
+
+					// Check for end of XML
+					if strings.Contains(line, "</NETBOX>") {
+						inXML = false
+						xmlData := xmlBuffer.String()
+						c.Log.Debug("Found complete multi-line XML:", xmlData)
+
+						if err := parseStreamEvent(xmlData, &collected, processFunc, c); err != nil {
+							if err == io.EOF {
+								c.Log.Println("Stream stopped by processFunc")
+								return nil
+							}
+							return err
+						}
+					}
+				} else if line != "" {
+					// Log any non-empty lines we're not processing
+					c.Log.Trace("Skipping non-XML line:", line)
+				}
+
+				// Check for context cancellation
+				select {
+				case <-ctx.Done():
+					c.Log.Println("Stream cancelled by context")
+					return ctx.Err()
+				default:
+				}
+			}
+
+			c.Log.Debug("Scanner finished after", lineCount, "lines")
+
+			if err := scanner.Err(); err != nil {
+				return fmt.Errorf("error reading stream: %w", err)
+			}
+
+			return nil
+		})
+
+		// Send the result
+		resultChan <- StreamResult[T]{
+			Data:  collected,
+			Error: streamErr,
+		}
+	}()
+
+	// Wait for the result
+	result := <-resultChan
+
+	// Handle results
+	if result.Error != nil && result.Error != context.Canceled {
+		c.Log.Printf("Stream error: %v\n", result.Error)
+	}
+	c.Log.Println("Stream completed. Collected items:", len(result.Data))
+
+	// Always return collected data, even if there was an error
+	return result.Data, result.Error
+}
+
+// parseStreamEvent handles a single XML event response from the stream
+func parseStreamEvent[T any](xmlData string, collected *[]T, processFunc func(T) bool, c *Client) error {
+	c.Log.Debug("Parsing XML event response of length:", len(xmlData))
+
+	var result NetboxEventResponse[T]
+	if err := xml.Unmarshal([]byte(xmlData), &result); err != nil {
+		c.Log.Debug("Failed to parse XML:", xmlData)
+		c.Log.Debug("Parse error:", err)
+		return nil // Skip malformed chunks
+	}
+
+	// Log parsed structure
+	c.Log.Debug(fmt.Sprintf("Parsed event response - Command: %s, Code: %s, APIError: %d, HasEvent: %v",
+		result.Response.Command,
+		result.Response.Code,
+		result.Response.APIError,
+		result.Response.Event != nil))
+
+	// Skip heartbeat messages
+	// Heartbeats have no CODE and no EVENT (just empty RESPONSE tag with command attribute)
+	if result.Response.Code == "" && result.Response.Event == nil && result.Response.APIError == 0 {
+		c.Log.Debug("Event heartbeat received (empty response)")
+		return nil
+	}
+
+	// Check for API errors
+	if result.Response.APIError != 0 {
+		return fmt.Errorf("API error %d: %s", result.Response.APIError, result.Response.Error)
+	}
+
+	// Check for command failures
+	if result.Response.Code == "FAIL" {
+		if result.Response.Error != "" {
+			return fmt.Errorf("command failed: %s", result.Response.Error)
+		}
+		return fmt.Errorf("command failed with unknown error")
+	}
+
+	// Process successful event responses
+	if result.Response.Event != nil {
+		item := *result.Response.Event
+		*collected = append(*collected, item)
+		c.Log.Println(fmt.Sprintf("Collected event #%d", len(*collected)))
+
+		// Call the process function for real-time handling
+		if processFunc != nil && !processFunc(item) {
+			c.Log.Println("Stream stopped by processFunc")
+			return io.EOF // Use EOF to signal intentional stop
+		}
+	} else if result.Response.Code == "SUCCESS" && result.Response.Event == nil {
+		// Success but no event - could be initial connection confirmation
+		c.Log.Debug("SUCCESS response with no event")
+	} else {
+		// Log why we're not collecting this response
+		c.Log.Debug("Not collecting response - Code:", result.Response.Code, "HasEvent:", result.Response.Event != nil)
+	}
+
+	return nil
 }
