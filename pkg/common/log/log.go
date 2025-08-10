@@ -148,6 +148,22 @@ func (l *Logger) Println(v ...interface{}) {
 }
 
 /*
+ * # log.Info
+ * - logs line at INFO level
+ */
+func (l *Logger) Info(v ...interface{}) {
+	l.log(INFO, v...)
+}
+
+/*
+ * # log.Infof
+ * - logs formatted message at INFO level
+ */
+func (l *Logger) Infof(format string, v ...interface{}) {
+	l.logf(INFO, format, v...)
+}
+
+/*
  * # log.Trace
  * - logs line at TRACE level
  */

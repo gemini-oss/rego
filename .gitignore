@@ -55,6 +55,3 @@ go.work
 test-results/
 test-reports/
 coverage/
-
-# Claude Memory Files
-**/CLAUDE.md
