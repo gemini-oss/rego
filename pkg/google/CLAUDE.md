@@ -268,7 +268,7 @@ client.ClearCache()
 | Variable | Description | Example | Required |
 |----------|-------------|---------|----------|
 | `GOOGLE_CREDENTIALS` | Path to credentials file or inline JSON | `/path/to/creds.json` | Yes |
-| `GOOGLE_IMPERSONATE_USER` | Email to impersonate (service accounts) | `admin@example.com` | For Admin SDK |
+| `GOOGLE_SUBJECT` | Email to impersonate (service accounts) | `admin@example.com` | For Admin SDK |
 | `GOOGLE_DOMAIN` | Default domain for operations | `example.com` | No |
 | `GOOGLE_API_KEY` | API key (CICD mode) | `AIza...` | If using API key |
 | `GOOGLE_OAUTH_CLIENT` | OAuth client (CICD mode, base64) | `eyJ0eXBlIj...` | If using OAuth |
