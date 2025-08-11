@@ -66,13 +66,13 @@ func TestStreamEventsBuilder(t *testing.T) {
 				return lenel_s2.NewStreamEventsBuilder().
 					WithEventType(lenel_s2.EventTypes.NetworkNodeTimeout).
 					WithEventType(lenel_s2.EventTypes.NetworkNodeRestored).
-					WithFilter(lenel_s2.EventTags.NodeName, "Satoshi-Node-5", "Vitalik-Master-7", "REGO-Node-3").
+					WithFilter(lenel_s2.EventTags.NodeName, "Satoshi-Node-5", "Nakamoto-Master-7", "REGO-Node-3").
 					Build()
 			},
 			wantTags: []string{"NDT", "NODEADDRESS", "NODENAME", "NODEUNIQUE",
 				"PARTNAME", "PARTITIONKEY", "CDT"},
 			wantFilters: map[string][]string{
-				"NODENAME": {"Satoshi-Node-5", "Vitalik-Master-7", "REGO-Node-3"},
+				"NODENAME": {"Satoshi-Node-5", "Nakamoto-Master-7", "REGO-Node-3"},
 			},
 		},
 		{
@@ -83,14 +83,14 @@ func TestStreamEventsBuilder(t *testing.T) {
 					WithField(lenel_s2.EventTags.DescName).
 					WithField(lenel_s2.EventTags.CDT).
 					WithField(lenel_s2.EventTags.PartitionName).
-					WithFilter(lenel_s2.EventTags.PersonName, "Anthony Dardano", "Satoshi Nakamoto", "Vitalik Buterin").
+					WithFilter(lenel_s2.EventTags.PersonName, "Anthony Dardano", "Satoshi Nakamoto", "Bitcoin").
 					WithFilter(lenel_s2.EventTags.DescName, "Access granted", "Access denied", "Invalid badge").
 					WithFilter(lenel_s2.EventTags.PartitionName, "Office", "REGO-5", "Crypto-7").
 					Build()
 			},
 			wantTags: []string{"PERSONNAME", "DESCNAME", "CDT", "PARTNAME"},
 			wantFilters: map[string][]string{
-				"PERSONNAME": {"Anthony Dardano", "Satoshi Nakamoto", "Vitalik Buterin"},
+				"PERSONNAME": {"Anthony Dardano", "Satoshi Nakamoto", "Bitcoin"},
 				"DESCNAME":   {"Access granted", "Access denied", "Invalid badge"},
 				"PARTNAME":   {"Office", "REGO-5", "Crypto-7"},
 			},
@@ -101,13 +101,13 @@ func TestStreamEventsBuilder(t *testing.T) {
 				return lenel_s2.NewStreamEventsBuilder().
 					WithEventType(lenel_s2.EventTypes.ElevatorAccessGranted).
 					WithEventType(lenel_s2.EventTypes.ElevatorAccessDenied).
-					FilterByPersonName("Anthony Dardano", "Tony D", "Satoshi-757", "Vitalik-Master").
+					FilterByPersonName("Anthony Dardano", "Tony D", "Satoshi-757", "Bitcoin-Master").
 					Build()
 			},
 			wantTags: []string{"PERSONID", "PERSONNAME", "RDRNAME", "UCBITLENGTH",
 				"NDT", "NODEADDRESS", "NODENAME", "PARTNAME", "PARTITIONKEY", "CDT", "DETAIL"},
 			wantFilters: map[string][]string{
-				"PERSONNAME": {"Anthony Dardano", "Tony D", "Satoshi-757", "Vitalik-Master"},
+				"PERSONNAME": {"Anthony Dardano", "Tony D", "Satoshi-757", "Bitcoin-Master"},
 			},
 		},
 		{
@@ -130,13 +130,13 @@ func TestStreamEventsBuilder(t *testing.T) {
 				return lenel_s2.NewStreamEventsBuilder().
 					WithEventType(lenel_s2.EventTypes.IntrusionPanelAlarm).
 					WithEventType(lenel_s2.EventTypes.IntrusionPanelZoneTrouble).
-					WithFilter(lenel_s2.EventTags.IPanelZone, "Zone-357", "Satoshi-Z5", "Buterin-Z7").
+					WithFilter(lenel_s2.EventTags.IPanelZone, "Zone-357", "Satoshi-Z5", "Bitcoin-Z7").
 					WithFilter(lenel_s2.EventTags.IPanelName, "REGO-Intrusion", "Prime-Panel").
 					Build()
 			},
 			wantTags: []string{"IPANELAREA", "IPANELNAME", "IPANELZONE", "PARTNAME", "PARTITIONKEY", "CDT"},
 			wantFilters: map[string][]string{
-				"IPANELZONE": {"Zone-357", "Satoshi-Z5", "Buterin-Z7"},
+				"IPANELZONE": {"Zone-357", "Satoshi-Z5", "Bitcoin-Z7"},
 				"IPANELNAME": {"REGO-Intrusion", "Prime-Panel"},
 			},
 		},
@@ -217,10 +217,10 @@ func TestStreamEventsParamsMarshal(t *testing.T) {
 			name: "Tag with multiple filters",
 			params: lenel_s2.NewStreamEventsBuilder().
 				WithField(lenel_s2.EventTags.PortalName).
-				WithFilter(lenel_s2.EventTags.PortalName, "REGO-Portal-5", "Satoshi-Gate", "Buterin-Entry-7").
+				WithFilter(lenel_s2.EventTags.PortalName, "REGO-Portal-5", "Satoshi-Gate", "Bitcoin-Entry-7").
 				Build(),
 			checkFunc: func(t *testing.T, xmlStr string) {
-				filters := []string{"REGO-Portal-5", "Satoshi-Gate", "Buterin-Entry-7"}
+				filters := []string{"REGO-Portal-5", "Satoshi-Gate", "Bitcoin-Entry-7"}
 				for _, filter := range filters {
 					if !strings.Contains(xmlStr, "<FILTER>"+filter+"</FILTER>") {
 						t.Errorf("Expected FILTER with '%s'", filter)
@@ -310,12 +310,12 @@ func TestComplexFilterScenarios(t *testing.T) {
 	}{
 		{
 			name:     "Monitor VIP access for multiple users",
-			scenario: "Track Anthony, Satoshi, and Vitalik accessing VIP areas",
+			scenario: "Track Anthony, Satoshi, and Bitcoin accessing VIP areas",
 			builder: func() *lenel_s2.StreamEventsParams {
 				return lenel_s2.NewStreamEventsBuilder().
 					WithEventType(lenel_s2.EventTypes.AccessGranted).
 					WithEventType(lenel_s2.EventTypes.InvalidAccess).
-					FilterByPersonName("Anthony Dardano", "Satoshi Nakamoto", "Vitalik Buterin").
+					FilterByPersonName("Anthony Dardano", "Satoshi Nakamoto", "Bitcoin").
 					FilterByPortalName("VIP-Portal-5", "Executive-Suite-7", "REGO-Penthouse-3").
 					Build()
 			},
@@ -345,13 +345,13 @@ func TestComplexFilterScenarios(t *testing.T) {
 		},
 		{
 			name:     "Multi-building threat monitoring",
-			scenario: "Monitor threat level changes across REGO, Satoshi, and Vitalik buildings",
+			scenario: "Monitor threat level changes across REGO, Satoshi, and Bitcoin buildings",
 			builder: func() *lenel_s2.StreamEventsParams {
 				return lenel_s2.NewStreamEventsBuilder().
 					WithEventType(lenel_s2.EventTypes.ThreatLevelSet).
 					WithEventType(lenel_s2.EventTypes.ThreatLevelSetAPI).
 					WithEventType(lenel_s2.EventTypes.ThreatLevelSetALM).
-					WithFilter(lenel_s2.EventTags.LocationName, "REGO-Building-5", "Satoshi-Tower", "Buterin-Complex-7").
+					WithFilter(lenel_s2.EventTags.LocationName, "REGO-Building-5", "Satoshi-Tower", "Bitcoin-Complex-7").
 					Build()
 			},
 		},

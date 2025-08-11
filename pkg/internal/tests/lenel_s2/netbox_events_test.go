@@ -154,7 +154,7 @@ func TestStreamEvents(t *testing.T) {
 			t.Errorf("Expected 1 Satoshi event, got %d", satoshiEvents)
 		}
 		if nakamotoEvents != 1 {
-			t.Errorf("Expected 1 Vitalik event, got %d", nakamotoEvents)
+			t.Errorf("Expected 1 Nakamoto event, got %d", nakamotoEvents)
 		}
 	})
 }

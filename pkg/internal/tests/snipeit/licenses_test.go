@@ -147,8 +147,8 @@ func TestLicenseQuery(t *testing.T) {
 		Sort:         "name",
 		Order:        "asc",
 		Maintained:   true,
-		LicenseName:  "John Doe",
-		LicenseEmail: "john@example.com",
+		LicenseName:  "Satoshi Nakamoto",
+		LicenseEmail: "satoshi@nakamoto.com",
 	}
 
 	// Test QueryInterface methods
