@@ -435,9 +435,13 @@ func do[T any](c *Client, method string, url string, query any, data any) (T, er
 	c.Log.Println("Response Status:", res.Status)
 	c.Log.Debug("Response Body:", string(body))
 
-	err = json.Unmarshal(body, &result)
-	if err != nil {
-		return *new(T), fmt.Errorf("unmarshalling error: %w", err)
+	if len(body) > 0 {
+		err = json.Unmarshal(body, &result)
+		if err != nil {
+			return *new(T), fmt.Errorf("unmarshalling error: %w", err)
+		}
+	} else {
+		return result, err
 	}
 
 	return result, nil
