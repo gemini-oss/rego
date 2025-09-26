@@ -297,7 +297,8 @@ type StreamOption func(*streamConfig)
 type streamConfig struct {
 	ctx           context.Context
 	siemForwarder func(Event) error
-	streamParams  interface{} // Parameters built by the builder
+	heartbeat     func() // Called when heartbeat is received
+	streamParams  any    // Parameters built by the builder
 }
 
 // WithContext sets a custom context for the stream
@@ -314,8 +315,22 @@ func WithEventParameters(params *StreamEventsParams) StreamOption {
 	}
 }
 
+// WithSIEMForwarder sets a function to forward events to a SIEM
+func WithSIEMForwarder(forwarder func(Event) error) StreamOption {
+	return func(cfg *streamConfig) {
+		cfg.siemForwarder = forwarder
+	}
+}
+
+// WithHeartbeat sets a function to be called when a heartbeat is received
+func WithHeartbeat(heartbeat func()) StreamOption {
+	return func(cfg *streamConfig) {
+		cfg.heartbeat = heartbeat
+	}
+}
+
 // doStream processes streaming API requests and collects all data
-func doStream[T any](ctx context.Context, c *Client, method string, url string, payload NetboxCommand, processFunc func(T) bool) ([]T, error) {
+func doStream[T Event](ctx context.Context, c *Client, method string, url string, payload NetboxCommand, processFunc func(T) bool, heartbeat func()) ([]T, error) {
 	// Channel for collecting results
 	resultChan := make(chan StreamResult[T], 1)
 
@@ -325,11 +340,21 @@ func doStream[T any](ctx context.Context, c *Client, method string, url string, 
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt)
+	defer signal.Stop(sigChan) // Stop receiving signals when function exits
+
+	// Create a done channel to clean up the goroutine
+	done := make(chan struct{})
+	defer close(done)
 
 	go func() {
-		<-sigChan
-		c.Log.Println("Interrupt received, stopping...")
-		cancel()
+		select {
+		case <-sigChan:
+			c.Log.Print("Interrupt received in StreamEvents, stopping...")
+			cancel()
+		case <-done:
+			// Clean exit when the function returns
+			return
+		}
 	}()
 
 	// Run the stream processing in a goroutine
@@ -363,9 +388,9 @@ func doStream[T any](ctx context.Context, c *Client, method string, url string, 
 				if strings.Contains(line, "<NETBOX>") && strings.Contains(line, "--Boundary") {
 					// Extract XML part before the boundary
 					xmlPart := strings.Split(line, "--Boundary")[0]
-					c.Log.Debug("Found XML with boundary on same line:", xmlPart)
+					c.Log.Debug("XML:", xmlPart)
 
-					if err := parseStreamEvent(xmlPart, &collected, processFunc, c); err != nil {
+					if err := parseStreamEvent(xmlPart, &collected, processFunc, c, heartbeat); err != nil {
 						if err == io.EOF {
 							c.Log.Println("Stream stopped by processFunc")
 							return nil
@@ -401,7 +426,7 @@ func doStream[T any](ctx context.Context, c *Client, method string, url string, 
 						xmlData := xmlBuffer.String()
 						c.Log.Debug("Found complete single-line XML:", xmlData)
 
-						if err := parseStreamEvent(xmlData, &collected, processFunc, c); err != nil {
+						if err := parseStreamEvent(xmlData, &collected, processFunc, c, heartbeat); err != nil {
 							if err == io.EOF {
 								c.Log.Println("Stream stopped by processFunc")
 								return nil
@@ -419,7 +444,7 @@ func doStream[T any](ctx context.Context, c *Client, method string, url string, 
 						xmlData := xmlBuffer.String()
 						c.Log.Debug("Found complete multi-line XML:", xmlData)
 
-						if err := parseStreamEvent(xmlData, &collected, processFunc, c); err != nil {
+						if err := parseStreamEvent(xmlData, &collected, processFunc, c, heartbeat); err != nil {
 							if err == io.EOF {
 								c.Log.Println("Stream stopped by processFunc")
 								return nil
@@ -462,7 +487,7 @@ func doStream[T any](ctx context.Context, c *Client, method string, url string, 
 
 	// Handle results
 	if result.Error != nil && result.Error != context.Canceled {
-		c.Log.Printf("Stream error: %v\n", result.Error)
+		c.Log.Warningf("Stream error: %v\n", result.Error)
 	}
 	c.Log.Println("Stream completed. Collected items:", len(result.Data))
 
@@ -471,7 +496,7 @@ func doStream[T any](ctx context.Context, c *Client, method string, url string, 
 }
 
 // parseStreamEvent handles a single XML event response from the stream
-func parseStreamEvent[T any](xmlData string, collected *[]T, processFunc func(T) bool, c *Client) error {
+func parseStreamEvent[T any](xmlData string, collected *[]T, processFunc func(T) bool, c *Client, heartbeat func()) error {
 	c.Log.Debug("Parsing XML event response of length:", len(xmlData))
 
 	var result NetboxEventResponse[T]
@@ -492,6 +517,9 @@ func parseStreamEvent[T any](xmlData string, collected *[]T, processFunc func(T)
 	// Heartbeats have no CODE and no EVENT (just empty RESPONSE tag with command attribute)
 	if result.Response.Code == "" && result.Response.Event == nil && result.Response.APIError == 0 {
 		c.Log.Debug("Event heartbeat received (empty response)")
+		if heartbeat != nil {
+			heartbeat()
+		}
 		return nil
 	}
 

@@ -566,6 +566,7 @@ type EventType struct {
 // EventTypes provides access to all event types in the order they appear in the NetBox documentation
 var EventTypes = struct {
 	AccessGranted                       EventType // DESCNAME: "Access Granted"
+	AccessDenied                        EventType // DESCNAME: "Access Denied"
 	InvalidAccess                       EventType // DESCNAME: "Invalid Access"
 	PortalHeldOpen                      EventType // DESCNAME: "Portal Held Open"
 	PortalForcedOpen                    EventType // DESCNAME: "Portal Forced Open"
@@ -717,6 +718,29 @@ var EventTypes = struct {
 			EventTags.ReaderName,
 			EventTags.ReaderKey,
 			EventTags.Reader2Key,
+			EventTags.ACName,
+			EventTags.ACNum,
+			EventTags.NDT,
+			EventTags.NodeAddress,
+			EventTags.NodeName,
+			EventTags.NodeUnique,
+			EventTags.PartitionName,
+			EventTags.PartitionKey,
+			EventTags.CDT,
+		},
+	},
+	AccessDenied: EventType{
+		Name:     "Access Denied",
+		Category: CategoryAccess,
+		RequiredFields: []tagName{
+			EventTags.Detail,
+			EventTags.PersonID,
+			EventTags.PersonName,
+			EventTags.PortalKey,
+			EventTags.PortalName,
+			EventTags.ReaderKey,
+			EventTags.Reader2Key,
+			EventTags.ReaderName,
 			EventTags.ACName,
 			EventTags.ACNum,
 			EventTags.NDT,

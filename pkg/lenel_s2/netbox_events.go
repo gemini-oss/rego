@@ -138,7 +138,7 @@ func (c *Client) StreamEvents(opts ...StreamOption) ([]Event, error) {
 	}
 
 	// doStream always returns collected events, even on context cancellation
-	events, err := doStream[Event](cfg.ctx, c, "POST", url, payload, processFunc)
+	events, err := doStream(cfg.ctx, c, "POST", url, payload, processFunc, cfg.heartbeat)
 
 	// Log context cancellation but still return collected events
 	if errors.Is(err, context.Canceled) {
