@@ -57,9 +57,11 @@ func (pl PaginatedList[E]) Map() map[any]*E {
 	result := make(map[any]*E)
 	for _, item := range *pl.Rows {
 		switch entity := any(item).(type) {
-		case *Hardware[any]:
+		case *Hardware[HardwareGET]:
+			//log.Printf("Processing Hardware entity - Type: %T, Serial: %s", entity, entity.Serial)
 			result[entity.Serial] = item
 		case *User[UserGET]:
+			//log.Printf("Processing User entity - Type: %T, Username: %s, Email: %v", entity, entity.Username, entity.Email)
 			switch entity.Email {
 			case nil:
 				result[entity.Username] = item
@@ -67,8 +69,10 @@ func (pl PaginatedList[E]) Map() map[any]*E {
 				result[(*(*(*entity).UserBase).Email)] = item
 			}
 		case *License[LicenseGET]:
+			//log.Printf("Processing License entity - Type: %T, Name: %s", entity, (*(*(*(*entity).LicenseBase).SnipeIT).Record).Name)
 			result[(*(*(*(*entity).LicenseBase).SnipeIT).Record).Name] = item
 		default:
+			fmt.Printf("Processing unknown entity - Type: %T, Value: %+v", entity, entity)
 			// Fallback to the `ID` field if available
 			value := reflect.ValueOf(item).Elem()
 			if idField := value.FieldByName("ID"); idField.IsValid() {
