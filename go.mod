@@ -1,6 +1,6 @@
 module github.com/gemini-oss/rego
 
-go 1.25
+go 1.24.6
 
 require (
 	github.com/go-ldap/ldap/v3 v3.4.11
