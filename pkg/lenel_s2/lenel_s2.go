@@ -108,8 +108,11 @@ func Login(baseURL string) (*NetboxResponse[any], error) {
 		Username: config.GetEnv("S2_USERNAME"),
 		Password: config.GetEnv("S2_PASSWORD"),
 	}
-	if len(creds.Username) == 0 || len(creds.Password) == 0 {
-		return nil, fmt.Errorf("S2_USERNAME or S2_PASSWORD is not set")
+	if len(creds.Username) == 0 {
+		return nil, fmt.Errorf("S2_USERNAME environment variable is not set")
+	}
+	if len(creds.Password) == 0 {
+		return nil, fmt.Errorf("S2_PASSWORD environment variable is not set")
 	}
 
 	headers := requests.Headers{
@@ -157,8 +160,6 @@ func (c *Client) Logout() error {
 			DateFormat: "tzoffset",
 		},
 	}
-	_ = payload
-
 	_, err := do[struct{}](c, "POST", "", payload)
 	return err
 }
@@ -187,8 +188,14 @@ func NewClient(baseURL string, verbosity int) *Client {
 	url = strings.TrimSuffix(url, "/")
 	url = fmt.Sprintf(BaseURL, url)
 
-	session, _ := Login(url)
+	session, err := Login(url)
+	if err != nil {
+		log.Fatalf("Failed to login to S2: %v", err)
+	}
 	if session == nil {
+		log.Fatal("Received nil S2 session response")
+	}
+	if session.ID == "" {
 		log.Fatal("Failed to retrieve session ID")
 	}
 

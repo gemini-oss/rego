@@ -41,6 +41,61 @@ make pretty                                     # Format code with gofmt
 make update-copyright                           # Update copyright headers in all files
 ```
 
+### Version Control
+
+#### Git Commit Message Format
+All commit messages must follow this structured release notes format:
+
+**Format:**
+```
+[Primary Change Description]; [Secondary Changes] & more…
+
+{PackageName}
+- [Action verb] [concise description of change ≤ 120 chars]
+- [Action verb] [another change description]
+
+{AnotherPackage}
+- [Action verb] [change description]
+
+(No dependency updates.)
+```
+
+**Rules:**
+1. **Title line**: Lead with the most newsworthy change; end with "& more…" if multi-topic; no trailing period
+2. **Group changes** under curly-brace headers (`{PkgName}`) - common buckets: `{Dependencies}`, `{Makefile}`, `{Requests}`, `{Docs}`, `{ServiceName}`
+3. **Bullet points**: Start with present-tense action verb ("Add", "Fix", "Refactor", "Improve", "Remove"); keep ≤ 120 characters; no periods
+4. **Dependencies**: If no dependency updates, include literal line `(No dependency updates.)` after last section
+5. **No AI attribution**: Never add "Generated with Claude Code" or co-authored-by tags
+
+**Example:**
+```
+SnipeIT Overhaul; Update {Jamf, Requests, Makefile, Dependencies} & more…
+
+{Makefile}
+- Add `update-copyright` target that scans `$(SRC_DIR)` and rewrites all legacy `:Copyright:` lines to a target string
+
+{Dependencies}
+- `golang.org/x/net` → **v0.40.0**
+
+{Requests}
+- `handleErrorResponse()` now detects **HTML** error responses and delegates to `parseHTMLError()`
+- New `parseHTMLError()` helper with robust DOM traversal using `golang.org/x/net/html` and regex clean-ups
+- Introduce `UpdateAcceptType()` to mutate the `Accept` header independently of `Content-Type`
+
+{Jamf}
+- Improve chainable sub-clients (Classic): `Profiles()`, `Users()`, `UserGroups()`
+- Generic `do[T]` adds XML unmarshalling fallback when the client's `Content-Type` is XML
+- Replace slice pointers with struct aggregates in entities
+
+{SnipeIT}
+- New license seat management: `Seat[SeatGET|SeatPOST]`, `SeatList`, and builder API `LicenseClient.Checkout().ToUser()`
+- User/model generics overhaul with auto marshal/unmarshal helpers; introduces `BoolInt` type
+- Timestamp parsing now accepts ISO-8601, MySQL `DATETIME`, and date-only formats
+
+{LenelS2}
+- Fix doc comment to reference Lenel S2 API; clarify `CODE` comment in response entity
+```
+
 ### Documentation
 ```bash
 make docs                                       # Generate documentation using gomarkdoc
