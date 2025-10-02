@@ -3,7 +3,7 @@ module github.com/gemini-oss/rego
 go 1.24.6
 
 require (
-	github.com/go-ldap/ldap/v3 v3.4.11
+	github.com/go-ldap/ldap/v3 v3.4.12
 	golang.org/x/crypto v0.42.0
 	golang.org/x/net v0.44.0
 	golang.org/x/oauth2 v0.31.0
