@@ -364,7 +364,11 @@ func (c *Client) DoStream(ctx context.Context, method string, url string, query 
 	}
 
 	// For streaming, we typically want no timeout on the client level but respect context cancellation
-	streamClient := &http.Client{Timeout: 0}
+	// Preserve the transport configuration (including TLS settings) from the original client
+	streamClient := &http.Client{
+		Transport: c.httpClient.Transport,
+		Timeout:   0,
+	}
 
 	resp, err := streamClient.Do(req)
 	if err != nil {
