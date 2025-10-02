@@ -2,8 +2,10 @@
 package lenel_s2
 
 import (
+	"crypto/tls"
 	"encoding/xml"
 	"io"
+	"net/http"
 	"reflect"
 	"sort"
 	"strconv"
@@ -251,6 +253,44 @@ type Command struct {
 
 // END OF LENEL S2 CLIENT STRUCTS
 //---------------------------------------------------------------------
+
+// ### Lenel S2 Client Configuration Options
+// ---------------------------------------------------------------------
+
+type clientConfig struct {
+	insecureSkipVerify bool
+	httpClient         *http.Client
+}
+
+type Option func(*clientConfig)
+
+// WithInsecureSkipVerify disables TLS certificate verification.
+// WARNING: This should only be used in development or with trusted self-signed certificates.
+func WithInsecureSkipVerify() Option {
+	return func(cfg *clientConfig) {
+		cfg.insecureSkipVerify = true
+
+		// Configure HTTP client with TLS settings
+		if cfg.httpClient == nil {
+			cfg.httpClient = &http.Client{}
+		}
+
+		// Ensure Transport is configured with TLS settings
+		if cfg.httpClient.Transport == nil {
+			cfg.httpClient.Transport = &http.Transport{}
+		}
+
+		if transport, ok := cfg.httpClient.Transport.(*http.Transport); ok {
+			if transport.TLSClientConfig == nil {
+				transport.TLSClientConfig = &tls.Config{}
+			}
+			transport.TLSClientConfig.InsecureSkipVerify = true
+		}
+	}
+}
+
+// END OF LENEL S2 CLIENT CONFIGURATION OPTIONS
+// ---------------------------------------------------------------------
 
 // ### Lenel S2 People Structs
 // ---------------------------------------------------------------------

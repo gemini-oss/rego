@@ -66,6 +66,7 @@ go test -v ./pkg/lenel_s2/...
    - `S2_URL`: Base URL for the S2 system
    - `S2_USERNAME`: Authentication username
    - `S2_PASSWORD`: Authentication password
+   - `S2_INSECURE_SKIP_VERIFY`: Set to `"true"` to disable TLS certificate verification (use with caution)
    - `REGO_ENCRYPTION_KEY`: Key for cache encryption
 
 ## Important Notes
@@ -76,6 +77,48 @@ go test -v ./pkg/lenel_s2/...
 - Error handling includes both API-level errors and command-level failures
 - The streaming API uses multipart responses with XML chunks separated by boundaries
 - Cache keys follow the pattern: `{url}_{command}_{parameters}`
+
+### TLS Certificate Handling
+
+The client supports disabling TLS certificate verification for environments with self-signed certificates or certificate verification issues. This should **only be used** when:
+- Connecting to systems with self-signed certificates in trusted environments
+- Troubleshooting certificate chain issues
+- Development/testing environments
+
+**WARNING**: Disabling TLS verification removes protection against man-in-the-middle attacks. Only use this in secure, trusted networks.
+
+#### Configuration Options
+
+**Option 1: Environment Variable** (Recommended for deployment)
+```bash
+export S2_INSECURE_SKIP_VERIFY=true
+client := lenel_s2.NewClient("", log.INFO)
+```
+
+**Option 2: Functional Option** (Recommended for programmatic control)
+```go
+client := lenel_s2.NewClient("", log.INFO, lenel_s2.WithInsecureSkipVerify())
+```
+
+**Option 3: Custom HTTP Client** (Advanced use cases)
+```go
+customClient := &http.Client{
+    Transport: &http.Transport{
+        TLSClientConfig: &tls.Config{
+            InsecureSkipVerify: true,
+        },
+    },
+}
+client := lenel_s2.NewClient("", log.INFO, lenel_s2.WithHTTPClient(customClient))
+```
+
+#### Backwards Compatibility
+
+The new options are fully backwards compatible. Existing code continues to work without any changes:
+```go
+// Existing code - still works perfectly
+client := lenel_s2.NewClient("", log.INFO)
+```
 
 ## Common Pitfalls
 

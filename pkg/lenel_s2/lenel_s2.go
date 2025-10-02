@@ -48,7 +48,7 @@ func (c *Client) BuildURL(endpoint string, identifiers ...string) string {
 }
 
 // BuildRequest creates a consistent XML request struct.
-func (c *Client) BuildRequest(name string, params interface{}) NetboxCommand {
+func (c *Client) BuildRequest(name string, params any) NetboxCommand {
 	return NetboxCommand{
 		SessionID: c.Session.ID,
 		Command: Command{
@@ -69,7 +69,7 @@ func (c *Client) UseCache() *Client {
 /*
  * SetCache stores an S2 API response in the cache
  */
-func (c *Client) SetCache(key string, value interface{}, duration time.Duration) {
+func (c *Client) SetCache(key string, value any, duration time.Duration) {
 	// Convert value to a byte slice and cache it
 	data, err := json.Marshal(value)
 	if err != nil {
@@ -82,7 +82,7 @@ func (c *Client) SetCache(key string, value interface{}, duration time.Duration)
 /*
  * GetCache retrieves an S2 API response from the cache
  */
-func (c *Client) GetCache(key string, target interface{}) bool {
+func (c *Client) GetCache(key string, target any) bool {
 	data, found := c.Cache.Get(key)
 	if !found {
 		return false
@@ -100,7 +100,7 @@ func (c *Client) GetCache(key string, target interface{}) bool {
  * # Create a new S2 SessionID based on the credentials provided
  * <COMMAND name="Login" num="1" dateformat="tzoffset">
  */
-func Login(baseURL string) (*NetboxResponse[any], error) {
+func Login(baseURL string, cfg *clientConfig) (*NetboxResponse[any], error) {
 	url := fmt.Sprintf(NetBoxAPI, baseURL)
 
 	// Prepare the credentials for Basic Auth
@@ -134,7 +134,7 @@ func Login(baseURL string) (*NetboxResponse[any], error) {
 		},
 	}
 
-	hc := requests.NewClient(nil, headers, nil)
+	hc := requests.NewClient(cfg.httpClient, headers, nil)
 	hc.BodyType = requests.XML
 	_, body, err := hc.DoRequest(context.Background(), "POST", url, nil, payload)
 	if err != nil {
@@ -176,19 +176,35 @@ func (c *Client) Logout() error {
 
 ```
 */
-func NewClient(baseURL string, verbosity int) *Client {
+func NewClient(baseURL string, verbosity int, opts ...Option) *Client {
 	log := log.NewLogger("{lenel_s2}", verbosity)
 
-	url := config.GetEnv("S2_URL")
-	if len(url) == 0 {
-		log.Fatal("S2_URL is not set")
+	// Apply functional options
+	cfg := &clientConfig{}
+	for _, opt := range opts {
+		opt(cfg)
 	}
+
+	if !cfg.insecureSkipVerify && config.GetEnv("S2_INSECURE_SKIP_VERIFY") == "true" {
+		log.Warning("S2_INSECURE_SKIP_VERIFY is enabled - TLS certificate verification disabled")
+		WithInsecureSkipVerify()(cfg)
+	}
+
+	// Use argument if provided, otherwise fall back to environment variable
+	url := baseURL
+	if url == "" {
+		url = config.GetEnv("S2_URL")
+		if url == "" {
+			log.Fatal("S2_URL is not set")
+		}
+	}
+
 	url = strings.TrimPrefix(url, "https://")
 	url = strings.TrimPrefix(url, "http://")
 	url = strings.TrimSuffix(url, "/")
 	url = fmt.Sprintf(BaseURL, url)
 
-	session, err := Login(url)
+	session, err := Login(url, cfg)
 	if err != nil {
 		log.Fatalf("Failed to login to S2: %v", err)
 	}
@@ -204,7 +220,7 @@ func NewClient(baseURL string, verbosity int) *Client {
 		"Content-Type": requests.XML,
 	}
 
-	httpClient := requests.NewClient(nil, headers, nil)
+	httpClient := requests.NewClient(cfg.httpClient, headers, nil)
 	httpClient.BodyType = requests.XML
 
 	// Look into `Functional Options` patterns for a better way to handle this (and other clients while we're at it)
@@ -369,7 +385,7 @@ func doStream[T Event](ctx context.Context, c *Client, method string, url string
 		var collected []T
 		c.Log.Debug("Starting stream processing")
 
-		streamErr := c.HTTP.DoStream(ctx, method, url, nil, payload, func(decoder interface{}) error {
+		streamErr := c.HTTP.DoStream(ctx, method, url, nil, payload, func(decoder any) error {
 			// For S2 multipart streams, we should get a raw reader
 			reader, ok := decoder.(io.Reader)
 			if !ok {
