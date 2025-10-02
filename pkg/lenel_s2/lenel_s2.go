@@ -35,7 +35,7 @@ const (
 )
 
 var (
-	BaseURL = fmt.Sprintf("http://%s", "%s") // https://
+	BaseURL = fmt.Sprintf("https://%s", "%s") // https://
 )
 
 // BuildURL builds a URL for a given resource and identifiers.
