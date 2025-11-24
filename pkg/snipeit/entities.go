@@ -226,7 +226,7 @@ type Hardware[M any] struct {
 	Method          M                             `json:",inline"`
 	Model           *Model[GET]                   `json:"model,omitempty"`             // Model of the hardware item.
 	ModelNumber     string                        `json:"model_number,omitempty"`      // Model number of the hardware item.
-	EOL             *Timestamp                    `json:"eol,omitempty"`               // End of life of a hardware item.
+	EOL             string                    `json:"eol,omitempty"`               // End of life of a hardware item.
 	AssetEOLDate    *Timestamp                    `json:"asset_eol_date,omitempty"`    // Asset end of life date of the hardware item.
 	StatusLabel     *StatusLabel                  `json:"status_label,omitempty"`      // Status label of the hardware item.
 	Image           string                        `json:"image,omitempty"`             // Image of the hardware item.
