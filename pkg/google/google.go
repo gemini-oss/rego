@@ -418,6 +418,8 @@ func do[T any](c *Client, method string, url string, query any, data any) (T, er
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	c.Log.Debug("URL:", url)
+
 	res, body, err := c.HTTP.DoRequest(ctx, method, url, query, data)
 	if err != nil {
 		if requests.IsNonRetryableCode(res.StatusCode) {

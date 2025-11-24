@@ -120,6 +120,9 @@ func FetchDirectoryEndpoints() (*DirectoryList, *Endpoints, error) {
 		switch item.DiscoveryRestUrl {
 		case "https://realtimebidding.googleapis.com/$discovery/rest?version=v1alpha":
 		case "https://poly.googleapis.com/$discovery/rest?version=v1":
+		case "https://metastore.googleapis.com/$discovery/rest?version=v2alpha":
+		case "https://metastore.googleapis.com/$discovery/rest?version=v2beta":
+		case "https://metastore.googleapis.com/$discovery/rest?version=v2":
 		default:
 			resp, body, err := httpClient.DoRequest(context.Background(), "GET", item.DiscoveryRestUrl, nil, nil)
 			if err != nil {

@@ -17,6 +17,8 @@ import (
 	"encoding/xml"
 	"fmt"
 	"time"
+
+	"github.com/gemini-oss/rego/pkg/common/log"
 )
 
 var (
@@ -25,13 +27,15 @@ var (
 
 // UserClient for chaining methods
 type UserGroupsClient struct {
-	client *Client
+	baseClient *Client
+	Log        *log.Logger
 }
 
 // Entry point for web-related operations
 func (c *Client) UserGroups() *UserGroupsClient {
 	return &UserGroupsClient{
-		client: c,
+		baseClient: c,
+		Log:        c.Log,
 	}
 }
 
@@ -41,19 +45,19 @@ func (c *Client) UserGroups() *UserGroupsClient {
  * - https://developer.jamf.com/jamf-pro/reference/findusergroups
  */
 func (ugc *UserGroupsClient) ListAllUserGroups() (*UserGroups, error) {
-	url := ugc.client.BuildClassicURL(ClassicUserGroups)
+	url := ugc.baseClient.BuildClassicURL(ClassicUserGroups)
 
 	var cache UserGroups
-	if ugc.client.GetCache(url, &cache) {
+	if ugc.baseClient.GetCache(url, &cache) {
 		return &cache, nil
 	}
 
-	userGroups, err := do[UserGroups](ugc.client, "GET", url, nil, nil)
+	userGroups, err := do[UserGroups](ugc.baseClient, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	ugc.client.SetCache(url, userGroups, 5*time.Minute)
+	ugc.baseClient.SetCache(url, userGroups, 5*time.Minute)
 	return &userGroups, nil
 }
 
@@ -63,19 +67,19 @@ func (ugc *UserGroupsClient) ListAllUserGroups() (*UserGroups, error) {
  * - https://developer.jamf.com/jamf-pro/reference/findusergroupsbyid
  */
 func (ugc *UserGroupsClient) GetUserGroup(id string) (*UserGroup, error) {
-	url := ugc.client.BuildClassicURL(ClassicUserGroups, "id", id)
+	url := ugc.baseClient.BuildClassicURL(ClassicUserGroups, "id", id)
 
 	var cache UserGroup
-	if ugc.client.GetCache(url, &cache) {
+	if ugc.baseClient.GetCache(url, &cache) {
 		return &cache, nil
 	}
 
-	userGroup, err := do[UserGroup](ugc.client, "GET", url, nil, nil)
+	userGroup, err := do[UserGroup](ugc.baseClient, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	ugc.client.SetCache(url, userGroup, 5*time.Minute)
+	ugc.baseClient.SetCache(url, userGroup, 5*time.Minute)
 	return &userGroup, nil
 }
 
@@ -85,19 +89,19 @@ func (ugc *UserGroupsClient) GetUserGroup(id string) (*UserGroup, error) {
  * - https://developer.jamf.com/jamf-pro/reference/findusergroupsbyname
  */
 func (ugc *UserGroupsClient) GetUserGroupByName(name string) (*UserGroup, error) {
-	url := ugc.client.BuildClassicURL(ClassicUserGroups, "name", name)
+	url := ugc.baseClient.BuildClassicURL(ClassicUserGroups, "name", name)
 
 	var cache UserGroup
-	if ugc.client.GetCache(url, &cache) {
+	if ugc.baseClient.GetCache(url, &cache) {
 		return &cache, nil
 	}
 
-	userGroup, err := do[UserGroup](ugc.client, "GET", url, nil, nil)
+	userGroup, err := do[UserGroup](ugc.baseClient, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	ugc.client.SetCache(url, userGroup, 5*time.Minute)
+	ugc.baseClient.SetCache(url, userGroup, 5*time.Minute)
 	return &userGroup, nil
 }
 
@@ -107,7 +111,7 @@ func (ugc *UserGroupsClient) GetUserGroupByName(name string) (*UserGroup, error)
  * - https://developer.jamf.com/jamf-pro/reference/createusergroupsbyid
  */
 func (ugc *UserGroupsClient) CreateUserGroup(userGroup *UserGroup) error {
-	url := ugc.client.BuildClassicURL(ClassicUserGroups, "id", -1)
+	url := ugc.baseClient.BuildClassicURL(ClassicUserGroups, "id", -1)
 
 	userGroupBody := struct {
 		XMLName xml.Name `xml:"user_group"`
@@ -116,7 +120,35 @@ func (ugc *UserGroupsClient) CreateUserGroup(userGroup *UserGroup) error {
 		UserGroup: userGroup,
 	}
 
-	_, err := do[any](ugc.client, "POST", url, nil, userGroupBody)
+	_, err := do[any](ugc.baseClient, "POST", url, nil, userGroupBody)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/*
+ * # Update User Group by ID
+ * /usergroups/id/{id}
+ * - https://developer.jamf.com/jamf-pro/reference/updateusergroupsbyid
+ */
+func (ugc *UserGroupsClient) UpdateUserGroup(id int, users *Users) error {
+	url := ugc.baseClient.BuildClassicURL(ClassicUserGroups, "id", id)
+
+	var userGroupBody struct {
+		XMLName       xml.Name `xml:"user_group"`
+		UserAdditions []int    `xml:"user_additions>user>id"`
+	}
+
+	for _, user := range *users.List {
+		userGroupBody.UserAdditions = append(userGroupBody.UserAdditions, user.ID)
+	}
+	if len(userGroupBody.UserAdditions) == 0 {
+		return fmt.Errorf("no users to add to user group")
+	}
+
+	_, err := do[any](ugc.baseClient, "POST", url, nil, userGroupBody)
 	if err != nil {
 		return err
 	}

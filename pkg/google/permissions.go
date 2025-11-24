@@ -119,20 +119,42 @@ func (c *PermissionsClient) GetPermissionDetails(driveID string, permissionID st
 }
 
 /*
+ * CreatePermission creates a new permission for a file
+ * drive/v3/files/{fileId}/permissions/{permissionId}
+ * @param {string} fileId - The ID of the file or shared drive
+ * https://developers.google.com/drive/api/reference/rest/v3/permissions/create
+ */
+func (c *DriveClient) CreatePermission(driveID string, role string, email string) (*Permission, error) {
+	url := c.BuildURL(DriveFiles, nil, driveID, "permissions")
+
+	permission := &Permission{
+		Type:         "user",
+		EmailAddress: email,
+		Role:         role,
+	}
+
+	_, err := do[*Permission](c.Client, "POST", url, nil, &permission)
+	if err != nil {
+		return nil, err
+	}
+
+	return permission, nil
+}
+
+/*
  * # Transfer Google Drive File Ownership
- * drive/v3/files/{fileId}/permissions/{permissionId}/update
+ * drive/v3/files/{fileId}/permissions/{permissionId}
  * Warning: Concurrent permissions operations on the same file are not supported; only the last update is applied.
  * @param {string} fileId - The ID of the file or shortcut.
- * @param {string} permissionId - The ID of the permission.
  * https://developers.google.com/drive/api/reference/rest/v3/permissions/create
  */
 func (c *PermissionsClient) TransferOwnership(driveID string, newOwner string) (*Permission, error) {
 	url := c.BuildURL(DriveFiles, nil, driveID, "permissions")
 
 	permission := &Permission{
+		Type:         "user",
 		EmailAddress: newOwner,
 		Role:         "owner",
-		Type:         "user",
 	}
 
 	q := PermissionsQuery{

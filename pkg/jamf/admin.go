@@ -16,6 +16,8 @@ package jamf
 import (
 	"fmt"
 	"time"
+
+	"github.com/gemini-oss/rego/pkg/common/log"
 )
 
 var (
@@ -25,13 +27,15 @@ var (
 
 // AdminClient for chaining methods
 type AdminClient struct {
-	client *Client
+	baseClient *Client
+	Log        *log.Logger
 }
 
 // Entry point for web-related operations
 func (c *Client) Admin() *AdminClient {
 	return &AdminClient{
-		client: c,
+		baseClient: c,
+		Log:        c.Log,
 	}
 }
 
@@ -41,19 +45,19 @@ func (c *Client) Admin() *AdminClient {
  * - https://developer.jamf.com/jamf-pro/reference/getusers
  */
 func (ac *AdminClient) ListAllUsers() (*JamfUsers, error) {
-	url := ac.client.BuildURL(ComputersInventory)
+	url := ac.baseClient.BuildURL(ComputersInventory)
 
 	var cache JamfUsers
-	if ac.client.GetCache(url, &cache) {
+	if ac.baseClient.GetCache(url, &cache) {
 		return &cache, nil
 	}
 
-	users, err := do[JamfUsers](ac.client, "GET", url, nil, nil)
+	users, err := do[JamfUsers](ac.baseClient, "GET", url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	ac.client.SetCache(url, users, 5*time.Minute)
+	ac.baseClient.SetCache(url, users, 5*time.Minute)
 	return &users, nil
 }
 
