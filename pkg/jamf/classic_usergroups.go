@@ -138,7 +138,7 @@ func (ugc *UserGroupsClient) UpdateUserGroup(id int, users *Users) error {
 
 	var userGroupBody struct {
 		XMLName       xml.Name `xml:"user_group"`
-		UserAdditions []int    `xml:"user_additions>user>id"`
+		UserAdditions []string    `xml:"user_additions>user>id"`
 	}
 
 	for _, user := range *users.List {
