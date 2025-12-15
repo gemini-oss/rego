@@ -37,7 +37,7 @@ type Client struct {
 // ### Jamf Generic Structs
 // ---------------------------------------------------------------------
 type JamfProperty struct {
-	ID   int    `json:"id,omitempty" xml:"id,omitempty"`     // ID of the object.
+	ID   string    `json:"id,omitempty" xml:"id,omitempty"`     // ID of the object.
 	Name string `json:"name,omitempty" xml:"name,omitempty"` // Name of the object.
 }
 
