@@ -704,6 +704,81 @@ type ComputerGroup struct {
 	*JamfProperty
 }
 
+// ### Jamf Static Computer Groups Structs
+// ---------------------------------------------------------------------
+// V1ComputerGroupsResponse represents the response structure for listing all computer groups (v1 endpoint)
+type V1ComputerGroupsResponse struct {
+	Results []V1ComputerGroup `json:"results"` // List of computer groups (both smart and static)
+}
+
+// V1ComputerGroup represents a single computer group from the v1 endpoint
+type V1ComputerGroup struct {
+	ID          string `json:"id"`          // Unique identifier of the computer group
+	Name        string `json:"name"`        // Name of the computer group
+	IsSmart     bool   `json:"smartGroup"`  // Indicates if the group is a smart group (true) or static group (false)
+	Description string `json:"description"` // Description of the computer group
+}
+
+// StaticComputerGroupsResponse represents the response structure for listing static computer groups
+type StaticComputerGroupsResponse struct {
+	TotalCount int                   `json:"totalCount"` // Total number of static computer groups
+	Results    []StaticComputerGroup `json:"results"`    // List of static computer groups
+}
+
+// StaticComputerGroup represents a single static computer group with full details
+type StaticComputerGroup struct {
+	ID          string                       `json:"id"`          // Unique identifier of the static computer group
+	Name        string                       `json:"name"`        // Name of the static computer group
+	Description string                       `json:"description"` // Description of the static computer group
+	SiteID      string                       `json:"siteId"`      // Site ID associated with the group
+	Computers   []StaticComputerGroupMember  `json:"computers"`   // List of computers in the static group
+}
+
+// StaticComputerGroupMember represents a computer that is a member of a static group
+type StaticComputerGroupMember struct {
+	ID           string `json:"id"`           // Unique identifier of the computer
+	SerialNumber string `json:"serialNumber"` // Serial number of the computer
+	Name         string `json:"name"`         // Name of the computer
+}
+
+// StaticComputerGroupRequest represents the request structure for creating/updating a static computer group
+type StaticComputerGroupRequest struct {
+	Name        string `json:"name"`                  // Name of the static computer group (required)
+	Description string `json:"description,omitempty"` // Description of the static computer group (optional)
+	SiteID      string `json:"siteId,omitempty"`      // Site ID associated with the group (optional)
+}
+
+// StaticComputerGroupResponse represents the response structure for create/update operations
+type StaticComputerGroupResponse struct {
+	ID   string `json:"id"`   // Unique identifier of the created/updated static computer group
+	Href string `json:"href"` // HREF link to the created/updated resource
+}
+
+// StaticGroupComputersRequest represents the request structure for adding/replacing computers in a static group
+type StaticGroupComputersRequest struct {
+	ComputerIDs []string `json:"computerIds"` // List of computer IDs to add or replace
+}
+
+// ClassicComputerGroup represents a computer group from the Classic API
+type ClassicComputerGroup struct {
+	ID          int                           `xml:"id"`                                    // Unique identifier of the computer group
+	Name        string                        `xml:"name"`                                  // Name of the computer group
+	IsSmart     bool                          `xml:"is_smart"`                              // Indicates if the group is a smart group
+	Site        *Site                         `xml:"site,omitempty"`                        // Site information of the group
+	Criteria    []*Criterion                  `xml:"criteria>criterion,omitempty"`          // Criteria for smart groups
+	Computers   []ClassicComputerGroupMember  `xml:"computers>computer,omitempty"`          // List of computers in the group
+}
+
+// ClassicComputerGroupMember represents a computer member in the Classic API computer group
+type ClassicComputerGroupMember struct {
+	ID           int    `xml:"id"`                        // Unique identifier of the computer
+	Name         string `xml:"name,omitempty"`            // Name of the computer
+	SerialNumber string `xml:"serial_number,omitempty"`   // Serial number of the computer
+}
+
+// END OF JAMF STATIC COMPUTER GROUPS STRUCTS
+//---------------------------------------------------------------------
+
 // SelfService represents self-service configurations.
 type SelfService struct {
 	FeatureOnMainPage           bool        `json:"feature_on_main_page,omitempty" xml:"feature_on_main_page,omitempty"`                       // If featured on the main page.
