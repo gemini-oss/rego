@@ -467,3 +467,115 @@ func doPaginated[T GoogleAPIResponse[T], Q GoogleQuery](c *Client, method string
 
 	return &results, nil
 }
+
+// LicenseAssignment represents a single license assignment
+type LicenseAssignment struct {
+	ProductId string `json:"productId"`
+	SkuId     string `json:"skuId"`
+	UserId    string `json:"userId"`
+}
+
+// LicenseAssignmentsResponse represents the API response for license assignments
+type LicenseAssignmentsResponse struct {
+	Items         []LicenseAssignment `json:"items"`
+	NextPageToken string              `json:"nextPageToken"`
+}
+
+// LicenseQuery represents a query for license assignments
+type LicenseQuery struct {
+	CustomerId string `url:"customerId"`
+	MaxResults int    `url:"maxResults"`
+	PageToken  string `url:"pageToken"`
+}
+
+// ValidateQuery ensures the query is valid (optional, add validation if needed)
+func (q *LicenseQuery) ValidateQuery() error {
+	if q.CustomerId == "" {
+		return fmt.Errorf("customerId is required")
+	}
+	return nil
+}
+
+// LicensesClient wraps license-related API calls
+type LicensesClient struct {
+	Client *Client
+}
+
+// Licenses returns a LicensesClient for making license-related API calls
+func (c *Client) Licenses() *LicensesClient {
+	return &LicensesClient{Client: c}
+}
+
+// ListAllLicenseAssignments retrieves all license assignments for the organization
+func (c *LicensesClient) ListAllLicenseAssignments(customerId string) (*LicenseAssignmentsResponse, error) {
+	// Define licenses to check
+	licensesToCheck := []struct {
+		ProductId string
+		SkuId     string
+	}{
+		{ProductId: "Google-Apps", SkuId: "1010020020"},                                          // Enterprise Plus
+		{ProductId: "101034", SkuId: "1010340001"},                                               // Archived
+		{ProductId: "Google-Chrome-Device-Management", SkuId: "Google-Chrome-Device-Management"}, // Chrome Enterprise Premium
+		{ProductId: "101033", SkuId: "1010330004"},                                               //Google Voice Standard
+		// Add more productId/skuId pairs as needed
+	}
+
+	// Initialize result to collect all assignments
+	result := &LicenseAssignmentsResponse{}
+
+	// Iterate over each productId/skuId pair
+	for _, license := range licensesToCheck {
+		url := c.Client.BuildURL(fmt.Sprintf("%s/apps/licensing/v1/product/%s/sku/%s/users", c.Client.BaseURL, license.ProductId, license.SkuId), &Customer{ID: customerId})
+
+		// Check cache
+		var cache LicenseAssignmentsResponse
+		if c.Client.GetCache(url, &cache) {
+			result.Items = append(result.Items, cache.Items...)
+			continue
+		}
+
+		q := LicenseQuery{
+			CustomerId: customerId,
+			MaxResults: 500,
+		}
+
+		err := q.ValidateQuery()
+		if err != nil {
+			return nil, err
+		}
+
+		// Make initial API call
+		licenses, err := do[LicenseAssignmentsResponse](c.Client, "GET", url, q, nil)
+		if err != nil {
+			// Log error and continue to next license
+			c.Client.Log.Printf("Error fetching assignments for %s/%s: %v", license.ProductId, license.SkuId, err)
+			continue
+		}
+
+		// Append initial results
+		result.Items = append(result.Items, licenses.Items...)
+
+		// Handle pagination
+		for licenses.NextPageToken != "" {
+			q = LicenseQuery{
+				CustomerId: customerId,
+				MaxResults: 500,
+				PageToken:  licenses.NextPageToken,
+			}
+
+			licensesPage, err := do[LicenseAssignmentsResponse](c.Client, "GET", url, q, nil)
+			if err != nil {
+				c.Client.Log.Printf("Error fetching page for %s/%s: %v", license.ProductId, license.SkuId, err)
+				break
+			}
+			result.Items = append(result.Items, licensesPage.Items...)
+			licenses.NextPageToken = licensesPage.NextPageToken
+		}
+
+		// Cache results
+		c.Client.SetCache(url, licenses, 30*time.Minute)
+	}
+
+	return result, nil
+}
+
