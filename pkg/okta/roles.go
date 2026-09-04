@@ -17,6 +17,9 @@ import (
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/gemini-oss/rego/pkg/common/ratelimit"
+	"github.com/gemini-oss/rego/pkg/common/requests"
 )
 
 // RolesClient for chaining methods
@@ -26,11 +29,33 @@ type RolesClient struct {
 
 // Entry point for role-related operations
 func (c *Client) Roles() *RolesClient {
-	rc := &RolesClient{
-		Client: c,
+	// Return cached client if it exists
+	if c.rolesClient != nil {
+		return c.rolesClient
 	}
 
-	return rc
+	// Shallow copy a new client with Roles-specific rate limiter
+	// https://developer.okta.com/docs/reference/rl-best-practices/
+	rolesRL := ratelimit.NewRateLimiter()
+	rolesRL.ResetHeaders = true
+	rolesRL.Log.Verbosity = c.Log.Verbosity
+
+	rolesHTTP := requests.NewClient(c.HTTP.GetHTTPClient(), c.HTTP.GetHeaders(), rolesRL)
+	rolesHTTP.BodyType = c.HTTP.BodyType
+
+	rolesClient := &Client{
+		BaseURL: c.BaseURL,
+		HTTP:    rolesHTTP,
+		Error:   c.Error,
+		Log:     c.Log,
+		Cache:   c.Cache,
+	}
+
+	c.rolesClient = &RolesClient{
+		Client: rolesClient,
+	}
+
+	return c.rolesClient
 }
 
 /*

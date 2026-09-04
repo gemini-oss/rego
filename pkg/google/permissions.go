@@ -14,6 +14,9 @@ package google
 
 import (
 	"time"
+
+	"github.com/gemini-oss/rego/pkg/common/ratelimit"
+	"github.com/gemini-oss/rego/pkg/common/requests"
 )
 
 // PermissionsClient for chaining methods
@@ -23,17 +26,36 @@ type PermissionsClient struct {
 
 // Entry point for permissions-related operations
 func (c *Client) Permissions() *PermissionsClient {
-	pc := &PermissionsClient{
-		Client: c,
+	// Return cached client if it exists
+	if c.permissionsClient != nil {
+		return c.permissionsClient
 	}
 
+	// Create a new HTTP client with Permissions-specific rate limiter
 	// https://developers.google.com/drive/api/guides/limits
-	pc.HTTP.RateLimiter.Available = 12000
-	pc.HTTP.RateLimiter.Limit = 12000
-	pc.HTTP.RateLimiter.Interval = 1 * time.Minute
-	pc.HTTP.RateLimiter.Log.Verbosity = c.Log.Verbosity
+	permissionsRL := ratelimit.NewRateLimiter(12000, 1*time.Minute)
+	permissionsRL.Log.Verbosity = c.Log.Verbosity
 
-	return pc
+	permissionsHTTP := requests.NewClient(c.HTTP.GetHTTPClient(), c.HTTP.GetHeaders(), permissionsRL)
+	permissionsHTTP.BodyType = c.HTTP.BodyType
+
+	permissionsClient := &Client{
+		Auth:     c.Auth,
+		BaseURL:  c.BaseURL,
+		OAuth:    c.OAuth,
+		JWT:      c.JWT,
+		HTTP:     permissionsHTTP,
+		Error:    c.Error,
+		Log:      c.Log,
+		Cache:    c.Cache,
+		Customer: c.Customer,
+	}
+
+	c.permissionsClient = &PermissionsClient{
+		Client: permissionsClient,
+	}
+
+	return c.permissionsClient
 }
 
 /*

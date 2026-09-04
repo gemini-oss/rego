@@ -1,5 +1,5 @@
 # Makefile \
-:Copyright: (c) 2024 by Gemini Space Station, LLC., see AUTHORS for more info \
+:Copyright: (c) 2026 by Gemini Software Services, LLC., see AUTHORS for more info \
 :License: See the LICENSE file for details \
 :Author: Anthony Dardano <anthony.dardano@gemini.com>
 
@@ -49,7 +49,7 @@ flush:
 
 # Replace every matching line in $(SRC_DIR) with NEW_COPYRIGHT
 SRC_DIR := pkg
-NEW_COPYRIGHT  := :Copyright: (c) 2025 by Gemini Software Services, LLC., see AUTHORS for more info
+NEW_COPYRIGHT  := :Copyright: (c) 2026 by Gemini Software Services, LLC., see AUTHORS for more info
 
 .PHONY: update-copyright
 update-copyright:

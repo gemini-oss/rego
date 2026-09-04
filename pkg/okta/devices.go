@@ -14,6 +14,9 @@ package okta
 
 import (
 	"time"
+
+	"github.com/gemini-oss/rego/pkg/common/ratelimit"
+	"github.com/gemini-oss/rego/pkg/common/requests"
 )
 
 // DevicesClient for chaining methods
@@ -21,13 +24,35 @@ type DevicesClient struct {
 	*Client
 }
 
-// Entry point for group-related operations
+// Entry point for device-related operations
 func (c *Client) Devices() *DevicesClient {
-	dc := &DevicesClient{
-		Client: c,
+	// Return cached client if it exists
+	if c.devicesClient != nil {
+		return c.devicesClient
 	}
 
-	return dc
+	// Shallow copy a new client with Devices-specific rate limiter
+	// https://developer.okta.com/docs/reference/rl-best-practices/
+	devicesRL := ratelimit.NewRateLimiter()
+	devicesRL.ResetHeaders = true
+	devicesRL.Log.Verbosity = c.Log.Verbosity
+
+	devicesHTTP := requests.NewClient(c.HTTP.GetHTTPClient(), c.HTTP.GetHeaders(), devicesRL)
+	devicesHTTP.BodyType = c.HTTP.BodyType
+
+	devicesClient := &Client{
+		BaseURL: c.BaseURL,
+		HTTP:    devicesHTTP,
+		Error:   c.Error,
+		Log:     c.Log,
+		Cache:   c.Cache,
+	}
+
+	c.devicesClient = &DevicesClient{
+		Client: devicesClient,
+	}
+
+	return c.devicesClient
 }
 
 /*

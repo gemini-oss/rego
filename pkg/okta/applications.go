@@ -15,6 +15,9 @@ package okta
 import (
 	"fmt"
 	"time"
+
+	"github.com/gemini-oss/rego/pkg/common/ratelimit"
+	"github.com/gemini-oss/rego/pkg/common/requests"
 )
 
 // ApplicationsClient for chaining methods
@@ -24,11 +27,33 @@ type ApplicationsClient struct {
 
 // Entry point for application-related operations
 func (c *Client) Applications() *ApplicationsClient {
-	ac := &ApplicationsClient{
-		Client: c,
+	// Return cached client if it exists
+	if c.applicationsClient != nil {
+		return c.applicationsClient
 	}
 
-	return ac
+	// Shallow copy a new client with Applications-specific rate limiter
+	// https://developer.okta.com/docs/reference/rl-best-practices/
+	applicationsRL := ratelimit.NewRateLimiter()
+	applicationsRL.ResetHeaders = true
+	applicationsRL.Log.Verbosity = c.Log.Verbosity
+
+	applicationsHTTP := requests.NewClient(c.HTTP.GetHTTPClient(), c.HTTP.GetHeaders(), applicationsRL)
+	applicationsHTTP.BodyType = c.HTTP.BodyType
+
+	applicationsClient := &Client{
+		BaseURL: c.BaseURL,
+		HTTP:    applicationsHTTP,
+		Error:   c.Error,
+		Log:     c.Log,
+		Cache:   c.Cache,
+	}
+
+	c.applicationsClient = &ApplicationsClient{
+		Client: applicationsClient,
+	}
+
+	return c.applicationsClient
 }
 
 /*
@@ -68,6 +93,33 @@ func (c *ApplicationsClient) ListAllApplications() (*Applications, error) {
 
 	c.SetCache(url, applications, 5*time.Minute)
 	return applications, nil
+}
+
+/*
+ * # Get Application
+ * Retrieves an application from your Okta organization by id.
+ * /api/v1/apps/{appId}
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/Application/#tag/Application/operation/listApplications
+ */
+func (c *ApplicationsClient) GetApplication(appID string) (*Application, error) {
+	url := c.BuildURL(OktaApps, appID)
+
+	var cache Application
+	if c.GetCache(url, &cache) {
+		return &cache, nil
+	}
+
+	q := AppQuery{
+		IncludeNonDeleted: false,
+	}
+
+	application, err := do[*Application](c.Client, "GET", url, q, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	c.SetCache(url, application, 5*time.Minute)
+	return application, nil
 }
 
 /*

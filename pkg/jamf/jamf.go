@@ -202,7 +202,7 @@ func do[T any](c *Client, method string, url string, query any, data any) (T, er
 		return *new(T), err
 	}
 
-	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Status:", res.Status)
 	c.Log.Debug("Response Body:", string(body))
 
 	switch c.HTTP.Headers["Content-Type"] {
@@ -258,7 +258,7 @@ func doConcurrent[T JamfAPIResponse](c *Client, method string, url string, q *De
 
 			// Create a new query with the current page
 			q := *q
-			c.Log.Println("Query:", q)
+			c.Log.Debug("Query:", q)
 			q.Page = p
 
 			result, err := do[T](c, method, url, q, data)

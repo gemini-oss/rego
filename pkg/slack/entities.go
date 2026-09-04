@@ -12,7 +12,10 @@ This package contains many structs for handling responses from the Slack Web API
 package slack
 
 import (
+	"fmt"
+
 	"github.com/gemini-oss/rego/pkg/common/cache"
+	"github.com/gemini-oss/rego/pkg/common/generics"
 	"github.com/gemini-oss/rego/pkg/common/log"
 	"github.com/gemini-oss/rego/pkg/common/requests"
 )
@@ -28,12 +31,53 @@ type Client struct {
 	Token         string           // Authentication token for the Slack API.
 	SigningSecret string           // Signing secret for bots
 	Cache         *cache.Cache     // Cache is the cache used to store responses from the Slack API.
+
+	// Cached sub-clients with their own rate limiters
+	usersClient *UsersClient
+	adminClient *AdminClient
+	chatClient  *ChatClient
+	scimClient  *SCIMClient
+	auditClient *AuditClient
+}
+
+// SlackOK is a simple ok/error response used by many Slack methods
+type SlackOK struct {
+	OK    bool   `json:"ok"`
+	Error string `json:"error,omitempty"`
 }
 
 // Error represents the common error response from the Slack methods.
 type Error struct {
 	Ok    bool   `json:"ok,omitempty"`    // Indicates whether the request was successful.
 	Error string `json:"error,omitempty"` // Describes the error that occurred.
+}
+
+// SlackAPIError represents an error response from the Slack API
+// Implements the error interface for use in error handling
+type SlackAPIError struct {
+	OK               bool             `json:"ok"`                          // Always false for errors
+	ErrorCode        string           `json:"error,omitempty"`             // Error code (e.g., "not_allowed_token_type")
+	Warning          string           `json:"warning,omitempty"`           // Warning message if any
+	ResponseMetadata ResponseMetadata `json:"response_metadata,omitempty"` // Additional error details
+	Needed           string           `json:"needed,omitempty"`            // Required scope/permission
+	Provided         string           `json:"provided,omitempty"`          // Provided scope/permission
+}
+
+// Error implements the error interface for SlackAPIError
+// References the ErrorDetails map for human-readable error descriptions
+func (e *SlackAPIError) Error() string {
+	if detail, exists := ErrorDetails[e.ErrorCode]; exists {
+		return fmt.Sprintf("slack API error: %s - %s", e.ErrorCode, detail)
+	}
+	return fmt.Sprintf("slack API error: %s", e.ErrorCode)
+}
+
+// IsSlackError checks if the error is a SlackAPIError and returns it
+func IsSlackError(err error) (*SlackAPIError, bool) {
+	if slackErr, ok := err.(*SlackAPIError); ok {
+		return slackErr, true
+	}
+	return nil, false
 }
 
 type SlackTokenPayload struct {
@@ -143,7 +187,7 @@ type EventCallback struct {
 	TeamID             string          `json:"team_id,omitempty"`               // ID of the team/workspace where the event occurred
 	APIAppID           string          `json:"api_app_id,omitempty"`            // App ID of the app that has been installed in this workspace
 	Type               string          `json:"type,omitempty"`                  // Type of the callback, it's always event_callback
-	Event              Event           `json:"event,omitempty"`                 // Details of the event
+	Event              Event           `json:"event,omitzero"`                  // Details of the event
 	EventID            string          `json:"event_id,omitempty"`              // Globally unique ID for this event
 	EventTime          int64           `json:"event_time,omitempty"`            // Time when the event happened
 	Authorizations     []Authorization `json:"authorizations,omitempty"`        // Information about the authorizations for this workspace and event
@@ -167,7 +211,7 @@ type Event struct {
 type Block struct {
 	Type     string    `json:"type,omitempty"`     // Type of the block, here it's rich_text
 	BlockID  string    `json:"block_id,omitempty"` // ID of the block
-	Elements []Element `json:"elements,omitempty"` // Elements in the block
+	Elements []Element `json:"elements,omitzero"`  // Elements in the block
 }
 
 type Element struct {
@@ -276,6 +320,16 @@ type ResponseMetadata struct {
 	NextCursor string `json:"next_cursor"` // Cursor for pagination.
 }
 
+// Implement SlackAPIResponse interface for UserChannels
+func (uc UserChannels) Append(other UserChannels) UserChannels {
+	uc.Channels = append(uc.Channels, other.Channels...)
+	return uc
+}
+
+func (uc UserChannels) NextCursor() string {
+	return uc.ResponseMetadata.NextCursor
+}
+
 // END OF SLACK CHANNEL STRUCTS
 //---------------------------------------------------------------------
 
@@ -284,10 +338,10 @@ type ResponseMetadata struct {
 // UsersListResponse represents the common successful response from the Slack users.list method.
 // https://api.slack.com/methods/users.list
 type Users struct {
-	CacheTS          int64    `json:"cache_ts,omitempty"`          // Cache timestamp.
-	Members          []Member `json:"members,omitempty"`           // List of members.
-	OK               bool     `json:"ok"`                          // Response status.
-	ResponseMetadata Metadata `json:"response_metadata,omitempty"` // Metadata for the response.
+	CacheTS          int64    `json:"cache_ts,omitempty"`         // Cache timestamp.
+	Members          []Member `json:"members,omitempty"`          // List of members.
+	OK               bool     `json:"ok"`                         // Response status.
+	ResponseMetadata Metadata `json:"response_metadata,omitzero"` // Metadata for the response.
 }
 
 // Member represents a member in the Slack users.list method response.
@@ -304,7 +358,7 @@ type Member struct {
 	IsRestricted      bool    `json:"is_restricted,omitempty"`       // Whether the member is restricted.
 	IsUltraRestricted bool    `json:"is_ultra_restricted,omitempty"` // Whether the member is ultra-restricted.
 	Name              string  `json:"name"`                          // Member's username.
-	Profile           Profile `json:"profile,omitempty"`             // Member's profile information.
+	Profile           Profile `json:"profile,omitzero"`              // Member's profile information.
 	RealName          string  `json:"real_name,omitempty"`           // Member's real name.
 	TeamID            string  `json:"team_id"`                       // Team identifier.
 	TZ                string  `json:"tz,omitempty"`                  // Member's time zone.
@@ -344,5 +398,601 @@ type Metadata struct {
 	NextCursor string `json:"next_cursor,omitempty"` // Next cursor for pagination.
 }
 
+// Map returns a map of users keyed by email for easy lookup
+func (u *Users) Map() map[string]*Member {
+	userMap := make(map[string]*Member, len(u.Members))
+	for i := range u.Members {
+		if u.Members[i].Profile.Email != "" {
+			userMap[u.Members[i].Profile.Email] = &u.Members[i]
+		}
+	}
+	return userMap
+}
+
+// Implement SlackAPIResponse interface for Users
+func (u Users) Append(other Users) Users {
+	u.Members = append(u.Members, other.Members...)
+	return u
+}
+
+func (u Users) NextCursor() string {
+	return u.ResponseMetadata.NextCursor
+}
+
+// UserResponse represents the response from methods that return a single user
+// https://api.slack.com/methods/users.info
+// https://api.slack.com/methods/users.lookupByEmail
+type UserResponse struct {
+	OK    bool   `json:"ok"`              // Response status
+	User  Member `json:"user,omitzero"`   // User object
+	Error string `json:"error,omitempty"` // Error message if not OK
+}
+
 // END OF SLACK USER STRUCTS
+//---------------------------------------------------------------------
+
+// ### Slack Admin Structs (Enterprise Grid)
+// ---------------------------------------------------------------------
+// AdminUsers from admin.users.list
+// https://api.slack.com/methods/admin.users.list
+type AdminUsers struct {
+	OK               bool             `json:"ok"`
+	Users            []*AdminUser     `json:"users,omitempty"`
+	ResponseMetadata ResponseMetadata `json:"response_metadata,omitzero"`
+	Error            string           `json:"error,omitempty"`
+}
+
+// Implement SlackAPIResponse interface for AdminUsers
+func (a AdminUsers) Append(other AdminUsers) AdminUsers {
+	a.Users = append(a.Users, other.Users...)
+	return a
+}
+
+func (a AdminUsers) NextCursor() string {
+	return a.ResponseMetadata.NextCursor
+}
+
+// AdminUser from Enterprise Grid API
+// https://api.slack.com/methods/admin.users.list
+type AdminUser struct {
+	ID                string   `json:"id"`                      // User ID
+	Email             string   `json:"email"`                   // User email
+	IsAdmin           bool     `json:"is_admin"`                // Whether user is admin
+	IsOwner           bool     `json:"is_owner"`                // Whether user is owner
+	IsPrimaryOwner    bool     `json:"is_primary_owner"`        // Whether user is primary owner
+	IsRestricted      bool     `json:"is_restricted"`           // Whether user is a guest
+	IsUltraRestricted bool     `json:"is_ultra_restricted"`     // Whether user is a single-channel guest
+	IsBot             bool     `json:"is_bot"`                  // Whether user is a bot
+	IsActive          bool     `json:"is_active"`               // Whether user is active
+	Username          string   `json:"username"`                // User's username
+	FullName          string   `json:"full_name,omitempty"`     // User's full name
+	DateCreated       int64    `json:"date_created,omitempty"`  // Account creation timestamp
+	ExpirationTS      int64    `json:"expiration_ts,omitempty"` // Guest expiration timestamp
+	HasFiles          bool     `json:"has_files,omitempty"`     // Whether user has files
+	Has2FA            bool     `json:"has_2fa,omitempty"`       // Whether user has 2FA enabled
+	Workspaces        []string `json:"workspaces,omitempty"`    // Workspaces user belongs to
+}
+
+// SessionReset for admin.users.session.reset and admin.users.session.resetBulk
+// https://api.slack.com/methods/admin.users.session.reset
+type SessionReset struct {
+	UserID     string   `json:"user_id,omitempty"`     // Single user (for reset)
+	UserIDs    []string `json:"user_ids,omitempty"`    // Multiple users (for resetBulk)
+	MobileOnly bool     `json:"mobile_only,omitempty"` // Only reset mobile sessions
+	WebOnly    bool     `json:"web_only,omitempty"`    // Only reset web sessions
+}
+
+// SessionResetOption is a functional option for session reset
+type SessionResetOption func(*SessionReset)
+
+// END OF SLACK ADMIN STRUCTS
+//---------------------------------------------------------------------
+
+// ### Slack SCIM Structs (Enterprise Grid - Organization-wide)
+// ---------------------------------------------------------------------
+// https://docs.slack.dev/reference/scim-api/
+
+// SCIMClient for SCIM API operations (organization-wide user management)
+type SCIMClient struct {
+	*Client
+	SCIMBaseURL string
+}
+
+// SCIMPaginatedResponse is an interface for SCIM API responses involving pagination
+// Mirrors the PaginatedResponse pattern from SnipeIT for consistency
+type SCIMPaginatedResponse[E any] interface {
+	TotalCount() int
+	Append(*[]*E)
+	Elements() *[]*E
+}
+
+// SCIMPaginatedList is a generic structure representing a paginated response from SCIM API
+// https://docs.slack.dev/reference/scim-api/
+type SCIMPaginatedList[E any] struct {
+	Schemas      []string `json:"schemas,omitempty"`
+	TotalResults int      `json:"totalResults"`        // Total number of items in the organization
+	ItemsPerPage int      `json:"itemsPerPage"`        // Number of results returned in this response
+	StartIndex   int      `json:"startIndex"`          // 1-based index of first result
+	Resources    *[]*E    `json:"Resources,omitempty"` // Array of resource items
+}
+
+func (pl SCIMPaginatedList[E]) TotalCount() int {
+	return pl.TotalResults
+}
+
+func (pl SCIMPaginatedList[E]) Append(elements *[]*E) {
+	*pl.Resources = append(*pl.Resources, *elements...)
+}
+
+func (pl SCIMPaginatedList[E]) Elements() *[]*E {
+	return pl.Resources
+}
+
+// SCIMQueryInterface defines methods for SCIM query parameters with pagination
+// Uses startIndex (1-based) instead of offset (0-based)
+type SCIMQueryInterface interface {
+	Copy() SCIMQueryInterface
+	GetCount() int
+	SetCount(int)
+	GetStartIndex() int
+	SetStartIndex(int)
+}
+
+// SCIMQuery for GET /scim/v1/Users
+// https://docs.slack.dev/reference/scim-api/users
+type SCIMQuery struct {
+	Count      int    `url:"count,omitempty"`      // Number of results to return (max 1000)
+	StartIndex int    `url:"startIndex,omitempty"` // 1-based index for pagination
+	Filter     string `url:"filter,omitempty"`     // SCIM filter expression (e.g., "userName Eq \"john\"")
+}
+
+// Implement SCIMQueryInterface for SCIMQuery
+func (q *SCIMQuery) Copy() SCIMQueryInterface {
+	copy := *q
+	return &copy
+}
+
+func (q *SCIMQuery) GetCount() int {
+	return q.Count
+}
+
+func (q *SCIMQuery) SetCount(count int) {
+	q.Count = count
+}
+
+func (q *SCIMQuery) GetStartIndex() int {
+	return q.StartIndex
+}
+
+func (q *SCIMQuery) SetStartIndex(startIndex int) {
+	q.StartIndex = startIndex
+}
+
+// SCIMUserList wraps SCIMPaginatedList for SCIM user responses
+type SCIMUserList struct {
+	SCIMPaginatedList[SCIMUser]
+}
+
+// Map returns a map of SCIM users keyed by primary email for easy lookup
+func (r *SCIMUserList) Map() map[string]*SCIMUser {
+	if r.Resources == nil {
+		return make(map[string]*SCIMUser)
+	}
+	userMap := make(map[string]*SCIMUser, len(*r.Resources))
+	for _, user := range *r.Resources {
+		if email := user.PrimaryEmail(); email != "" {
+			userMap[email] = user
+		}
+	}
+	return userMap
+}
+
+// SCIMUser represents a user in the SCIM API
+// https://docs.slack.dev/reference/scim-api/users
+type SCIMUser struct {
+	Schemas     []string        `json:"schemas,omitempty"`                                    // SCIM 2.0 schemas (e.g., "urn:ietf:params:scim:schemas:core:2.0:User")
+	ID          string          `json:"id,omitempty"`                                         // Slack's unique user ID
+	ExternalID  string          `json:"externalId,omitempty"`                                 // External identifier from identity provider
+	UserName    string          `json:"userName,omitempty"`                                   // Unique username (typically email)
+	Active      bool            `json:"active,omitempty"`                                     // Whether the user is active
+	Name        SCIMName        `json:"name,omitempty"`                                       // User's name components
+	DisplayName string          `json:"displayName,omitempty"`                                // Display name
+	NickName    string          `json:"nickName,omitempty"`                                   // Nickname
+	ProfileURL  string          `json:"profileUrl,omitempty"`                                 // URL to user's profile
+	Title       string          `json:"title,omitempty"`                                      // Job title
+	Timezone    string          `json:"timezone,omitempty"`                                   // User's timezone
+	Emails      []SCIMEmail     `json:"emails,omitempty"`                                     // Email addresses
+	Photos      []SCIMPhoto     `json:"photos,omitempty"`                                     // Profile photos
+	Groups      []SCIMGroupRef  `json:"groups,omitempty"`                                     // Groups the user belongs to
+	Meta        *SCIMMeta       `json:"meta,omitempty"`                                       // Resource metadata
+	SlackGuest  *SCIMSlackGuest `json:"urn:scim:schemas:extension:slack:guest:1.0,omitempty"` // Slack guest extension
+}
+
+// PrimaryEmail returns the primary email address for the user
+// Falls back to the first email if no primary is set, or UserName if no emails
+func (u *SCIMUser) PrimaryEmail() string {
+	for _, email := range u.Emails {
+		if email.Primary {
+			return email.Value
+		}
+	}
+	// Fallback to first email if no primary
+	if len(u.Emails) > 0 {
+		return u.Emails[0].Value
+	}
+	// Fallback to UserName (often an email)
+	return u.UserName
+}
+
+// SCIMName represents the name components in SCIM
+type SCIMName struct {
+	GivenName       string `json:"givenName,omitempty"`       // First name
+	FamilyName      string `json:"familyName,omitempty"`      // Last name
+	HonorificPrefix string `json:"honorificPrefix,omitempty"` // Prefix (e.g., "Mr.", "Dr.")
+}
+
+// SCIMEmail represents an email address in SCIM
+type SCIMEmail struct {
+	Value   string `json:"value,omitempty"`   // Email address
+	Type    string `json:"type,omitempty"`    // Type (e.g., "work", "home")
+	Primary bool   `json:"primary,omitempty"` // Whether this is the primary email
+}
+
+// SCIMPhoto represents a profile photo in SCIM
+type SCIMPhoto struct {
+	Value string `json:"value,omitempty"` // URL to the photo
+	Type  string `json:"type,omitempty"`  // Type (e.g., "photo")
+}
+
+// SCIMGroupRef represents a group reference in SCIM user responses
+type SCIMGroupRef struct {
+	Value   string `json:"value,omitempty"`   // Group ID
+	Display string `json:"display,omitempty"` // Group display name
+}
+
+// SCIMMeta represents SCIM resource metadata
+type SCIMMeta struct {
+	Created  string `json:"created,omitempty"`  // Creation timestamp
+	Location string `json:"location,omitempty"` // Resource URL
+}
+
+// SCIMSlackGuest represents the Slack guest extension schema
+// urn:scim:schemas:extension:slack:guest:1.0
+type SCIMSlackGuest struct {
+	Type       string `json:"type,omitempty"`       // Guest type: "multi" or "single"
+	Expiration string `json:"expiration,omitempty"` // Guest expiration date (ISO 8601)
+}
+
+// SCIMError represents an error response from the SCIM API
+type SCIMError struct {
+	Schemas []string `json:"schemas,omitempty"` // Error schema
+	Detail  string   `json:"detail,omitempty"`  // Error detail message
+	Status  int      `json:"status,omitempty"`  // HTTP status code
+}
+
+// Error implements the error interface for SCIMError
+func (e *SCIMError) Error() string {
+	return fmt.Sprintf("SCIM API error %d: %s", e.Status, e.Detail)
+}
+
+// END OF SLACK SCIM STRUCTS
+//---------------------------------------------------------------------
+
+// ### Slack Audit Logs Structs (Enterprise Grid - Organization-wide)
+// ---------------------------------------------------------------------
+// https://docs.slack.dev/reference/audit-logs-api/
+
+// AuditLogsResponse represents the response from the audit/v1/logs endpoint
+// https://docs.slack.dev/admins/audit-logs-api/
+type AuditLogsResponse struct {
+	Entries          []AuditEntry     `json:"entries,omitempty"`          // Audit log entries
+	ResponseMetadata ResponseMetadata `json:"response_metadata,omitzero"` // Pagination cursor
+}
+
+// Implement SlackAPIResponse interface for AuditLogsResponse
+func (a AuditLogsResponse) Append(other AuditLogsResponse) AuditLogsResponse {
+	a.Entries = append(a.Entries, other.Entries...)
+	return a
+}
+
+func (a AuditLogsResponse) NextCursor() string {
+	return a.ResponseMetadata.NextCursor
+}
+
+// AuditEntry represents a single audit log event
+// Every event is composed of an actor taking an action on an entity within a context
+type AuditEntry struct {
+	ID         string        `json:"id,omitempty"`          // Unique identifier for the audit event
+	DateCreate int64         `json:"date_create,omitempty"` // Unix timestamp of when the event occurred
+	Action     string        `json:"action,omitempty"`      // The action that was performed (e.g., "user_login", "emoji_added")
+	Actor      AuditActor    `json:"actor,omitzero"`        // The user who performed the action
+	Entity     AuditEntity   `json:"entity,omitzero"`       // The object acted upon
+	Context    AuditContext  `json:"context,omitzero"`      // The location where the action took place
+	Details    *AuditDetails `json:"details,omitempty"`     // Additional event-specific details
+}
+
+// AuditActor represents the user who performed an audit action
+type AuditActor struct {
+	Type string     `json:"type,omitempty"` // Always "user"
+	User *AuditUser `json:"user,omitempty"` // User details
+}
+
+// AuditUser represents a user in audit log events
+type AuditUser struct {
+	ID    string `json:"id,omitempty"`    // User ID (e.g., W123AB456)
+	Name  string `json:"name,omitempty"`  // User's display name
+	Email string `json:"email,omitempty"` // User's email address
+	Team  string `json:"team,omitempty"`  // Team/workspace ID
+}
+
+// AuditEntity represents the target of an audit action
+// The populated sub-field corresponds to the Type value
+type AuditEntity struct {
+	Type            string                   `json:"type,omitempty"`              // Entity type (user, channel, file, app, workspace, enterprise, message, huddle, barrier, role, account_type_role, workflow, workflow_v2, usergroup, list)
+	User            *AuditUser               `json:"user,omitempty"`              // User entity
+	Workspace       *AuditLocation           `json:"workspace,omitempty"`         // Workspace entity
+	Enterprise      *AuditLocation           `json:"enterprise,omitempty"`        // Enterprise entity
+	Channel         *AuditChannel            `json:"channel,omitempty"`           // Channel entity
+	File            *AuditFile               `json:"file,omitempty"`              // File entity
+	App             *AuditApp                `json:"app,omitempty"`               // App entity
+	Message         *AuditMessage            `json:"message,omitempty"`           // Message entity
+	Huddle          *AuditHuddle             `json:"huddle,omitempty"`            // Huddle entity
+	Role            *AuditRole               `json:"role,omitempty"`              // Role entity
+	Usergroup       *AuditUsergroup          `json:"usergroup,omitempty"`         // User group entity
+	Workflow        *AuditWorkflow           `json:"workflow,omitempty"`          // Workflow entity
+	Barrier         *AuditInformationBarrier `json:"barrier,omitempty"`           // Information barrier entity
+	WorkflowV2      *AuditWorkflowV2         `json:"workflow_v2,omitempty"`       // Workflow v2 entity
+	AccountTypeRole *AuditAccountTypeRole    `json:"account_type_role,omitempty"` // Account type role entity
+	List            *AuditSlackList          `json:"list,omitempty"`              // Slack list entity
+}
+
+// AuditContext represents the location and environment where an audit action occurred
+type AuditContext struct {
+	Location  *AuditLocation `json:"location,omitempty"`   // Workspace or enterprise where the action occurred
+	UA        string         `json:"ua,omitempty"`         // User agent string
+	IPAddress string         `json:"ip_address,omitempty"` // IP address of the actor
+	SessionID int64          `json:"session_id,omitempty"` // Session identifier
+	App       *AuditApp      `json:"app,omitempty"`        // App details if action was performed via an app
+}
+
+// AuditLocation represents a workspace or enterprise in audit logs
+type AuditLocation struct {
+	Type   string `json:"type,omitempty"`   // "workspace" or "enterprise"
+	ID     string `json:"id,omitempty"`     // Workspace/enterprise ID
+	Name   string `json:"name,omitempty"`   // Workspace/enterprise name
+	Domain string `json:"domain,omitempty"` // Workspace/enterprise domain
+}
+
+// AuditChannel represents a channel in audit log events
+type AuditChannel struct {
+	ID                         string   `json:"id,omitempty"`                            // Channel ID
+	Privacy                    string   `json:"privacy,omitempty"`                       // Channel privacy (public, private)
+	Name                       string   `json:"name,omitempty"`                          // Channel name
+	IsShared                   bool     `json:"is_shared,omitempty"`                     // Whether the channel is shared
+	IsOrgShared                bool     `json:"is_org_shared,omitempty"`                 // Whether the channel is org-shared
+	TeamsSharedWith            []string `json:"teams_shared_with,omitempty"`             // Teams shared with
+	OriginalConnectedChannelID string   `json:"original_connected_channel_id,omitempty"` // Original connected channel ID
+	IsSalesforceChannel        bool     `json:"is_salesforce_channel,omitempty"`         // Whether this is a Salesforce channel
+}
+
+// AuditFile represents a file in audit log events
+type AuditFile struct {
+	ID       string `json:"id,omitempty"`       // File ID
+	Name     string `json:"name,omitempty"`     // File name
+	Filetype string `json:"filetype,omitempty"` // File type
+	Title    string `json:"title,omitempty"`    // File title
+}
+
+// AuditApp represents an app in audit log events
+type AuditApp struct {
+	ID                  string   `json:"id,omitempty"`                    // App ID
+	Name                string   `json:"name,omitempty"`                  // App name
+	IsDistributed       bool     `json:"is_distributed,omitempty"`        // Whether the app is distributed
+	IsDirectoryApproved bool     `json:"is_directory_approved,omitempty"` // Whether the app is directory-approved
+	IsWorkflowApp       bool     `json:"is_workflow_app,omitempty"`       // Whether this is a workflow app
+	Scopes              []string `json:"scopes,omitempty"`                // OAuth scopes
+}
+
+// AuditMessage represents a message in audit log events
+type AuditMessage struct {
+	Channel   string `json:"channel,omitempty"`   // Channel ID
+	Team      string `json:"team,omitempty"`      // Team ID
+	Timestamp string `json:"timestamp,omitempty"` // Message timestamp
+}
+
+// AuditHuddle represents a huddle in audit log events
+type AuditHuddle struct {
+	ID           string   `json:"id,omitempty"`           // Huddle ID
+	DateStart    int64    `json:"date_start,omitempty"`   // Start timestamp
+	DateEnd      int64    `json:"date_end,omitempty"`     // End timestamp
+	Participants []string `json:"participants,omitempty"` // Participant user IDs
+}
+
+// AuditRole represents a role in audit log events
+type AuditRole struct {
+	ID   string `json:"id,omitempty"`   // Role ID
+	Name string `json:"name,omitempty"` // Role name
+	Type string `json:"type,omitempty"` // Role type
+}
+
+// AuditUsergroup represents a user group in audit log events
+type AuditUsergroup struct {
+	ID   string `json:"id,omitempty"`   // User group ID
+	Name string `json:"name,omitempty"` // User group name
+}
+
+// AuditWorkflow represents a workflow in audit log events
+type AuditWorkflow struct {
+	ID     string `json:"id,omitempty"`     // Workflow ID
+	Name   string `json:"name,omitempty"`   // Workflow name
+	Domain string `json:"domain,omitempty"` // Workflow domain
+}
+
+// AuditInformationBarrier represents an information barrier in audit log events
+type AuditInformationBarrier struct {
+	ID                      string   `json:"id,omitempty"`                        // Barrier ID
+	PrimaryUsergroup        string   `json:"primary_usergroup,omitempty"`         // Primary user group
+	BarrieredFromUsergroups []string `json:"barriered_from_usergroups,omitempty"` // Barriered from user groups
+	RestrictedSubjects      []string `json:"restricted_subjects,omitempty"`       // Restricted subjects
+}
+
+// AuditWorkflowV2 represents a workflow v2 in audit log events
+type AuditWorkflowV2 struct {
+	ID          string `json:"id,omitempty"`           // Workflow ID
+	AppID       string `json:"app_id,omitempty"`       // Associated app ID
+	DateUpdated int64  `json:"date_updated,omitempty"` // Last updated timestamp
+	CallbackID  string `json:"callback_id,omitempty"`  // Callback ID
+	Name        string `json:"name,omitempty"`         // Workflow name
+	UpdatedBy   string `json:"updated_by,omitempty"`   // User who last updated
+}
+
+// AuditAccountTypeRole represents an account type role in audit log events
+type AuditAccountTypeRole struct {
+	ID   string `json:"id,omitempty"`   // Account type role ID
+	Name string `json:"name,omitempty"` // Account type role name
+}
+
+// AuditSlackList represents a Slack list in audit log events
+type AuditSlackList struct {
+	ID string `json:"id,omitempty"` // List ID
+}
+
+// AuditDetails contains additional event-specific information
+// Fields are populated based on the action type; most will be empty for any given event
+type AuditDetails struct {
+	// Value changes
+	Name          string `json:"name,omitempty"`           // Name associated with the event
+	NewValue      string `json:"new_value,omitempty"`      // New value after the change
+	PreviousValue string `json:"previous_value,omitempty"` // Previous value before the change
+
+	// Session/Access
+	ExpiresOn  int64 `json:"expires_on,omitempty"`  // Expiration timestamp
+	MobileOnly bool  `json:"mobile_only,omitempty"` // Whether action applies to mobile only
+	WebOnly    bool  `json:"web_only,omitempty"`    // Whether action applies to web only
+
+	// Type/Classification
+	Type       string `json:"type,omitempty"`        // Type of the detail
+	IsWorkflow bool   `json:"is_workflow,omitempty"` // Whether related to a workflow
+
+	// User references
+	Inviter      *AuditUser `json:"inviter,omitempty"`        // User who sent the invitation
+	Kicker       *AuditUser `json:"kicker,omitempty"`         // User who kicked another user
+	TargetUser   string     `json:"target_user,omitempty"`    // Target user ID
+	TargetUserID string     `json:"target_user_id,omitempty"` // Target user ID (alternate field)
+
+	// Sharing/Collaboration
+	SharedTo        string               `json:"shared_to,omitempty"`        // Where something was shared to
+	Reason          generics.StringSlice `json:"reason,omitempty"`           // Reason for the action (string or array depending on action type)
+	OriginTeam      string               `json:"origin_team,omitempty"`      // Origin team ID
+	TargetTeam      string               `json:"target_team,omitempty"`      // Target team ID
+	SourceTeam      string               `json:"source_team,omitempty"`      // Source team ID
+	DestinationTeam string               `json:"destination_team,omitempty"` // Destination team ID
+
+	// App/Scope changes
+	AppOwnerID     string   `json:"app_owner_id,omitempty"`    // App owner's user ID
+	AppID          string   `json:"app_id,omitempty"`          // App ID
+	BotScopes      []string `json:"bot_scopes,omitempty"`      // Bot token scopes
+	NewScopes      []string `json:"new_scopes,omitempty"`      // Newly granted scopes
+	PreviousScopes []string `json:"previous_scopes,omitempty"` // Previously granted scopes
+	Scopes         []string `json:"scopes,omitempty"`          // Current scopes
+
+	// Channel/Conversation
+	Channels   []string               `json:"channels,omitempty"`     // Affected channel IDs
+	ChannelID  string                 `json:"channel_id,omitempty"`   // Channel ID
+	WhoCanPost *AuditConversationPref `json:"who_can_post,omitempty"` // Who can post preference
+	CanThread  *AuditConversationPref `json:"can_thread,omitempty"`   // Thread preference
+
+	// Permissions
+	Permissions        []string `json:"permissions,omitempty"`         // Permissions involved
+	ChangedPermissions []string `json:"changed_permissions,omitempty"` // Changed permissions
+	Resolution         string   `json:"resolution,omitempty"`          // Resolution of the action
+
+	// Feature toggles
+	EnableAtHere    *AuditFeatureEnable `json:"enable_at_here,omitempty"`    // @here enablement
+	EnableAtChannel *AuditFeatureEnable `json:"enable_at_channel,omitempty"` // @channel enablement
+	CanHuddle       *AuditFeatureEnable `json:"can_huddle,omitempty"`        // Huddle enablement
+
+	// Retention policies
+	OldRetentionPolicy *AuditRetentionPolicy `json:"old_retention_policy,omitempty"` // Previous retention policy
+	NewRetentionPolicy *AuditRetentionPolicy `json:"new_retention_policy,omitempty"` // New retention policy
+
+	// Profile changes
+	PreviousProfile *AuditProfile `json:"previous_profile,omitempty"` // Previous profile
+	NewProfile      *AuditProfile `json:"new_profile,omitempty"`      // New profile
+
+	// External/Slack Connect
+	ExternalOrgID     string `json:"external_organization_id,omitempty"` // External organization ID
+	ExternalUserID    string `json:"external_user_id,omitempty"`         // External user ID
+	ExternalUserEmail string `json:"external_user_email,omitempty"`      // External user email
+
+	// Misc references
+	Trigger              string      `json:"trigger,omitempty"`                // Trigger for the action
+	ExportType           string      `json:"export_type,omitempty"`            // Type of export
+	Duration             int64       `json:"duration,omitempty"`               // Duration of the action
+	InviteID             string      `json:"invite_id,omitempty"`              // Invitation ID
+	AddedTeamID          string      `json:"added_team_id,omitempty"`          // Added team ID
+	URLPrivate           string      `json:"url_private,omitempty"`            // Private URL
+	SucceededUsers       []string    `json:"succeeded_users,omitempty"`        // Users that succeeded
+	FailedUsers          []string    `json:"failed_users,omitempty"`           // Users that failed
+	Enterprise           string      `json:"enterprise,omitempty"`             // Enterprise ID
+	Subteam              string      `json:"subteam,omitempty"`                // Subteam ID
+	Action               string      `json:"action,omitempty"`                 // Sub-action
+	IDPGroupMemberCount  int         `json:"idp_group_member_count,omitempty"` // IDP group member count
+	WorkspaceMemberCount int         `json:"workspace_member_count,omitempty"` // Workspace member count
+	IDPConfigID          interface{} `json:"idp_config_id,omitempty"`          // IDP config ID (number or string depending on action)
+	ConfigType           string      `json:"config_type,omitempty"`            // Config type
+	Label                string      `json:"label,omitempty"`                  // Label
+	SpaceFileID          string      `json:"space_file_id,omitempty"`          // Space file ID
+	TargetEntity         string      `json:"target_entity,omitempty"`          // Target entity
+	TargetEntityID       string      `json:"target_entity_id,omitempty"`       // Target entity ID
+	DatastoreName        string      `json:"datastore_name,omitempty"`         // Datastore name
+	EntityType           string      `json:"entity_type,omitempty"`            // Entity type
+	AccessLevel          string      `json:"access_level,omitempty"`           // Access level
+	IsChannelCanvas      bool        `json:"is_channel_canvas,omitempty"`      // Whether this is a channel canvas
+	LinkedChannelID      string      `json:"linked_channel_id,omitempty"`      // Linked channel ID
+}
+
+// AuditRetentionPolicy represents a retention policy in audit details
+type AuditRetentionPolicy struct {
+	Type         string `json:"type,omitempty"`          // Retention policy type
+	DurationDays int    `json:"duration_days,omitempty"` // Duration in days
+}
+
+// AuditConversationPref represents a conversation preference in audit details
+type AuditConversationPref struct {
+	Type []string `json:"type,omitempty"` // Preference types
+	User []string `json:"user,omitempty"` // User IDs
+}
+
+// AuditFeatureEnable represents a feature enablement toggle in audit details
+type AuditFeatureEnable struct {
+	Enabled bool `json:"enabled,omitempty"` // Whether the feature is enabled
+}
+
+// AuditProfile represents a user profile snapshot in audit details
+type AuditProfile struct {
+	RealName    string `json:"real_name,omitempty"`    // Real name
+	FirstName   string `json:"first_name,omitempty"`   // First name
+	LastName    string `json:"last_name,omitempty"`    // Last name
+	DisplayName string `json:"display_name,omitempty"` // Display name
+}
+
+// AuditActionsResponse represents the response from the audit/v1/actions endpoint
+type AuditActionsResponse struct {
+	Actions map[string][]string `json:"actions,omitempty"` // Actions grouped by category
+}
+
+// AuditSchemasResponse represents the response from the audit/v1/schemas endpoint
+type AuditSchemasResponse struct {
+	Schemas []AuditSchema `json:"schemas,omitempty"` // Schema definitions
+}
+
+// AuditSchema represents a schema definition for an entity type
+type AuditSchema struct {
+	Type       string      `json:"type,omitempty"`       // Entity type name
+	Workspace  interface{} `json:"workspace,omitempty"`  // Workspace schema fields
+	Enterprise interface{} `json:"enterprise,omitempty"` // Enterprise schema fields
+}
+
+// END OF SLACK AUDIT LOGS STRUCTS
 //---------------------------------------------------------------------

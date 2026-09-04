@@ -20,6 +20,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gemini-oss/rego/pkg/common/ratelimit"
+	"github.com/gemini-oss/rego/pkg/common/requests"
 	ss "github.com/gemini-oss/rego/pkg/common/starstruct"
 )
 
@@ -58,17 +60,36 @@ type AdminClient struct {
 
 // Entry point for admin-related operations
 func (c *Client) Admin() *AdminClient {
-	ac := &AdminClient{
-		Client: c,
+	// Return cached client if it exists
+	if c.adminClient != nil {
+		return c.adminClient
 	}
 
+	// Shallow copy a new client with Admin-specific rate limiter
 	// https://developers.google.com/admin-sdk/directory/v1/limits
-	ac.HTTP.RateLimiter.Available = 2400
-	ac.HTTP.RateLimiter.Limit = 2400
-	ac.HTTP.RateLimiter.Interval = 1 * time.Minute
-	ac.HTTP.RateLimiter.Log.Verbosity = c.Log.Verbosity
+	adminRL := ratelimit.NewRateLimiter(2400, 1*time.Minute)
+	adminRL.Log.Verbosity = c.Log.Verbosity
 
-	return ac
+	adminHTTP := requests.NewClient(c.HTTP.GetHTTPClient(), c.HTTP.GetHeaders(), adminRL)
+	adminHTTP.BodyType = c.HTTP.BodyType
+
+	adminClient := &Client{
+		Auth:     c.Auth,
+		BaseURL:  c.BaseURL,
+		OAuth:    c.OAuth,
+		JWT:      c.JWT,
+		HTTP:     adminHTTP,
+		Error:    c.Error,
+		Log:      c.Log,
+		Cache:    c.Cache,
+		Customer: c.Customer,
+	}
+
+	c.adminClient = &AdminClient{
+		Client: adminClient,
+	}
+
+	return c.adminClient
 }
 
 /*

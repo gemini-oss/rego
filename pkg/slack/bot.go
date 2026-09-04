@@ -129,10 +129,10 @@ func (c *Client) CommandHandler(w http.ResponseWriter, r *http.Request) {
 	c.Log.Println(sc)
 
 	m := &SlackMessage{Channel: sc.ChannelID, Token: c.Token}
-	userlist, _ := c.ListUsers()
+	userlist, _ := c.Users().ListAllUsers()
 	for _, user := range userlist.Members {
 		m.Text += fmt.Sprintf(":boom: `%s`\n", user.Name)
-		ch, _ := c.GetUserChannels(user.ID)
+		ch, _ := c.Users().GetUserChannels(user.ID)
 		m.Text += "Channels: \n"
 		for _, channel := range ch.Channels {
 			m.Text += fmt.Sprintf(":bone: - `%s`\n", channel.Name)
@@ -160,7 +160,7 @@ func (c *Client) GetBotID() (string, error) {
 		UserID string `json:"user_id"`
 	}
 
-	err = json.Unmarshal(body, &body)
+	err = json.Unmarshal(body, &result)
 	if err != nil {
 		return "", fmt.Errorf("unmarshalling user: %w", err)
 	}

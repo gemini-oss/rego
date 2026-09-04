@@ -144,11 +144,11 @@ func (c *Client) GenerateJWT(data []byte) (*requests.Client, error) {
 
 	c.Log.Println("Reconfiguring HTTP Client")
 	type contextKey string
+
 	jwtClient := jwtConfig.Client(context.WithValue(ctx, contextKey("token"), t))
 	headers := requests.Headers{
-		"Accept":        requests.JSON,
-		"Content-Type":  requests.JSON,
-		"Authorization": "Bearer " + t.AccessToken,
+		"Accept":       requests.JSON,
+		"Content-Type": requests.JSON,
 	}
 
 	return requests.NewClient(jwtClient, headers, c.HTTP.RateLimiter), nil
@@ -169,18 +169,37 @@ func (c *Client) ImpersonateUser(email string) error {
 	type contextKey string
 	jwtClient := c.JWT.Client(context.WithValue(ctx, contextKey("token"), t))
 
-	// Update the headers to use the new token
+	// Do NOT set Authorization header - jwtClient handles it with auto-refresh
 	headers := requests.Headers{
-		"Accept":        requests.JSON,
-		"Content-Type":  requests.JSON,
-		"Authorization": "Bearer " + t.AccessToken,
+		"Accept":       requests.JSON,
+		"Content-Type": requests.JSON,
 	}
 
 	// Update the HTTP client of the client object
 	c.HTTP = requests.NewClient(jwtClient, headers, nil)
 	c.HTTP.BodyType = requests.JSON
 
+	// Clear cached service clients so they get recreated with new user's HTTP client
+	c.clearServiceClients()
+
+	c.Log.Printf("Impersonating user: %s (rate limiters reset)", email)
 	return nil
+}
+
+// clearServiceClients resets all cached service clients
+func (c *Client) clearServiceClients() {
+	c.driveClient = nil
+	c.sheetsClient = nil
+	c.adminClient = nil
+	c.deviceClient = nil
+	c.permissionsClient = nil
+}
+
+// ResetRateLimiters clears all cached service clients, forcing fresh rate limiters
+// Note: This does NOT affect the parent Client's HTTP rate limiter
+func (c *Client) ResetRateLimiters() {
+	c.clearServiceClients()
+	c.Log.Println("Rate limiters reset - service clients will be recreated on next access")
 }
 
 /*
@@ -422,17 +441,22 @@ func do[T any](c *Client, method string, url string, query any, data any) (T, er
 
 	res, body, err := c.HTTP.DoRequest(ctx, method, url, query, data)
 	if err != nil {
+		// Handle nil response (e.g., context timeout, network error)
+		if res == nil {
+			return *new(T), fmt.Errorf("request failed: %w", err)
+		}
 		if requests.IsNonRetryableCode(res.StatusCode) {
 			var googleError ErrorResponse
-			err = json.Unmarshal(body, &googleError)
-			if err != nil {
+			unmarshalErr := json.Unmarshal(body, &googleError)
+			if unmarshalErr != nil {
 				return *new(T), fmt.Errorf("error unmarshalling API error response: %w", err)
 			}
 			return *new(T), googleError.Error
 		}
+		return *new(T), err
 	}
 
-	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Status:", res.Status)
 	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, &result)

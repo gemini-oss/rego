@@ -2,6 +2,9 @@
 package jamf
 
 import (
+	"encoding/json"
+	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/gemini-oss/rego/pkg/common/cache"
@@ -39,6 +42,43 @@ type Client struct {
 type JamfProperty struct {
 	ID   int    `json:"id,omitempty" xml:"id,omitempty"`     // ID of the object.
 	Name string `json:"name,omitempty" xml:"name,omitempty"` // Name of the object.
+}
+
+// UnmarshalJSON implements custom JSON unmarshalling to handle ID as either string or int.
+func (jp *JamfProperty) UnmarshalJSON(data []byte) error {
+	if jp == nil {
+		return fmt.Errorf("cannot unmarshal into nil JamfProperty")
+	}
+
+	var aux struct {
+		ID   interface{} `json:"id,omitempty"`
+		Name string      `json:"name,omitempty"`
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	jp.Name = aux.Name
+
+	switch v := aux.ID.(type) {
+	case float64:
+		jp.ID = int(v)
+	case string:
+		if v == "" {
+			jp.ID = 0
+		} else {
+			id, err := strconv.Atoi(v)
+			if err != nil {
+				return fmt.Errorf("cannot parse JamfProperty.ID %q as int: %w", v, err)
+			}
+			jp.ID = id
+		}
+	case nil:
+		jp.ID = 0
+	}
+
+	return nil
 }
 
 // END OF JAMF GENERIC STRUCTS
@@ -349,7 +389,7 @@ type RemoteManagement struct {
 
 // Site represents site information of a Jamf object.
 type Site struct {
-	*JamfProperty
+	JamfProperty
 }
 
 // Hardware represents the hardware details of a computer in the inventory.
@@ -547,7 +587,7 @@ func (u *Users) Map() map[string]*User {
 
 // User represents the details of a JSS User.
 type User struct {
-	*JamfProperty
+	JamfProperty
 	CustomPhotoURL       string                `json:"custom_photo_url,omitempty" xml:"custom_photo_url,omitempty"`               // Custom photo URL of the user.
 	Email                string                `json:"email,omitempty" xml:"email,omitempty"`                                     // Email of the user.
 	EmailAddress         string                `json:"email_address,omitempty" xml:"email_address,omitempty"`                     // Email address of the user.
@@ -579,7 +619,7 @@ type UserGroups struct {
 
 // UserGroup represents a group that a user belongs to (Smart/Static).
 type UserGroup struct {
-	*JamfProperty
+	JamfProperty
 	IsSmart          bool         `json:"is_smart" xml:"is_smart"`                                           // Indicates if the group is a smart group.
 	IsNotifyOnChange bool         `json:"is_notify_on_change,omitempty" xml:"is_notify_on_change,omitempty"` // Indicates if notifications are enabled for changes.
 	Site             *Site        `json:"site,omitempty" xml:"site,omitempty"`                               // Site information of the group.
@@ -616,6 +656,115 @@ type UDIDsNotProcessed struct {
 	UDIDs []string `json:"udids"` // List of UDIDs that were not processed.
 }
 
+// MDMCommandRequest represents the request body for sending MDM commands via /api/v2/mdm/commands.
+// https://developer.jamf.com/jamf-pro/reference/post_v2-mdm-commands
+type MDMCommandRequest struct {
+	ClientData  []MDMClientData `json:"clientData"`  // List of devices to target with the command.
+	CommandData MDMCommandData  `json:"commandData"` // The command configuration to send.
+}
+
+// MDMClientData identifies a device to receive an MDM command.
+type MDMClientData struct {
+	ManagementID string `json:"managementId"` // The management ID of the device (from General.ManagementID).
+	ClientType   string `json:"clientType"`   // Device type: "COMPUTER" or "MOBILE_DEVICE".
+}
+
+// MDMCommandData specifies the MDM command type and its parameters.
+type MDMCommandData struct {
+	CommandType string `json:"commandType"`           // The MDM command type (e.g., "DEVICE_LOCK", "RESTART_DEVICE").
+	Pin         string `json:"pin,omitempty"`         // 6-digit PIN required for device locks.
+	Message     string `json:"message,omitempty"`     // Optional message displayed on the device lock screen.
+	PhoneNumber string `json:"phoneNumber,omitempty"` // Optional phone number displayed on mobile device lock screen.
+}
+
+// MDMCommandResponse represents the response from sending an MDM command.
+// Also used for individual command status via GET /api/v2/mdm/commands/{id}.
+type MDMCommandResponse struct {
+	ID            string     `json:"id,omitempty"`            // The unique identifier of the command (from POST response).
+	Href          string     `json:"href,omitempty"`          // The API link to retrieve command status (from POST response).
+	UUID          string     `json:"uuid,omitempty"`          // The UUID of the command (from GET response).
+	CommandState  string     `json:"commandState,omitempty"`  // Command status: PENDING, COMPLETED, FAILED, etc.
+	CommandType   string     `json:"commandType,omitempty"`   // The MDM command type (e.g., "DEVICE_LOCK").
+	Client        *MDMClient `json:"client,omitempty"`        // The target device information.
+	DateSent      string     `json:"dateSent,omitempty"`      // When the command was sent.
+	DateCompleted string     `json:"dateCompleted,omitempty"` // When the command completed.
+	ProfileID     int        `json:"profileId,omitempty"`     // Profile ID if applicable.
+	ErrorMessage  string     `json:"errorMessage,omitempty"`  // Error message if command failed.
+}
+
+// MDMClient represents the target device in an MDM command response.
+type MDMClient struct {
+	ManagementID string `json:"managementId,omitempty"` // The management ID of the target device.
+	ClientType   string `json:"clientType,omitempty"`   // Device type: "COMPUTER" or "MOBILE_DEVICE".
+}
+
+// MDMCommands represents a paginated list of MDM commands from GET /api/v2/mdm/commands.
+// https://developer.jamf.com/jamf-pro/reference/get_v2-mdm-commands
+type MDMCommands struct {
+	Results    []MDMCommandResponse `json:"results"`    // List of MDM commands.
+	TotalCount int                  `json:"totalCount"` // Total number of commands matching the filter.
+}
+
+// MDMCommandQuery represents query parameters for listing MDM commands.
+type MDMCommandQuery struct {
+	Filter   string `url:"filter,omitempty"`    // RSQL filter (e.g., "deviceId==xyz" or "status==PENDING").
+	Sort     string `url:"sort,omitempty"`      // Sort order (e.g., "dateSent:desc").
+	Page     int    `url:"page,omitempty"`      // Page number (0-indexed).
+	PageSize int    `url:"page-size,omitempty"` // Results per page (default: 100).
+}
+
+// MDMCommandStatuses provides constants for MDM command status values.
+type MDMCommandStatuses struct {
+	Pending      string
+	Acknowledged string
+	Completed    string
+	Failed       string
+	Expired      string
+	NotNow       string
+}
+
+// CommandStatus is an instance of MDMCommandStatuses with the valid values.
+var CommandStatus = MDMCommandStatuses{
+	Pending:      "PENDING",
+	Acknowledged: "ACKNOWLEDGED",
+	Completed:    "COMPLETED",
+	Failed:       "FAILED",
+	Expired:      "EXPIRED",
+	NotNow:       "NOT_NOW",
+}
+
+// MDMClientType provides constants for device types in MDM commands.
+type MDMClientTypes struct {
+	Computer     string
+	MobileDevice string
+}
+
+// ClientType is an instance of MDMClientTypes with the valid values.
+var ClientType = MDMClientTypes{
+	Computer:     "COMPUTER",
+	MobileDevice: "MOBILE_DEVICE",
+}
+
+// MDMCommandTypes provides constants for MDM command types.
+type MDMCommandTypes struct {
+	DeviceLock      string
+	EraseDevice     string
+	RestartDevice   string
+	ShutdownDevice  string
+	LogOutUser      string
+	SetRecoveryLock string
+}
+
+// CommandType is an instance of MDMCommandTypes with the valid values.
+var CommandType = MDMCommandTypes{
+	DeviceLock:      "DEVICE_LOCK",
+	EraseDevice:     "ERASE_DEVICE",
+	RestartDevice:   "RESTART_DEVICE",
+	ShutdownDevice:  "SHUTDOWN_DEVICE",
+	LogOutUser:      "LOG_OUT_USER",
+	SetRecoveryLock: "SET_RECOVERY_LOCK",
+}
+
 // END OF JAMF MANAGEMENT STRUCTS
 //---------------------------------------------------------------------
 
@@ -628,7 +777,7 @@ type OSXConfigurationProfiles struct {
 
 // OSXConfigurationProfile represents the details of a configuration profile.
 type OSXConfigurationProfile struct {
-	*JamfProperty
+	JamfProperty
 	Details struct {
 		General     *ConfigurationProfile `json:"general,omitempty" xml:"general,omitempty"`           // General configuration details.
 		Scope       *Scope                `json:"scope,omitempty" xml:"scope,omitempty"`               // Scope of the configuration.
@@ -656,7 +805,7 @@ type ConfigurationProfile struct {
 
 // Category represents category information of the {configuration profile, policy}.
 type Category struct {
-	*JamfProperty
+	JamfProperty
 }
 
 // Scope represents the scope of the {configuration profile, policy}.
@@ -701,7 +850,7 @@ type Exclusions struct {
 
 // ComputerGroup represents a single computer group.
 type ComputerGroup struct {
-	*JamfProperty
+	JamfProperty
 }
 
 // SelfService represents self-service configurations.

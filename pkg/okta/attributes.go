@@ -12,18 +12,45 @@ https://developer.okta.com/docs/api/openapi/asa/asa/tag/attributes/
 // pkg/okta/attributes.go
 package okta
 
+import (
+	"github.com/gemini-oss/rego/pkg/common/ratelimit"
+	"github.com/gemini-oss/rego/pkg/common/requests"
+)
+
 // AttributesClient for chaining methods
 type AttributesClient struct {
 	*Client
 }
 
-// Entry point for application-related operations
-func (c *Client) Attributes() *ApplicationsClient {
-	ac := &ApplicationsClient{
-		Client: c,
+// Entry point for attribute-related operations
+func (c *Client) Attributes() *AttributesClient {
+	// Return cached client if it exists
+	if c.attributesClient != nil {
+		return c.attributesClient
 	}
 
-	return ac
+	// Shallow copy a new client with Attributes-specific rate limiter
+	// https://developer.okta.com/docs/reference/rl-best-practices/
+	attributesRL := ratelimit.NewRateLimiter()
+	attributesRL.ResetHeaders = true
+	attributesRL.Log.Verbosity = c.Log.Verbosity
+
+	attributesHTTP := requests.NewClient(c.HTTP.GetHTTPClient(), c.HTTP.GetHeaders(), attributesRL)
+	attributesHTTP.BodyType = c.HTTP.BodyType
+
+	attributesClient := &Client{
+		BaseURL: c.BaseURL,
+		HTTP:    attributesHTTP,
+		Error:   c.Error,
+		Log:     c.Log,
+		Cache:   c.Cache,
+	}
+
+	c.attributesClient = &AttributesClient{
+		Client: attributesClient,
+	}
+
+	return c.attributesClient
 }
 
 /*

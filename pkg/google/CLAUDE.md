@@ -47,12 +47,12 @@ The `google` package provides a comprehensive Go client library for Google Works
 ### Key Design Patterns
 
 - **Method Chaining**: Fluent interface for complex queries (especially devices)
+- **Functional Options**: `DriveFileListOpts.With*()` pattern for configurable file listing
 - **Generic Pagination**: Automatic page handling via `doPaginated[T, Q]()`
 - **Multi-Authentication**: Flexible auth supporting different Google auth methods
 - **Rate Limiting**: Per-API configurable limits with automatic throttling
 - **Embedded Resources**: API definitions and scopes in JSON files
 - **Generic Interfaces**: `GoogleAPIResponse[T]` for unified pagination
-- **Builder Pattern**: Query builders for complex API parameters
 - **CICD Mode**: Environment-based credential loading
 
 ### Authentication
@@ -173,6 +173,84 @@ allFiles, err := client.ListDriveFiles(&google.ListDriveFilesRequest{
 // Build file path
 path, err := client.BuildFilePath("file-id")
 ```
+
+#### Resilient File Listing with Functional Options
+For large recursive Drive operations, use functional options for streaming and backup:
+
+```go
+// Stream to Google Sheet with CSV backup (progress automatic)
+headers := &[]string{"id", "name", "path", "mimeType", "size", "owners"}
+result, err := client.Drive().GetFileList(
+    &google.File{ID: "folder-id"},
+    nil, // use default query
+    google.DriveFileListOpts.StreamResults("spreadsheet-id"),
+    google.DriveFileListOpts.SheetName("Drive Audit"),
+    google.DriveFileListOpts.Headers(headers),
+    google.DriveFileListOpts.WithCSV(),  // Saves to temp dir
+)
+
+if err != nil && result != nil && result.Metadata != nil {
+    log.Printf("Errors during operation: %v", result.Metadata.Errors)
+}
+if result != nil && result.Metadata != nil {
+    log.Printf("Found %d files in %d folders", result.Metadata.FilesFound, result.Metadata.FoldersScanned)
+    log.Printf("CSV backup: %s", result.Metadata.CSVBackupPath)
+    log.Printf("Sheet URL: %s", result.Metadata.SheetURL)
+}
+
+// Just CSV backup (no streaming to sheets)
+result, err := client.Drive().GetRootFileList(
+    google.DriveFileListOpts.WithCSV("/custom/path/audit.csv"),
+    google.DriveFileListOpts.Headers(headers),
+)
+
+// Custom query parameters (pass as second argument)
+result, err := client.Drive().GetFileList(
+    sourceFolder,
+    &google.DriveFileQuery{
+        PageSize:          500,
+        Fields:            "files(id,name,mimeType,parents)",
+        SupportsAllDrives: true,
+    },
+    google.DriveFileListOpts.StreamResults(sheetID),
+)
+
+// Memory-efficient mode
+result, err := client.Drive().GetRootFileList(
+    google.DriveFileListOpts.WithCSV(),
+    google.DriveFileListOpts.IgnoreMemory(),    // Don't accumulate files in memory
+    google.DriveFileListOpts.ExcludeFolders(),  // Exclude folders from output
+)
+```
+
+**Available Options:**
+- `DriveFileListOpts.StreamResults(sheetID)`: Stream to Google Sheet
+- `DriveFileListOpts.SheetName(name)`: Custom sheet tab name
+- `DriveFileListOpts.WithCSV(path...)`: Enable CSV backup (optional custom path)
+- `DriveFileListOpts.Headers(headers)`: Custom headers for CSV/Sheet output
+- `DriveFileListOpts.Delegation(client)`: Domain-Wide Delegation client for sheets
+- `DriveFileListOpts.IgnoreMemory()`: Memory-efficient mode (don't accumulate files)
+- `DriveFileListOpts.ExcludeFolders()`: Exclude folders from output
+- `DriveFileListOpts.WithCache(bool)`: Enable/disable caching
+- `DriveFileListOpts.WithProgressBar(bool)`: Enable/disable progress tracker display
+
+**Features:**
+- **Per-folder streaming**: Appends to Sheet after each folder completes (resilient to failures)
+- **CSV backup**: Continuous writes to single file in temp directory
+- **Automatic progress**: Progress bar with files found, current path, elapsed time
+- **Partial success**: Returns results even if some folders fail (check `result.Metadata.Errors`)
+- **Memory management**: `IgnoreMemory()` prevents memory exhaustion for large folder structures
+
+**FileList.Metadata fields:**
+- `Query`: The query parameters used
+- `CSVBackupPath`: Path to CSV backup (empty if not enabled)
+- `SheetURL`: URL to Google Sheet (empty if not streaming)
+- `FilesFound`: Total files collected
+- `FoldersScanned`: Total folders processed
+- `Duration`: Operation duration
+- `PartialSuccess`: True if errors occurred but partial results returned
+- `Errors`: Non-fatal errors encountered
+- `Cached`: True if result was retrieved from cache
 
 #### Sheets Operations
 ```go
@@ -308,6 +386,12 @@ Rate limits are automatically applied based on the operation type.
 - Path building from file ID
 - Batch permission updates
 - Ownership transfer capabilities
+- **Resilient streaming file list** with `DriveFileListOpts` functional options:
+  - Per-folder streaming to Google Sheets (append after each folder)
+  - Continuous CSV backup to temp directory
+  - Automatic progress tracking (progress bar, files found, elapsed time)
+  - Partial success handling for large operations
+  - Memory-efficient mode with `IgnoreMemory()` option
 
 #### Sheets API
 - Automatic struct-to-sheet conversion

@@ -52,6 +52,34 @@ The `okta` package provides a comprehensive Go client library for the Okta API. 
 - **Interface-based Pagination**: `Slice[T]` and `Struct[T]` interfaces for flexible pagination
 - **Dynamic Rate Limiting**: Uses response headers to adjust rate limits automatically
 
+### Code Style Standards
+
+**Function Comments** - Keep comments minimal and follow this pattern:
+```go
+/*
+ * # Brief Title
+ * /api/v1/endpoint/path
+ * - https://developer.okta.com/docs/...
+ */
+func (c *Client) MethodName() {}
+```
+
+For internal/helper functions, use single-line comments:
+```go
+// helperFunc does X
+func (c *Client) helperFunc() {}
+```
+
+**Naming Conventions**:
+- Use "Direct" for non-rule-based operations (e.g., `GetDirectUserGroups`)
+- Use "List" prefix for collection operations
+- Use "Get" prefix for single-item retrieval
+
+**Function Body**:
+- Keep functions concise; avoid verbose inline comments
+- Use short variable names in loops (`g` for group, `u` for user)
+- Reuse existing methods rather than duplicating logic
+
 ## Development Tasks
 
 ### Running Tests
@@ -105,6 +133,12 @@ created, err := client.Users().CreateUser(&okta.User{
 err = client.Users().ActivateUser(userID, sendEmail)
 err = client.Users().DeactivateUser(userID, sendEmail)
 err = client.Users().DeleteUser(userID, sendEmail)
+
+// Get user's groups (all)
+groups, err := client.Users().GetUserGroups(userID)
+
+// Get user's direct groups (excludes rule-managed)
+directGroups, err := client.Users().GetDirectUserGroups(userID)
 ```
 
 #### Device Management

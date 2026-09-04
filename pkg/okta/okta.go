@@ -86,6 +86,24 @@ func (c *Client) GetCache(key string, target interface{}) bool {
 	return true
 }
 
+// clearServiceClients resets all cached service clients
+func (c *Client) clearServiceClients() {
+	c.usersClient = nil
+	c.groupsClient = nil
+	c.applicationsClient = nil
+	c.rolesClient = nil
+	c.devicesClient = nil
+	c.factorsClient = nil
+	c.attributesClient = nil
+}
+
+// ResetRateLimiters clears all cached service clients, forcing fresh rate limiters
+// Note: This does NOT affect the parent Client's HTTP rate limiter
+func (c *Client) ResetRateLimiters() {
+	c.clearServiceClients()
+	c.Log.Println("Rate limiters reset - service clients will be recreated on next access")
+}
+
 /*
   - # Generate Okta Client
   - @param logger *log.Logger
@@ -190,7 +208,7 @@ func do[T any](c *Client, method string, url string, query interface{}, data int
 		return *new(T), err
 	}
 
-	c.Log.Println("Response Status:", res.Status)
+	c.Log.Debug("Response Status:", res.Status)
 	c.Log.Debug("Response Body:", string(body))
 
 	err = json.Unmarshal(body, &result)
@@ -217,7 +235,7 @@ func doPaginated[T Slice[E], E any](c *Client, method, url string, query interfa
 			return nil, err
 		}
 
-		c.Log.Println("Response Status:", res.Status)
+		c.Log.Debug("Response Status:", res.Status)
 		c.Log.Debug("Response Body:", string(body))
 
 		var page []E
@@ -254,7 +272,7 @@ func doPaginatedStruct[T Struct[T]](c *Client, method, url string, query interfa
 			return nil, err
 		}
 
-		c.Log.Println("Response Status:", res.Status)
+		c.Log.Debug("Response Status:", res.Status)
 		c.Log.Debug("Response Body:", string(body))
 
 		var page T

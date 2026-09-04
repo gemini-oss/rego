@@ -310,3 +310,26 @@ func DerefGeneric[E any]() (reflect.Type, bool) {
 func Pointer[T any](val T) *T {
 	return &val
 }
+
+// StringSlice is a []string that unmarshals from either a JSON string or a JSON array of strings.
+// A bare string "value" becomes []string{"value"}; an array ["a","b"] becomes []string{"a","b"}.
+type StringSlice []string
+
+func (s *StringSlice) UnmarshalJSON(data []byte) error {
+	// Try array first
+	var arr []string
+	if err := json.Unmarshal(data, &arr); err == nil {
+		*s = arr
+		return nil
+	}
+
+	// Fall back to single string → single-element slice
+	var str string
+	if err := json.Unmarshal(data, &str); err == nil {
+		*s = []string{str}
+		return nil
+	}
+
+	*s = nil
+	return nil
+}

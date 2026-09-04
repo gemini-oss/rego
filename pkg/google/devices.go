@@ -14,6 +14,9 @@ package google
 
 import (
 	"time"
+
+	"github.com/gemini-oss/rego/pkg/common/ratelimit"
+	"github.com/gemini-oss/rego/pkg/common/requests"
 )
 
 // DeviceClient for chaining methods
@@ -24,20 +27,39 @@ type DeviceClient struct {
 
 // Entry point for device-related operations
 func (c *Client) Devices() *DeviceClient {
-	dc := &DeviceClient{
-		Client: c,
+	// Return cached client if it exists
+	if c.deviceClient != nil {
+		return c.deviceClient
+	}
+
+	// Shallow copy a new client with Device-specific rate limiter
+	// https://developers.google.com/admin-sdk/directory/v1/limits
+	deviceRL := ratelimit.NewRateLimiter(2400, 1*time.Minute)
+	deviceRL.Log.Verbosity = c.Log.Verbosity
+
+	deviceHTTP := requests.NewClient(c.HTTP.GetHTTPClient(), c.HTTP.GetHeaders(), deviceRL)
+	deviceHTTP.BodyType = c.HTTP.BodyType
+
+	deviceClient := &Client{
+		Auth:     c.Auth,
+		BaseURL:  c.BaseURL,
+		OAuth:    c.OAuth,
+		JWT:      c.JWT,
+		HTTP:     deviceHTTP,
+		Error:    c.Error,
+		Log:      c.Log,
+		Cache:    c.Cache,
+		Customer: c.Customer,
+	}
+
+	c.deviceClient = &DeviceClient{
+		Client: deviceClient,
 		DeviceQuery: DeviceQuery{ // Default query parameters
 			MaxResults: 500,
 		},
 	}
 
-	// https://developers.google.com/admin-sdk/directory/v1/limits
-	dc.HTTP.RateLimiter.Available = 2400
-	dc.HTTP.RateLimiter.Limit = 2400
-	dc.HTTP.RateLimiter.Interval = 1 * time.Minute
-	dc.HTTP.RateLimiter.Log.Verbosity = c.Log.Verbosity
-
-	return dc
+	return c.deviceClient
 }
 
 /*

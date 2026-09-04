@@ -92,7 +92,11 @@ func NewClient(options ...any) *Client {
 	for _, option := range options {
 		switch opt := option.(type) {
 		case *http.Client:
-			client.httpClient = opt
+			if opt == nil {
+				client.httpClient = &http.Client{}
+			} else {
+				client.httpClient = opt
+			}
 		case Headers:
 			client.Headers = opt
 		case *rl.RateLimiter:
@@ -105,6 +109,22 @@ func NewClient(options ...any) *Client {
 	}
 
 	return client
+}
+
+// GetHTTPClient returns the underlying http.Client
+// This is useful when creating new requests.Client instances that share the same
+// underlying transport (e.g., for OAuth token refresh)
+func (c *Client) GetHTTPClient() *http.Client {
+	return c.httpClient
+}
+
+// GetHeaders returns a copy of the current headers
+func (c *Client) GetHeaders() Headers {
+	headersCopy := make(Headers, len(c.Headers))
+	for k, v := range c.Headers {
+		headersCopy[k] = v
+	}
+	return headersCopy
 }
 
 // UpdateHeaders changes the headers for the HTTP client

@@ -14,6 +14,9 @@ package okta
 
 import (
 	"time"
+
+	"github.com/gemini-oss/rego/pkg/common/ratelimit"
+	"github.com/gemini-oss/rego/pkg/common/requests"
 )
 
 // FactorsClient for chaining methods
@@ -21,13 +24,35 @@ type FactorsClient struct {
 	*Client
 }
 
-// Entry point for user-related operations
+// Entry point for factor-related operations
 func (c *Client) Factors() *FactorsClient {
-	f := &FactorsClient{
-		Client: c,
+	// Return cached client if it exists
+	if c.factorsClient != nil {
+		return c.factorsClient
 	}
 
-	return f
+	// Shallow copy a new client with Factors-specific rate limiter
+	// https://developer.okta.com/docs/reference/rl-best-practices/
+	factorsRL := ratelimit.NewRateLimiter()
+	factorsRL.ResetHeaders = true
+	factorsRL.Log.Verbosity = c.Log.Verbosity
+
+	factorsHTTP := requests.NewClient(c.HTTP.GetHTTPClient(), c.HTTP.GetHeaders(), factorsRL)
+	factorsHTTP.BodyType = c.HTTP.BodyType
+
+	factorsClient := &Client{
+		BaseURL: c.BaseURL,
+		HTTP:    factorsHTTP,
+		Error:   c.Error,
+		Log:     c.Log,
+		Cache:   c.Cache,
+	}
+
+	c.factorsClient = &FactorsClient{
+		Client: factorsClient,
+	}
+
+	return c.factorsClient
 }
 
 /*

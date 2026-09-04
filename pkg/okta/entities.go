@@ -32,6 +32,16 @@ type Client struct {
 	Error   *Error           // Error is the error response from the last request made by the client.
 	Log     *log.Logger      // Log is the logger used to log messages.
 	Cache   *cache.Cache     // Cache is the cache used to store responses from the Okta API.
+
+	// Cached service clients with their own rate limiters
+	// https://developer.okta.com/docs/reference/rl-best-practices/
+	usersClient        *UsersClient
+	groupsClient       *GroupsClient
+	applicationsClient *ApplicationsClient
+	rolesClient        *RolesClient
+	devicesClient      *DevicesClient
+	factorsClient      *FactorsClient
+	attributesClient   *AttributesClient
 }
 
 type Error struct {
@@ -728,7 +738,9 @@ type UserType struct {
 	Links         *Links    `json:"_links,omitempty"`        // Links related to the user type.
 }
 
-type UserEmbedded interface{}
+type UserEmbedded struct {
+	Groups *Groups `json:"groups,omitempty"` // Groups the user belongs to (populated when expand=groups)
+}
 
 type UserDevices []*UserDevice
 

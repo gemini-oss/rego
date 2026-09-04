@@ -4,7 +4,7 @@
 This package initializes all the methods for functions which interact with the Google Sheets API:
 https://developers.google.com/sheets/api/reference/rest
 
-:Copyright: (c) 2025 by Gemini Software Services, LLC., see AUTHORS for more info
+:Copyright: (c) 2026 by Gemini Software Services, LLC., see AUTHORS for more info
 :License: See the LICENSE file for details
 :Author: Anthony Dardano <anthony.dardano@gemini.com>
 */
@@ -17,6 +17,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/gemini-oss/rego/pkg/common/ratelimit"
+	"github.com/gemini-oss/rego/pkg/common/requests"
 	ss "github.com/gemini-oss/rego/pkg/common/starstruct"
 )
 
@@ -37,17 +39,36 @@ type SheetsClient struct {
 
 // Entry point for sheets-related operations
 func (c *Client) Sheets() *SheetsClient {
-	sc := &SheetsClient{
-		Client: c,
+	// Return cached client if it exists (preserves rate limiter state across calls)
+	if c.sheetsClient != nil {
+		return c.sheetsClient
 	}
 
+	// Create a new HTTP client with Sheets-specific rate limiter
 	// https://developers.google.com/sheets/api/limits
-	sc.HTTP.RateLimiter.Available = 60
-	sc.HTTP.RateLimiter.Limit = 60
-	sc.HTTP.RateLimiter.Interval = 1 * time.Minute
-	sc.HTTP.RateLimiter.Log.Verbosity = c.Log.Verbosity
+	sheetsRL := ratelimit.NewRateLimiter(60, 1*time.Minute)
+	sheetsRL.Log.Verbosity = c.Log.Verbosity
 
-	return sc
+	sheetsHTTP := requests.NewClient(c.HTTP.GetHTTPClient(), c.HTTP.GetHeaders(), sheetsRL)
+	sheetsHTTP.BodyType = c.HTTP.BodyType
+
+	sheetsClient := &Client{
+		Auth:     c.Auth,
+		BaseURL:  c.BaseURL,
+		OAuth:    c.OAuth,
+		JWT:      c.JWT,
+		HTTP:     sheetsHTTP,
+		Error:    c.Error,
+		Log:      c.Log,
+		Cache:    c.Cache,
+		Customer: c.Customer,
+	}
+
+	c.sheetsClient = &SheetsClient{
+		Client: sheetsClient,
+	}
+
+	return c.sheetsClient
 }
 
 /*
@@ -456,4 +477,38 @@ func (c *SheetsClient) ReadSpreadsheetValues(sheetID, rangeNotation string) (*Va
 	}
 
 	return &vr, nil
+}
+
+/*
+ * # Add Sheet
+ * Adds a new sheet to an existing spreadsheet
+ * spreadsheets/{spreadsheetId}:batchUpdate
+ * https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#addsheetrequest
+ */
+func (c *SheetsClient) AddSheet(spreadsheetID string, properties *SheetProperties) (*Sheet, error) {
+	url := fmt.Sprintf("%s/%s:batchUpdate", Sheets, spreadsheetID)
+
+	request := &SheetBatchRequest{
+		Requests: []*SheetRequest{
+			{
+				AddSheet: &AddSheetRequest{
+					Properties: properties,
+				},
+			},
+		},
+	}
+
+	response, err := do[SheetBatchResponse](c.Client, "POST", url, nil, request)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add sheet: %w", err)
+	}
+
+	// Extract the new sheet properties from the response
+	if len(response.Replies) > 0 && response.Replies[0].AddSheet != nil {
+		return &Sheet{
+			Properties: response.Replies[0].AddSheet.Properties,
+		}, nil
+	}
+
+	return nil, nil
 }

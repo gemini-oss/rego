@@ -12,11 +12,16 @@ This package contains many structs for handling responses from the Google API:
 package google
 
 import (
+	"encoding/csv"
 	"fmt"
+	"os"
+	"sync"
+	"time"
 
 	"github.com/gemini-oss/rego/pkg/common/auth"
 	"github.com/gemini-oss/rego/pkg/common/cache"
 	"github.com/gemini-oss/rego/pkg/common/log"
+	"github.com/gemini-oss/rego/pkg/common/progress"
 	"github.com/gemini-oss/rego/pkg/common/requests"
 	"golang.org/x/oauth2/jwt"
 )
@@ -46,6 +51,13 @@ type Client struct {
 	Log      *log.Logger       // Logger
 	Cache    *cache.Cache      // Cache
 	Customer *Customer         // Google Workspace Account
+
+	// Cached service clients with their own rate limiters
+	driveClient       *DriveClient
+	sheetsClient      *SheetsClient
+	adminClient       *AdminClient
+	deviceClient      *DeviceClient
+	permissionsClient *PermissionsClient
 }
 
 // Customer represents a Google Workspace account.
@@ -262,10 +274,82 @@ type RoleReport struct {
 // ---------------------------------------------------------------------
 // https://developers.google.com/drive/api/reference/rest/v3/files/list#response-body
 type FileList struct {
-	Kind             string   `json:"kind,omitempty"`             // drive#fileList
-	IncompleteSearch bool     `json:"incompleteSearch,omitempty"` // Whether the search process was incomplete. If true, then some search results may be missing, since all documents were not searched. This may occur when searching multiple Team Drives with the "default,allTeamDrives" corpora, but all corpora could not be searched. When this happens, it is suggested that clients narrow their query by choosing a different corpus such as "default" or "teamDrive".
-	Files            *[]*File `json:"files,omitempty"`            // The list of files. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
-	NextPageToken    string   `json:"nextPageToken,omitempty"`    // The page token for the next page of files. This will be absent if the end of the files list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results.
+	Kind             string            `json:"kind,omitempty"`             // drive#fileList
+	IncompleteSearch bool              `json:"incompleteSearch,omitempty"` // Whether the search process was incomplete. If true, then some search results may be missing, since all documents were not searched. This may occur when searching multiple Team Drives with the "default,allTeamDrives" corpora, but all corpora could not be searched. When this happens, it is suggested that clients narrow their query by choosing a different corpus such as "default" or "teamDrive".
+	Files            *[]*File          `json:"files,omitempty"`            // The list of files. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
+	NextPageToken    string            `json:"nextPageToken,omitempty"`    // The page token for the next page of files. This will be absent if the end of the files list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results.
+	Metadata         *FileListMetadata `json:"-"`                          // Operation metadata. Populated when Drive().GetFileList() is called with options.
+}
+
+// FileListMetadata contains runtime metadata from file listing operations.
+// Populated in FileList.Metadata when using Drive().GetFileList() with options.
+type FileListMetadata struct {
+	Query          *DriveFileQuery // Query parameters used for the operation
+	CSVBackupPath  string          // Path to CSV backup file (empty if not enabled)
+	SheetURL       string          // URL to sheet (empty if not streaming)
+	FilesFound     int             // Total files collected
+	FoldersScanned int             // Total folders processed
+	Duration       time.Duration   // Total operation duration
+	PartialSuccess bool            // True if errors occurred but partial results returned
+	Errors         []error         // Non-fatal errors encountered during operation
+	Cached         bool            // True if result was retrieved from cache
+}
+
+// FileListOption configures optional behavior for GetFileList operations.
+type FileListOption func(*fileListConfig)
+
+// fileListConfig holds internal state for file list operations with options.
+type fileListConfig struct {
+	// User-configurable options
+	streamEnabled    bool
+	sheetID          string
+	sheetName        string
+	headers          []string
+	csvEnabled       bool
+	csvPath          string
+	ignoreMemory     bool
+	excludeFolders   bool
+	query            *DriveFileQuery
+	delegationClient *Client
+	useCache         bool
+	showProgress     bool
+
+	// Runtime state (populated during execution)
+	csvFile              *os.File
+	csvWriter            *csv.Writer
+	sheetsClient         *SheetsClient
+	progressTracker      *progress.HierarchicalTracker  // For hierarchical queries (with parent filter)
+	indeterminateTracker *progress.IndeterminateTracker // For global queries (no parent filter)
+	headersWritten       bool
+	csvHeadersWritten    bool
+	filesFound           int
+	foldersScanned       int
+	errors               []error
+	mu                   sync.Mutex
+
+	// In-memory caches for path resolution (avoids rego cache overhead)
+	pathCache *sync.Map // fileID -> resolved path (string)
+	fileCache *sync.Map // fileID -> *File
+
+	// Top-level tracking for progress bar
+	topLevelTotal    int
+	topLevelComplete int32 // atomic counter
+
+	// Per-folder statistics tracking
+	folderStats    map[string]*DriveFolderStats
+	folderStatsMu  sync.Mutex
+	lastCheckpoint time.Time
+	checkpointMu   sync.Mutex
+}
+
+// DriveFolderStats tracks statistics for a single folder's processing
+type DriveFolderStats struct {
+	StartTime   time.Time
+	EndTime     time.Time
+	FilesFound  int
+	FolderCount int
+	ErrorCount  int
+	Completed   bool
 }
 
 // https://developers.google.com/drive/api/reference/rest/v3/files#resource:-file
@@ -275,7 +359,7 @@ type File struct {
 	FileExtension                string               `json:"fileExtension,omitempty"`                // The extension of the file. This is populated even when Drive is unable to determine the extension. This field can be cleared by writing a new empty value to this field.
 	CopyRequiresWriterPermission bool                 `json:"copyRequiresWriterPermission,omitempty"` // Whether the file has been created or opened in a Google editor. This field is only populated for files with content stored in Drive; it is not populated for Google Docs or shortcut files.
 	MD5Checksum                  string               `json:"md5Checksum,omitempty"`                  // The MD5 checksum for the content of the file. This is populated only for files with content stored in Drive.
-	ContentHints                 ContentHints         `json:"contentHints,omitempty"`                 // Additional information about the content of the file. These fields are never populated in responses.
+	ContentHints                 ContentHints         `json:"contentHints,omitzero"`                  // Additional information about the content of the file. These fields are never populated in responses.
 	WritersCanShare              bool                 `json:"writersCanShare,omitempty"`              // Whether writers can share the document with other users. Not populated for items in shared drives.
 	ViewedByMe                   bool                 `json:"viewedByMe,omitempty"`                   // Whether the file has been viewed by this user.
 	MimeType                     string               `json:"mimeType,omitempty"`                     // The MIME type of the file. Drive will attempt to automatically detect an appropriate value from uploaded content if no value is provided. The value cannot be changed unless a new revision is uploaded. If a file is created with a Google Doc MIME type, the uploaded content will be imported if possible. The supported import formats are published in the About resource.
@@ -284,10 +368,10 @@ type File struct {
 	ThumbnailLink                string               `json:"thumbnailLink,omitempty"`                // A short-lived link to the file's thumbnail, if available. Typically lasts on the order of hours. Only populated when the requesting app can access the file's content.
 	IconLink                     string               `json:"iconLink,omitempty"`                     // A static, unauthenticated link to the file's icon.
 	Shared                       bool                 `json:"shared,omitempty"`                       // Whether the file has been shared. Not populated for items in shared drives.
-	LastModifyingUser            FileUser             `json:"lastModifyingUser,omitempty"`            // The user who last modified the file.
+	LastModifyingUser            FileUser             `json:"lastModifyingUser,omitzero"`             // The user who last modified the file.
 	Owners                       []FileUser           `json:"owners,omitempty"`                       // The owners of the file. Currently, only certain legacy files may have more than one owner. Not populated for items in shared drives.
 	HeadRevisionID               string               `json:"headRevisionId,omitempty"`               // The ID of the file's head revision. This field is only populated for files with content stored in Drive; it is not populated for Google Docs or shortcut files.
-	SharingUser                  FileUser             `json:"sharingUser,omitempty"`                  // The user who shared the file with the requesting user, if applicable.
+	SharingUser                  FileUser             `json:"sharingUser,omitzero"`                   // The user who shared the file with the requesting user, if applicable.
 	WebViewLink                  string               `json:"webViewLink,omitempty"`                  // A link for opening the file in a relevant Google editor or viewer in a browser.
 	WebContentLink               string               `json:"webContentLink,omitempty"`               // A link for downloading the content of the file in a browser. This is only available for files with binary content in Drive.
 	Size                         string               `json:"size,omitempty"`                         // The size of the file's content in bytes. This is only applicable to files with binary content in Drive.
@@ -316,20 +400,20 @@ type File struct {
 	AppProperties                map[string]string    `json:"appProperties,omitempty"`                // Additional metadata about image media, if available.
 	IsAppAuthorized              bool                 `json:"isAppAuthorized,omitempty"`              // Whether the file has been shared. Not populated for items in shared drives.
 	TeamDriveID                  string               `json:"teamDriveId,omitempty"`                  // The ID of the Team Drive that owns the file. Not populated for items in shared drives.
-	Capabilities                 Capabilities         `json:"capabilities,omitempty"`                 // Capabilities the current user has on this file. Each capability corresponds to a fine-grained action that a user may take.
+	Capabilities                 Capabilities         `json:"capabilities,omitzero"`                  // Capabilities the current user has on this file. Each capability corresponds to a fine-grained action that a user may take.
 	HasAugmentedPermissions      bool                 `json:"hasAugmentedPermissions,omitempty"`      // Whether the options to copy, print, or download this file, should be disabled for readers and commenters.
-	TrashingUser                 FileUser             `json:"trashingUser,omitempty"`                 // The user who trashed the file. Only populated for items in shared drives.
+	TrashingUser                 FileUser             `json:"trashingUser,omitzero"`                  // The user who trashed the file. Only populated for items in shared drives.
 	ThumbnailVersion             string               `json:"thumbnailVersion,omitempty"`             // A monotonically increasing version number for the thumbnail image for this file. This reflects every change made to the thumbnail on the server, including those not visible to the requesting user.
 	TrashedTime                  string               `json:"trashedTime,omitempty"`                  // The time that the item was trashed (RFC 3339 date-time). Only populated for items in shared drives.
 	ModifiedByMe                 bool                 `json:"modifiedByMe,omitempty"`                 // Whether the file has been modified by this user.
 	PermissionIds                []string             `json:"permissionIds,omitempty"`                // A collection of arbitrary key-value pairs which are private to the requesting app. Entries with null values are cleared in update and copy requests.
-	ImageMediaMetadata           ImageMediaMetadata   `json:"imageMediaMetadata,omitempty"`           // Additional metadata about image media, if available.
-	VideoMediaMetadata           VideoMediaMetadata   `json:"videoMediaMetadata,omitempty"`           // Additional metadata about video media. This may not be available immediately upon upload.
-	ShortcutDetails              ShortcutDetails      `json:"shortcutDetails,omitempty"`              // Shortcut file details. Only populated for shortcut files, which have the mimeType field set to application/vnd.google-apps.shortcut.
+	ImageMediaMetadata           ImageMediaMetadata   `json:"imageMediaMetadata,omitzero"`            // Additional metadata about image media, if available.
+	VideoMediaMetadata           VideoMediaMetadata   `json:"videoMediaMetadata,omitzero"`            // Additional metadata about video media. This may not be available immediately upon upload.
+	ShortcutDetails              ShortcutDetails      `json:"shortcutDetails,omitzero"`               // Shortcut file details. Only populated for shortcut files, which have the mimeType field set to application/vnd.google-apps.shortcut.
 	ContentRestrictions          []ContentRestriction `json:"contentRestrictions,omitempty"`          // Restrictions for accessing the content of the file. Only populated if such a restriction exists.
 	ResourceKey                  string               `json:"resourceKey,omitempty"`                  // A key needed to access the item via a shared link.
-	LinkShareMetadata            LinkShareMetadata    `json:"linkShareMetadata,omitempty"`            // Metadata about the shared link.
-	LabelInfo                    LabelInfo            `json:"labelInfo,omitempty"`                    // Additional information about the content of the file. These fields are never populated in responses.
+	LinkShareMetadata            LinkShareMetadata    `json:"linkShareMetadata,omitzero"`             // Metadata about the shared link.
+	LabelInfo                    LabelInfo            `json:"labelInfo,omitzero"`                     // Additional information about the content of the file. These fields are never populated in responses.
 	SHA1Checksum                 string               `json:"sha1Checksum,omitempty"`                 // The SHA1 checksum for the content of the file. It is computed by Drive and guaranteed to be up-to-date at all times. A change in the content of the file will cause a change in its SHA256 checksum.
 	SHA256Checksum               string               `json:"sha256Checksum,omitempty"`               // The SHA256 checksum for the content of the file. It is computed by Drive and guaranteed to be up-to-date at all times. A change in the content of the file will cause a change in its SHA256 checksum.
 	Path                         string               `json:"path,omitempty"`                         // The path of this file. Google Drive doesn't have path concept internally, but we construct a slash-separated path for UX
@@ -382,7 +466,7 @@ type PermissionDetail struct {
 
 type ContentHints struct {
 	IndexableText string    `json:"indexableText,omitempty"` // Text to be indexed for the file to improve fullText queries. This is limited to 128KB in length and may contain HTML elements.
-	Thumbnail     Thumbnail `json:"thumbnail,omitempty"`     // A thumbnail for the file. This will only be used if Drive cannot generate a standard thumbnail.
+	Thumbnail     Thumbnail `json:"thumbnail,omitzero"`      // A thumbnail for the file. This will only be used if Drive cannot generate a standard thumbnail.
 }
 
 type Thumbnail struct {
@@ -439,7 +523,7 @@ type ImageMediaMetadata struct {
 	WhiteBalance     string   `json:"whiteBalance,omitempty"`     // The white balance mode used to create the photo.
 	Width            int      `json:"width,omitempty"`            // The width of the image in pixels.
 	Height           int      `json:"height,omitempty"`           // The height of the image in pixels.
-	Location         Location `json:"location,omitempty"`         // Geographic location information stored in the image.
+	Location         Location `json:"location,omitzero"`          // Geographic location information stored in the image.
 	Rotation         int      `json:"rotation,omitempty"`         // The rotation in clockwise degrees from the image's original orientation.
 	Time             string   `json:"time,omitempty"`             // The date and time the photo was taken (EXIF DateTime).
 	CameraMake       string   `json:"cameraMake,omitempty"`       // The make of the camera used to create the photo.
@@ -1056,6 +1140,32 @@ type SheetBatchRequest struct {
 	ResponseRanges               []string        `json:"responseRanges,omitempty"`               // The ranges that are returned in the response
 }
 
+// SheetBatchResponse represents the response from a spreadsheets.batchUpdate call.
+// https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/batchUpdate#response-body
+type SheetBatchResponse struct {
+	SpreadsheetID      string        `json:"spreadsheetId,omitempty"`      // The spreadsheet the updates were applied to
+	Replies            []*SheetReply `json:"replies,omitempty"`            // The reply of the updates
+	UpdatedSpreadsheet *Spreadsheet  `json:"updatedSpreadsheet,omitempty"` // The spreadsheet after updates (if requested)
+}
+
+// SheetReply represents a single response from a spreadsheet batchUpdate request.
+// https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/response#Response
+type SheetReply struct {
+	AddSheet *AddSheetResponse `json:"addSheet,omitempty"` // Reply from adding a sheet
+}
+
+// AddSheetRequest represents a request to add a new sheet to a spreadsheet.
+// https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#AddSheetRequest
+type AddSheetRequest struct {
+	Properties *SheetProperties `json:"properties,omitempty"` // Properties of the new sheet
+}
+
+// AddSheetResponse represents the result of adding a sheet.
+// https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/response#AddSheetResponse
+type AddSheetResponse struct {
+	Properties *SheetProperties `json:"properties,omitempty"` // Properties of the newly created sheet
+}
+
 // SheetRequest represents a single kind of update to apply to a spreadsheet.
 // https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#Request
 type SheetRequest struct {
@@ -1066,7 +1176,7 @@ type SheetRequest struct {
 	AddFilterView                interface{}                       `json:"addFilterView,omitempty"`                // https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#addfilterviewrequest
 	AddNamedRange                interface{}                       `json:"addNamedRange,omitempty"`                // https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#addnamedrangerequest
 	AddProtectedRange            interface{}                       `json:"addProtectedRange,omitempty"`            // https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#addprotectedrangerequest
-	AddSheet                     interface{}                       `json:"addSheet,omitempty"`                     // https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#addsheetrequest
+	AddSheet                     *AddSheetRequest                  `json:"addSheet,omitempty"`                     // https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#addsheetrequest
 	AddSlicer                    interface{}                       `json:"addSlicer,omitempty"`                    // https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#addslicerrequest
 	AppendCells                  interface{}                       `json:"appendCells,omitempty"`                  // https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#appendcellsrequest
 	AppendDimension              interface{}                       `json:"appendDimension,omitempty"`              // https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#appenddimensionrequest
@@ -1186,7 +1296,7 @@ func (u Users) Map() map[string]*User {
 type User struct {
 	ID                         string         `json:"id,omitempty"`                         // The unique ID for the user. A user id can be used as a user request URI's userKey.
 	PrimaryEmail               string         `json:"primaryEmail,omitempty"`               // The user's primary email address. This property is required in a request to create a user account. The primaryEmail must be unique and cannot be an alias of another user.
-	Password                   Password       `json:"password,omitempty"`                   // Stores the password for the user account. The user's password value is required when creating a user account. It's optional when updating a user and should only be provided if the user is updating their account password. The password value is never returned in the API's response body.
+	Password                   Password       `json:"password,omitzero"`                    // Stores the password for the user account. The user's password value is required when creating a user account. It's optional when updating a user and should only be provided if the user is updating their account password. The password value is never returned in the API's response body.
 	HashFunction               string         `json:"hashFunction,omitempty"`               // Stores the hash format of the password property. The following hashFunction values are allowed: {MD5, SHA-1, crypt}
 	IsAdmin                    bool           `json:"isAdmin,omitempty"`                    // Output only. Indicates a user with super admininistrator privileges
 	IsDelegatedAdmin           bool           `json:"isDelegatedAdmin,omitempty"`           // Output only. Indicates if the user is a delegated administrator.
@@ -1194,7 +1304,7 @@ type User struct {
 	Suspended                  bool           `json:"suspended,omitempty"`                  // Indicates if user is suspended.
 	ChangePasswordAtNextLogin  bool           `json:"changePasswordAtNextLogin,omitempty"`  // Indicates if the user is forced to change their password at next login. This setting doesn't apply when the user signs in via a third-party identity provider.
 	IpWhitelisted              bool           `json:"ipWhitelisted,omitempty"`              // If true, the user's IP address is subject to a deprecated IP address allowlist configuration.
-	Name                       UserName       `json:"name,omitempty"`                       // Holds the given and family names of the user, and the read-only fullName value. The maximum number of characters in the givenName and in the familyName values is 60.
+	Name                       UserName       `json:"name,omitzero"`                        // Holds the given and family names of the user, and the read-only fullName value. The maximum number of characters in the givenName and in the familyName values is 60.
 	Kind                       string         `json:"kind,omitempty"`                       // Output only. The type of the API resource. For Users resources, the value is admin#directory#user.
 	Etag                       string         `json:"etag,omitempty"`                       // Output only. ETag of the resource.
 	Emails                     []Email        `json:"emails,omitempty"`                     // The list of the user's email addresses. The maximum allowed data size is 10KB.
@@ -1213,12 +1323,12 @@ type User struct {
 	CreationTime               string         `json:"creationTime,omitempty"`               // Output only. The time the user's account was created. The value is in ISO 8601 date and time format. The time is the complete date plus hours, minutes, and seconds in the form YYYY-MM-DDThh:mm:ssTZD.
 	NonEditableAliases         []string       `json:"nonEditableAliases,omitempty"`         // Output only. The list of the user's non-editable alias email addresses. These are typically outside the account's primary domain or sub-domain.
 	SSHPublicKeys              []SSHPublicKey `json:"sshPublicKeys,omitempty"`              // A list of SSH public keys
-	Notes                      Note           `json:"notes,omitempty"`                      // Notes for the user as a nested object.
+	Notes                      Note           `json:"notes,omitzero"`                       // Notes for the user as a nested object.
 	Websites                   []Website      `json:"websites,omitempty"`                   // The list of the user's websites
 	Locations                  []UserLocation `json:"locations,omitempty"`                  // The list of the user's locations. The maximum allowed data size is 10KB.
 	IncludeInGlobalAddressList bool           `json:"includeInGlobalAddressList,omitempty"` // Indicates if the user's profile is visible in the Google Workspace global address list when the contact sharing feature is enabled for the domain.
 	DeletionTime               string         `json:"deletionTime,omitempty"`               // Output only. The time the user's account was deleted. The value is in ISO 8601 date and time format. The time is the complete date plus hours, minutes, and seconds in the form YYYY-MM-DDThh:mm:ssTZD.
-	Gender                     Gender         `json:"gender,omitempty"`                     // A nested object containing the user's gender. Maximum allowed data size for this field is 1KB.
+	Gender                     Gender         `json:"gender,omitzero"`                      // A nested object containing the user's gender. Maximum allowed data size for this field is 1KB.
 	ThumbnailPhotoEtag         string         `json:"thumbnailPhotoEtag,omitempty"`         // Output only. ETag of the user's photo (Read-only)
 	IMs                        []IM           `json:"ims,omitempty"`                        // The user's Instant Messenger (IM) accounts. A user account can have multiple ims properties, but only one of these ims properties can be the primary IM contact.
 	IsEnrolledIn2Sv            bool           `json:"isEnrolledIn2Sv,omitempty"`            // Output only. Is enrolled in 2-step verification (Read-only)

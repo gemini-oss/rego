@@ -243,12 +243,13 @@ func getColor(level int) string {
 }
 
 type Logger struct {
-	Color     bool           // enable/disable colorized output
-	prefix    string         // prefix to write at beginning of each log line
-	logger    *log.Logger    // standard logger
-	out       io.WriteCloser // destination for output
-	Verbosity int            // log level {TRACE, DEBUG, INFO, WARNING, ERROR, FATAL, PANIC}
-	fileOnly  bool           // if true, only log to file (no stdout)
+	Color      bool           // enable/disable colorized output
+	prefix     string         // prefix to write at beginning of each log line
+	logger     *log.Logger    // standard logger
+	out        io.WriteCloser // destination for output
+	Verbosity  int            // log level {TRACE, DEBUG, INFO, WARNING, ERROR, FATAL, PANIC}
+	fileOnly   bool           // if true, only log to file (no stdout)
+	fileWriter io.Writer      // reference to file writer for dynamic mode switching
 }
 
 /*
@@ -473,6 +474,21 @@ func (l *Logger) SetOutput(output io.Writer) {
 	l.logger.SetOutput(output)
 }
 
+// SetFileOnly dynamically switches between file-only and stdout+file output modes.
+// When fileOnly is true, logs only go to file; when false, logs go to both stdout and file.
+func (l *Logger) SetFileOnly(fileOnly bool) {
+	l.fileOnly = fileOnly
+	if l.fileWriter == nil {
+		// No file configured, can't switch to file-only mode
+		return
+	}
+	if fileOnly {
+		l.logger.SetOutput(l.fileWriter)
+	} else {
+		l.logger.SetOutput(io.MultiWriter(os.Stdout, l.fileWriter))
+	}
+}
+
 // SetNewFile sets the output destination for the logger to a new file.
 func (l *Logger) SetNewFile(logFilePath string) {
 	LOG_FILE := logFilePath
@@ -482,6 +498,7 @@ func (l *Logger) SetNewFile(logFilePath string) {
 	}
 	// Create a color stripping writer for file output
 	fileWriter := &colorStripWriter{w: logFile}
+	l.fileWriter = fileWriter
 	logOut := io.MultiWriter(os.Stdout, fileWriter)
 	l.logger = log.New(logOut, "", 0)
 	l.out = logFile
@@ -507,6 +524,7 @@ func WithLogFile(filepath string) LogOption {
 		}
 		// Create a color stripping writer for file output
 		fileWriter := &colorStripWriter{w: logFile}
+		l.fileWriter = fileWriter
 		logOut := io.MultiWriter(os.Stdout, fileWriter)
 		l.logger.SetOutput(logOut)
 		l.out = logFile
@@ -522,6 +540,7 @@ func WithRotatingFile(filepath string, maxSizeMB int64, maxBackups int, compress
 		}
 		// Create a color stripping writer for file output
 		fileWriter := &colorStripWriter{w: rotatingFile}
+		l.fileWriter = fileWriter // Store reference for mode switching
 		logOut := io.MultiWriter(os.Stdout, fileWriter)
 		l.logger.SetOutput(logOut)
 		l.out = rotatingFile
@@ -537,6 +556,7 @@ func WithFile(filepath string) LogOption {
 		}
 		// Always strip colors when writing to file only
 		fileWriter := &colorStripWriter{w: logFile}
+		l.fileWriter = fileWriter
 		l.logger.SetOutput(fileWriter)
 		l.out = logFile
 		l.fileOnly = true
@@ -589,6 +609,7 @@ func NewLogger(prefix string, verbosity int, opts ...LogOption) *Logger {
 		}
 		// Create a color stripping writer for file output
 		fileWriter := &colorStripWriter{w: rotatingFile}
+		logger.fileWriter = fileWriter
 		logOut := io.MultiWriter(os.Stdout, fileWriter)
 		logger.logger.SetOutput(logOut)
 		logger.out = rotatingFile

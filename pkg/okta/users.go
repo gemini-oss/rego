@@ -14,6 +14,9 @@ package okta
 
 import (
 	"time"
+
+	"github.com/gemini-oss/rego/pkg/common/ratelimit"
+	"github.com/gemini-oss/rego/pkg/common/requests"
 )
 
 // UsersClient for chaining methods
@@ -23,11 +26,33 @@ type UsersClient struct {
 
 // Entry point for user-related operations
 func (c *Client) Users() *UsersClient {
-	uc := &UsersClient{
-		Client: c,
+	// Return cached client if it exists
+	if c.usersClient != nil {
+		return c.usersClient
 	}
 
-	return uc
+	// Shallow copy a new client with Users-specific rate limiter
+	// https://developer.okta.com/docs/reference/rl-best-practices/
+	usersRL := ratelimit.NewRateLimiter()
+	usersRL.ResetHeaders = true
+	usersRL.Log.Verbosity = c.Log.Verbosity
+
+	usersHTTP := requests.NewClient(c.HTTP.GetHTTPClient(), c.HTTP.GetHeaders(), usersRL)
+	usersHTTP.BodyType = c.HTTP.BodyType
+
+	usersClient := &Client{
+		BaseURL: c.BaseURL,
+		HTTP:    usersHTTP,
+		Error:   c.Error,
+		Log:     c.Log,
+		Cache:   c.Cache,
+	}
+
+	c.usersClient = &UsersClient{
+		Client: usersClient,
+	}
+
+	return c.usersClient
 }
 
 /*
@@ -41,6 +66,7 @@ type UserQuery struct {
 	Search    string // A SCIM filter expression for most properties. Okta recommends using this parameter for search for best performance
 	SortBy    string // Specifies the attribute by which to sort the results. Valid values are `id`, `created`, `activated`, `status`, and `lastUpdated`. The default is `id`
 	SoftOrder string // Sorting is done in ASCII sort order (that is, by ASCII character value), but isn't case sensitive
+	Expand    string `url:"expand,omitempty"` // An optional parameter to return embedded Groups in the `_embedded` property. Valid value: `groups`
 }
 
 /*
@@ -110,7 +136,11 @@ func (c *UsersClient) GetUser(userID string) (*User, error) {
 		return &cache, nil
 	}
 
-	user, err := do[User](c.Client, "GET", url, nil, nil)
+	q := &UserQuery{
+		Expand: "groups",
+	}
+
+	user, err := do[User](c.Client, "GET", url, q, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -143,6 +173,42 @@ func (c *UsersClient) UpdateUser(userID string, u *User) (*User, error) {
  */
 func (c *UsersClient) DeactivateUser(userID string) error {
 	url := c.BuildURL(OktaUsers, userID, "lifecycle", "deactivate")
+
+	_, err := do[any](c.Client, "POST", url, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/*
+ * # Suspend a User
+ * Suspends a user. This operation can only be performed on users with an ACTIVE status.
+ * The user's status changes to SUSPENDED when the process is complete.
+ * /api/v1/users/{userId}/lifecycle/suspend
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/suspendUser
+ */
+func (c *UsersClient) SuspendUser(userID string) error {
+	url := c.BuildURL(OktaUsers, userID, "lifecycle", "suspend")
+
+	_, err := do[any](c.Client, "POST", url, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/*
+ * # Unsuspend a User
+ * Unsuspends a user and returns them to the ACTIVE state.
+ * This operation can only be performed on users with a SUSPENDED status.
+ * /api/v1/users/{userId}/lifecycle/unsuspend
+ * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/unsuspendUser
+ */
+func (c *UsersClient) UnsuspendUser(userID string) error {
+	url := c.BuildURL(OktaUsers, userID, "lifecycle", "unsuspend")
 
 	_, err := do[any](c.Client, "POST", url, nil, nil)
 	if err != nil {
@@ -197,6 +263,31 @@ func (c *UsersClient) GetUserGroups(userID string) (*Groups, error) {
 }
 
 /*
+ * # List Direct (non-rule) Groups for a User
+ * Filters out groups managed by active group rules
+ */
+func (c *UsersClient) GetDirectUserGroups(userID string) (*Groups, error) {
+	allGroups, err := c.GetUserGroups(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	ruleManaged, err := c.Groups().getRuleManagedGroupIDs()
+	if err != nil {
+		return nil, err
+	}
+
+	direct := make(Groups, 0)
+	for _, g := range *allGroups {
+		if _, ok := ruleManaged[g.ID]; !ok {
+			direct = append(direct, g)
+		}
+	}
+
+	return &direct, nil
+}
+
+/*
  * # List all Devices for a User
  * /api/v1/users/{userId}/devices
  * - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/UserResources/#tag/UserResources/operation/listUserDevices
@@ -221,12 +312,20 @@ func (c *UsersClient) GetUserDevices(userID string) (*UserDevices, error) {
 /*
 - # Revoke User Sessions
 - /api/v1/users/{userId}/sessions
-- - https://developer.okta.com/docs/api/openapi/okta-management/management/tag/User/#tag/User/operation/revokeUserSessions
+- https://developer.okta.com/docs/api/openapi/okta-management/management/tag/UserSessions/#tag/UserSessions/operation/revokeUserSessions
 */
 func (c *UsersClient) RevokeUserSessions(userID string) error {
 	url := c.BuildURL(OktaUsers, userID, "sessions")
 
-	_, err := do[any](c.Client, "DELETE", url, nil, nil)
+	q := struct {
+		OAuthTokens   bool `url:"oauthTokens"`
+		ForgetDevices bool `url:"forgetDevices"`
+	}{
+		OAuthTokens:   true,
+		ForgetDevices: true,
+	}
+
+	_, err := do[any](c.Client, "DELETE", url, q, nil)
 	if err != nil {
 		return err
 	}

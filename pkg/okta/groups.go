@@ -14,6 +14,9 @@ package okta
 
 import (
 	"time"
+
+	"github.com/gemini-oss/rego/pkg/common/ratelimit"
+	"github.com/gemini-oss/rego/pkg/common/requests"
 )
 
 // GroupsClient for chaining methods
@@ -23,11 +26,33 @@ type GroupsClient struct {
 
 // Entry point for group-related operations
 func (c *Client) Groups() *GroupsClient {
-	gc := &GroupsClient{
-		Client: c,
+	// Return cached client if it exists
+	if c.groupsClient != nil {
+		return c.groupsClient
 	}
 
-	return gc
+	// Shallow copy a new client with Groups-specific rate limiter
+	// https://developer.okta.com/docs/reference/rl-best-practices/
+	groupsRL := ratelimit.NewRateLimiter()
+	groupsRL.ResetHeaders = true
+	groupsRL.Log.Verbosity = c.Log.Verbosity
+
+	groupsHTTP := requests.NewClient(c.HTTP.GetHTTPClient(), c.HTTP.GetHeaders(), groupsRL)
+	groupsHTTP.BodyType = c.HTTP.BodyType
+
+	groupsClient := &Client{
+		BaseURL: c.BaseURL,
+		HTTP:    groupsHTTP,
+		Error:   c.Error,
+		Log:     c.Log,
+		Cache:   c.Cache,
+	}
+
+	c.groupsClient = &GroupsClient{
+		Client: groupsClient,
+	}
+
+	return c.groupsClient
 }
 
 /*
@@ -167,10 +192,34 @@ func (c *GroupsClient) AssignUserToGroup(groupID string, userID string) error {
 func (c *GroupsClient) RemoveUserFromGroup(groupID string, userID string) error {
 	url := c.BuildURL(OktaGroups, groupID, "users", userID)
 
-	_, err := do[interface{}](c.Client, "DELETE", url, nil, nil)
+	_, err := do[any](c.Client, "DELETE", url, nil, nil)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+/*
+ * # Get Rule-Managed Group IDs
+ * Returns a set of group IDs that are targets of ACTIVE group rules.
+ * Used internally to determine which groups have rule-based membership.
+ */
+func (c *GroupsClient) getRuleManagedGroupIDs() (map[string]struct{}, error) {
+	rules, err := c.ListAllGroupRules()
+	if err != nil {
+		return nil, err
+	}
+
+	ruleManagedIDs := make(map[string]struct{})
+	for _, rule := range *rules {
+		if rule.Status != "ACTIVE" {
+			continue
+		}
+		for _, groupID := range rule.Actions.AssignUserToGroups.GroupIDs {
+			ruleManagedIDs[groupID] = struct{}{}
+		}
+	}
+
+	return ruleManagedIDs, nil
 }
